@@ -1,0 +1,111 @@
+@use "sass:color";
+@use "../../../../../styles/variables" as vars;
+
+.questions-banner {
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(239, 244, 255, 0.95) 0%,
+      rgba(239, 244, 255, 0.8) 50%,
+      rgba(239, 244, 255, 0) 100%
+    ),
+    url("/assets/images/support/questions.png");
+  background-size: contain;
+  background-position: right;
+  background-repeat: no-repeat;
+  border-radius: 20px;
+  padding: 60px 48px;
+  height: 560px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.05);
+
+  @media (max-width: 768px) {
+    background-image: linear-gradient(
+      180deg,
+      rgba(239, 244, 255, 0.95) 0%,
+      rgba(239, 244, 255, 0.85) 100%
+    );
+    padding: 40px 24px;
+    min-height: auto;
+  }
+}
+
+.banner-content {
+  max-width: 480px;
+}
+
+.banner-title {
+  font-family: vars.$font-family-display; /* Hanken Grotesk */
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 48px;
+  color: vars.$color-primary;
+  margin: 0 0 12px;
+  letter-spacing: -0.4px;
+}
+
+.banner-desc {
+  font-family: vars.$font-family-base; /* Inter */
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 16px;
+  leading-trim: NONE;
+  line-height: 24px;
+  letter-spacing: 0px;
+  vertical-align: middle;
+  color: #3f475a;
+  margin-bottom: 24px;
+}
+
+.btn-message {
+  background-color: vars.$color-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12.5px 32px;
+  angle: 0 deg;
+  opacity: 1;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+
+  &:hover {
+    background-color: color.adjust(vars.$color-primary, $lightness: -5%);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.btn-community {
+  background-color: white;
+  color: vars.$color-primary;
+  border: 1px solid vars.$color-primary;
+  border-radius: 10px;
+  padding: 12px 32px;
+  angle: 0 deg;
+  opacity: 1;
+  border-radius: 9999px;
+  border-width: 1px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
+
+  &:hover {
+    background-color: rgba(0, 74, 198, 0.05);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

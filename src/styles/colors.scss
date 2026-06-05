@@ -1,0 +1,15 @@
+@forward "variables";
+@use "variables" as *;
+
+$primary-colors: (
+  primary: $color-primary,
+);
+
+$background-colors: (
+  primary: $color-background-primary,
+  secondary: $color-background-secondary,
+);
+
+$accent-colors: (
+  light: $color-accent-light,
+);

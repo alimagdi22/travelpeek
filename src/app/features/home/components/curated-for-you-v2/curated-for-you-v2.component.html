@@ -1,0 +1,32 @@
+<section class="curated-for-you-v2-section">
+  <div class="container px-4">
+    <!-- Header with title and View All link -->
+    <div class="row align-items-center justify-content-between mb-4">
+      <div class="col-auto">
+        <h2 class="section-title-v2">Curated for you</h2>
+      </div>
+      <div class="col-auto">
+        <a href="#" class="view-all-link-v2">View all &rsaquo;</a>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="row g-4">
+      <div *ngFor="let dest of destinations" class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+        <div class="destination-card-v2 position-relative overflow-hidden rounded-4">
+          <!-- Card Background Image -->
+          <img [src]="dest.image" [alt]="dest.name" class="card-bg-v2" />
+
+          <!-- Price Tag Badge (Top Right) -->
+          <div class="price-tag-v2">{{ dest.price }}</div>
+
+          <!-- Gradient Overlay -->
+          <div class="card-overlay-v2 d-flex flex-column justify-content-end p-4">
+            <h3 class="destination-name-v2 mb-1">{{ dest.name }}</h3>
+            <p class="destination-meta-v2 mb-0">{{ dest.country }} &bull; {{ dest.dates }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

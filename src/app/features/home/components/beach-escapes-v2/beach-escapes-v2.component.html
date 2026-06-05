@@ -1,0 +1,38 @@
+<section class="beach-escapes-v2-section">
+  <div class="container px-4">
+    <!-- Header with title and See All link -->
+    <div class="row align-items-center justify-content-between mb-4">
+      <div class="col-auto">
+        <h2 class="section-title-v2 mb-0">Beach Escapes</h2>
+      </div>
+      <div class="col-auto">
+        <a href="#" class="view-all-link-v2">See all &rsaquo;</a>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="row g-4">
+      <div *ngFor="let escape of escapes" class="col-lg-6 col-md-12">
+        <div class="escape-card-v2 position-relative overflow-hidden rounded-4">
+          <!-- Card Background Image -->
+          <img [src]="escape.image" [alt]="escape.name" class="card-bg-v2" />
+
+          <!-- Gradient Overlay & Content Row -->
+          <div class="card-overlay-v2 d-flex align-items-end justify-content-between p-4 p-md-5">
+            <!-- Left Info -->
+            <div class="escape-info-v2 text-white">
+              <h3 class="escape-name-v2 mb-2">{{ escape.name }}</h3>
+              <p class="escape-desc-v2 mb-0">{{ escape.description }}</p>
+            </div>
+
+            <!-- Right Price Card Overlay -->
+            <div class="price-overlay-card-v2 d-flex flex-column align-items-center justify-content-center p-3 text-center">
+              <span class="starting-label-v2 mb-1">Starting at</span>
+              <span class="price-val-v2">{{ escape.price }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

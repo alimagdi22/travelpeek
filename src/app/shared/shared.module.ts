@@ -1,0 +1,56 @@
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatOptionModule } from '@angular/material/core';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatTabsModule } from '@angular/material/tabs';
+import { TranslateModule } from '@ngx-translate/core';
+import { RpTravelUiModule } from 'rp-travel-ui';
+import { HeaderComponent } from './components/header/header.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { RouterModule } from '@angular/router';
+const AngularMaterialModules = [
+  MatProgressSpinnerModule,
+  MatIconModule,
+  MatExpansionModule,
+  MatTabsModule,
+  MatSliderModule,
+  MatCheckboxModule,
+  MatAutocompleteModule,
+  MatOptionModule,
+  MatInputModule,
+  MatPaginatorModule,
+  MatButtonModule,
+  MatProgressBarModule,
+];
+
+const SharedComponents = [HeaderComponent, FooterComponent];
+// const SharedDirectives = [];
+// const SharedPipes = [];
+
+@NgModule({
+  declarations: [...SharedComponents],
+  imports: [
+    CommonModule,
+    ...AngularMaterialModules,
+    TranslateModule,
+    RpTravelUiModule,
+    RouterModule,
+  ],
+  exports: [
+    ...SharedComponents,
+    ...AngularMaterialModules,
+    TranslateModule,
+    RpTravelUiModule,
+    RouterModule,
+  ],
+})
+export class SharedModule {}

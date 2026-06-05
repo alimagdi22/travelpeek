@@ -1,0 +1,63 @@
+@use "sass:color";
+@use "../../../../styles/variables" as vars;
+
+.footer {
+  background-color: vars.$color-background-secondary;
+  border-top: 1px solid #f0f0f0;
+  padding: 0;
+  user-select: none;
+
+  .container-fluid,
+  .row {
+    height: 100%;
+  }
+}
+
+.brand {
+  .logo-text {
+    font-family: vars.$font-family-display; /* Hanken Grotesk for logo */
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 31.2px;
+    letter-spacing: 0px;
+    color: #0b1a30; /* Very dark navy blue matching image */
+    vertical-align: middle;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}
+
+.footer-link {
+  font-family: vars.$font-family-base; /* Inter */
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  color: #6c757d; /* Mid grey matching image */
+  text-decoration: none;
+  vertical-align: middle;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: vars.$color-primary;
+  }
+
+  &.active {
+    color: vars.$color-primary;
+    font-weight: 600;
+  }
+}
+
+.copyright {
+  font-family: vars.$font-family-base; /* Inter */
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  color: #6c757d; /* Mid grey matching image */
+  vertical-align: middle;
+}

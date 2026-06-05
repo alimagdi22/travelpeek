@@ -1,0 +1,64 @@
+@use "sass:color";
+@use "../../../../../styles/variables" as vars;
+
+.section-title {
+  font-family: vars.$font-family-base;
+  font-weight: 700;
+  font-size: 20px;
+  color: #0b1a30;
+  margin: 0 0 24px;
+}
+
+.topic-card {
+  background-color: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 16px;
+  padding: 24px;
+  height: 100%;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba(0, 74, 198, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 74, 198, 0.04);
+  }
+}
+
+.icon-box {
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.topic-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.topic-name {
+  font-family: vars.$font-family-base;
+  font-weight: 600;
+  font-style: SemiBold;
+  font-size: 24px;
+  leading-trim: NONE;
+  line-height: 31.2px;
+  letter-spacing: 0px;
+  color: #0b1a30;
+  margin: 0 0 6px;
+  font-family: Hanken Grotesk;
+  vertical-align: middle;
+}
+
+.topic-desc {
+  font-family: vars.$font-family-base;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 16px;
+  leading-trim: NONE;
+  line-height: 24px;
+  letter-spacing: 0px;
+  color: #6c757d;
+  margin: 0;
+  vertical-align: middle;
+}

@@ -1,0 +1,34 @@
+<section class="newsletter-section py-5">
+  <div class="container px-4">
+    <div class="newsletter-card d-flex flex-column align-items-center text-center p-5 rounded-4">
+      <!-- Circular Mail Icon -->
+      <div class="mail-icon-circle d-flex align-items-center justify-content-center mb-3">
+        <img src="/assets/icons/home/contact/email.svg" class="mail-svg" alt="Mail Icon" />
+      </div>
+
+      <!-- Typography -->
+      <h2 class="newsletter-title mb-2">Never miss a hidden gem</h2>
+      <p class="newsletter-subtitle mb-4">
+        Get Peek's personalized travel insights and secret destination alerts directly to your inbox.
+      </p>
+
+      <!-- Form -->
+      <div class="form-container w-100">
+        <form class="newsletter-form d-flex align-items-center justify-content-center gap-2 mx-auto" (submit)="onSubmit(emailInput.value); emailInput.value = ''; $event.preventDefault();">
+          <input 
+            #emailInput 
+            type="email" 
+            class="newsletter-input" 
+            placeholder="Enter your email" 
+            required />
+          <button type="submit" class="btn-subscribe">Subscribe</button>
+        </form>
+      </div>
+
+      <!-- Privacy policy meta -->
+      <p class="privacy-note mt-3 mb-0">
+        By subscribing, you agree to our <a routerLink="/legal/privacy-policy" class="privacy-link">Privacy Policy</a>.
+      </p>
+    </div>
+  </div>
+</section>

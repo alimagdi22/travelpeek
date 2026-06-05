@@ -1,0 +1,116 @@
+@use "sass:color";
+@use "../../../../../styles/variables" as vars;
+
+.newsletter-section {
+  background-color: #ffffff;
+  padding: 40px 0 80px;
+}
+
+.newsletter-card {
+  background-color: vars.$color-background-secondary; /* Soft pastel blue #eff4ff */
+  border: 1px solid rgba(0, 74, 198, 0.05);
+  box-shadow: 0 4px 20px rgba(11, 26, 48, 0.01);
+}
+
+.mail-icon-circle {
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 74, 198, 0.04);
+
+  .mail-svg {
+    width: 58px;
+    height: 55px;
+  }
+}
+
+.newsletter-title {
+  font-family: vars.$font-family-display;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 40px;
+  leading-trim: NONE;
+  line-height: 48px;
+  letter-spacing: -0.4px;
+  text-align: center;
+  vertical-align: middle;
+  color: #0b1a30;
+}
+
+.newsletter-subtitle {
+  font-family: vars.$font-family-base;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #6c757d;
+  max-width: 520px;
+}
+
+.newsletter-form {
+  max-width: 500px;
+  width: 100%;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.newsletter-input {
+  font-family: vars.$font-family-base;
+  font-size: 14px;
+  color: #0b1a30;
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  border-radius: 8px;
+  padding: 12px 20px;
+  flex: 1;
+  transition: all 0.2s ease;
+  outline: none;
+
+  &::placeholder {
+    color: #a0aabf;
+  }
+
+  &:focus {
+    border-color: vars.$color-primary;
+    box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.08);
+  }
+}
+
+.btn-subscribe {
+  background-color: vars.$color-primary;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-family: vars.$font-family-base;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: color.adjust(vars.$color-primary, $lightness: -5%);
+    box-shadow: 0 4px 12px rgba(vars.$color-primary, 0.15);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.privacy-note {
+  font-family: vars.$font-family-base;
+  font-size: 12px;
+  color: #8b96ad;
+}
+
+.privacy-link {
+  color: #8b96ad;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: vars.$color-primary;
+  }
+}

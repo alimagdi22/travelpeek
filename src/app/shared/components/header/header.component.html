@@ -1,0 +1,50 @@
+<header class="header">
+  <div class="container-fluid px-4">
+    <div class="row align-items-center">
+      <!-- Brand Logo -->
+      <div class="col-auto">
+        <div class="brand" (click)="navigateHome()">
+          <span class="logo-text">Peek</span>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="col">
+        <nav class="nav-menu d-flex align-items-center gap-4 ms-5">
+          <a routerLink="/" [class.active]="isExploreActive" class="nav-item"
+            >Explore</a
+          >
+          <a
+            routerLink="/my-trips"
+            [class.active]="isMyTripsActive"
+            class="nav-item"
+            >My Trips</a
+          >
+          <a
+            routerLink="/support"
+            [class.active]="isSupportActive"
+            class="nav-item"
+            >Support</a
+          >
+        </nav>
+      </div>
+
+      <!-- Actions (Right Aligned) -->
+      <div class="col-auto">
+        <div class="header-actions d-flex align-items-center gap-4">
+          <span class="currency-selector">AED</span>
+          @if (profileService.isLoading) {
+            <mat-spinner />
+          } @else if (!profileService.isLoading && successLogin) {
+            <span class="currency-selector"
+              >{{ profileService.user.firstName }}
+              {{ profileService.user.lastName }}</span
+            >
+          } @else {
+            <button class="btn-login" routerLink="/login">Login</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

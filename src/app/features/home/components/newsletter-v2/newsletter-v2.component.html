@@ -1,0 +1,31 @@
+<section class="newsletter-v2-section">
+  <div class="container px-4">
+    <div class="newsletter-card-v2 d-flex flex-column align-items-center text-center p-5 rounded-4">
+      <!-- Title -->
+      <h2 class="newsletter-title-v2 mb-2">Never miss a hidden gem.</h2>
+
+      <!-- Subtitle -->
+      <p class="newsletter-subtitle-v2 mb-4">
+        Join 50,000+ travelers getting hand-picked flight deals and secret destination guides twice a week.
+      </p>
+
+      <!-- Form Container -->
+      <div class="form-container-v2 w-100">
+        <form class="newsletter-form-v2 d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2 mx-auto" (submit)="onSubmit(emailInput.value); emailInput.value = ''; $event.preventDefault();">
+          <input 
+            #emailInput 
+            type="email" 
+            class="newsletter-input-v2" 
+            placeholder="Enter your email" 
+            required />
+          <button type="submit" class="btn-subscribe-v2">Subscribe</button>
+        </form>
+      </div>
+
+      <!-- Disclaimer under it -->
+      <p class="disclaimer-text-v2 mt-4 mb-0">
+        No spam. Ever. Unsubscribe anytime.
+      </p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,123 @@
+@use 'sass:color';
+@use '../../../../../styles/variables' as vars;
+
+.quick-links-card {
+  background-color: vars.$color-background-primary;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(0, 74, 198, 0.05);
+}
+
+.card-title {
+  font-family: vars.$font-family-base;
+  font-weight: 700;
+  font-size: 18px;
+  color: vars.$color-primary;
+  margin: 0 0 16px;
+}
+
+.links-list {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 74, 198, 0.05);
+  overflow: hidden;
+}
+
+.quick-link-item {
+  padding: 16px 20px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #f8f9ff;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #fafbfc;
+    
+    .link-text {
+      color: vars.$color-primary;
+    }
+  }
+}
+
+.link-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.link-text {
+  font-family: vars.$font-family-base;
+  font-weight: 600;
+  font-size: 14px;
+  color: #333333;
+  transition: color 0.2s ease;
+}
+
+.chevron {
+  font-size: 20px;
+  font-weight: 600;
+  color: #b0b8c9;
+}
+
+/* Concierge Card style */
+.concierge-card {
+  background-color: vars.$color-primary;
+  border-radius: 16px;
+  padding: 28px 24px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-shadow: 0 12px 30px rgba(0, 74, 198, 0.15);
+}
+
+.concierge-icon-container {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+}
+
+.concierge-svg {
+  width: 22px;
+  height: 22px;
+}
+
+.concierge-title {
+  font-family: vars.$font-family-base;
+  font-weight: 700;
+  font-size: 18px;
+  margin: 0 0 10px;
+}
+
+.concierge-desc {
+  font-family: vars.$font-family-base;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 20px;
+}
+
+.btn-concierge-action {
+  background-color: #ffffff;
+  color: vars.$color-primary;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background-color: #f8f9ff;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

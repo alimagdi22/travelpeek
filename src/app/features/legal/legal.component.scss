@@ -1,0 +1,130 @@
+@use "sass:color";
+@use "../../../styles/variables" as vars;
+
+.legal-main {
+  background-color: vars.$color-background-primary;
+  min-height: calc(100vh - 128px); /* Full page minus header and footer */
+}
+
+.legal-sidebar {
+  user-select: none;
+}
+
+.sidebar-nav-block {
+  padding: 8px 0;
+}
+
+.sidebar-meta-title {
+  font-family: vars.$font-family-base;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #8b96ad;
+  text-transform: uppercase;
+}
+
+.sidebar-nav-link {
+  font-family: vars.$font-family-base;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5c6479;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+  left: -12px; /* Pull left to align text visually with parent header */
+
+  &:hover {
+    color: vars.$color-primary;
+    background-color: rgba(0, 74, 198, 0.03);
+  }
+
+  &.active {
+    color: vars.$color-primary;
+    font-weight: 700;
+    background-color: rgba(0, 74, 198, 0.05);
+
+    .active-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+.active-dot {
+  width: 5px;
+  height: 5px;
+  background-color: vars.$color-primary;
+  border-radius: 50%;
+  margin-right: 8px;
+  opacity: 0;
+  transform: scale(0);
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+  display: inline-block;
+}
+
+/* Need Help? Card */
+.need-help-card {
+  background-color: vars.$color-background-secondary;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid rgba(0, 74, 198, 0.05);
+}
+
+.info-icon-container {
+  border-radius: 50%;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 74, 198, 0.04);
+}
+
+.info-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.help-title {
+  font-family: vars.$font-family-base;
+  font-weight: 700;
+  font-size: 15px;
+  color: #0b1a30;
+  margin: 0 0 4px;
+}
+
+.help-desc {
+  font-family: vars.$font-family-base;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6c757d;
+  margin-bottom: 12px;
+}
+
+.help-link {
+  font-family: vars.$font-family-base;
+  font-weight: 700;
+  font-size: 13px;
+  color: vars.$color-primary;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-bottom-color: vars.$color-primary;
+  }
+}
+
+/* Main white document card */
+.legal-content-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f0f0f0;
+  padding: 48px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+
+  @media (max-width: 768px) {
+    padding: 24px;
+  }
+}

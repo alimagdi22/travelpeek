@@ -1,0 +1,25 @@
+<section class="hidden-gems-v2-section">
+  <div class="container px-4">
+    <!-- Header with title and Trending Badge -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <h2 class="section-title-v2 mb-0">Hidden Gems</h2>
+      <span class="trending-badge-v2">Trending</span>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="row g-4">
+      <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12">
+        <div class="gem-card-v2 position-relative overflow-hidden rounded-4">
+          <!-- Card Background Image -->
+          <img [src]="gem.image" [alt]="gem.name" class="card-bg-v2" />
+
+          <!-- Gradient Overlay -->
+          <div class="card-overlay-v2 d-flex flex-column justify-content-end">
+            <h3 class="gem-name-v2 mb-1">{{ gem.name }}</h3>
+            <p class="gem-tagline-v2 mb-0">{{ gem.icon }} {{ gem.tagline }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

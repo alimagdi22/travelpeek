@@ -1,0 +1,51 @@
+<main class="legal-main py-5">
+  <div class="container">
+    <div class="row g-4">
+      <!-- Legal Center Sidebar -->
+      <aside class="col-lg-3 col-md-4">
+        <div class="legal-sidebar d-flex flex-column gap-4">
+          <!-- Navigation list -->
+          <div class="sidebar-nav-block">
+            <span class="sidebar-meta-title">LEGAL CENTER</span>
+            
+            <nav class="sidebar-nav d-flex flex-column gap-2 mt-3">
+              <a routerLink="/legal/terms-of-service" routerLinkActive="active" class="sidebar-nav-link d-flex align-items-center">
+                <span class="active-dot"></span>
+                Terms of Service
+              </a>
+              <a routerLink="/legal/privacy-policy" routerLinkActive="active" class="sidebar-nav-link d-flex align-items-center">
+                <span class="active-dot"></span>
+                Privacy Policy
+              </a>
+              <a routerLink="/legal/cookie-policy" routerLinkActive="active" class="sidebar-nav-link d-flex align-items-center">
+                <span class="active-dot"></span>
+                Cookie Policy
+              </a>
+              <a routerLink="/legal/user-agreement" routerLinkActive="active" class="sidebar-nav-link d-flex align-items-center">
+                <span class="active-dot"></span>
+                User Agreement
+              </a>
+            </nav>
+          </div>
+
+          <!-- Need Help? Card -->
+          <div class="need-help-card d-flex flex-column align-items-start">
+            <div class="info-icon-container d-flex align-items-center justify-content-center">
+              <img src="/assets/icons/privacy/need-help.svg" class="info-svg" alt="Info Icon" />
+            </div>
+            <h4 class="help-title">Need help?</h4>
+            <p class="help-desc">Contact our support team for any legal questions.</p>
+            <a routerLink="/support" class="help-link">Go to Help Center</a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Legal Document Area -->
+      <section class="col-lg-9 col-md-8">
+        <div class="legal-content-card">
+          <router-outlet></router-outlet>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>

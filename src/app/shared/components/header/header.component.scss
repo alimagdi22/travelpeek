@@ -1,0 +1,102 @@
+@use "sass:color";
+@use "../../../../styles/variables" as vars;
+
+.header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  height: 64px;
+  font-family: vars.$font-family-base;
+  user-select: none;
+
+  .container-fluid,
+  .row {
+    height: 100%;
+  }
+}
+
+.brand {
+  .logo-text {
+    font-family: vars.$font-family-display;
+    font-size: 24px;
+    font-weight: 800;
+    color: vars.$color-primary;
+    letter-spacing: -0.8px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+}
+
+.nav-menu {
+  height: 64px;
+}
+
+.nav-item {
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 16px;
+  leading-trim: NONE;
+  line-height: 24px;
+  letter-spacing: 0px;
+  color: #6c757d;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  box-sizing: border-box;
+  border-bottom: 3px solid transparent;
+  margin-top: 3px;
+
+  &:hover {
+    color: vars.$color-primary;
+  }
+
+  &.active {
+    color: vars.$color-primary;
+    border-bottom-color: vars.$color-primary;
+  }
+}
+
+.currency-selector {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c757d;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: vars.$color-primary;
+  }
+}
+
+.btn-login {
+  background-color: vars.$color-primary;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    background-color: color.adjust(vars.$color-primary, $lightness: -5%);
+    box-shadow: 0 4px 12px rgba(vars.$color-primary, 0.15);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}

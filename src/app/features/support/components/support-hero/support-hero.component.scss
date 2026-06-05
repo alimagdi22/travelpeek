@@ -1,0 +1,83 @@
+@use "sass:color";
+@use "../../../../../styles/variables" as vars;
+
+.support-hero {
+  background: radial-gradient(
+    92.13% 374.59% at 10% 20%,
+    rgba(0, 74, 198, 0.03) 0%,
+    #b0c7ef
+  );
+  padding: 68px 0 44px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.hero-title {
+  font-family: vars.$font-family-display; /* Hanken Grotesk */
+  font-weight: 800;
+  font-size: 44px;
+  color: #0b1a30;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+
+  @media (max-width: 768px) {
+    font-size: 32px;
+  }
+}
+
+.hero-subtitle {
+  font-family: vars.$font-family-base; /* Inter */
+  font-weight: 400;
+  font-size: 18px;
+  color: #5c6479;
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+}
+
+.search-container {
+  width: 100%;
+  max-width: 620px;
+}
+
+.search-bar {
+  background: #ffffff;
+  border: 1px solid rgba(0, 74, 198, 0.15);
+  border-radius: 100px;
+  padding: 6px 6px 6px 20px;
+  box-shadow: 0 10px 25px rgba(0, 74, 198, 0.06);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:focus-within {
+    border-color: vars.$color-primary;
+    box-shadow: 0 10px 25px rgba(0, 74, 198, 0.12);
+  }
+}
+
+.search-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.search-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: vars.$font-family-base;
+  font-size: 16px;
+  font-weight: 400;
+  color: #0b1a30;
+  padding: 10px 0;
+
+  &::placeholder {
+    color: rgba(11, 26, 48, 0.4);
+  }
+}

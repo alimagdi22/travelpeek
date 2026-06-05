@@ -1,0 +1,20 @@
+<main class="login-main d-flex flex-column align-items-center justify-content-center min-vh-100 py-5">
+  <!-- Top Brand Name -->
+  <div class="brand-header mb-4" routerLink="/" style="cursor: pointer;">
+    <span class="logo-text">Peek</span>
+  </div>
+
+  <!-- Central Card Wrapper -->
+  <div class="login-card p-4 p-md-5 rounded-4 shadow-sm text-center mb-4">
+    <!-- Child auth components (Social, Login, Register, Otp) are rendered here -->
+    <router-outlet></router-outlet>
+  </div>
+
+  <!-- Small Legal Disclaimers -->
+  <p class="legal-footnote px-3 text-center mb-0">
+    By continuing, you agree to Peek's 
+    <a routerLink="/legal/terms-of-service" class="footnote-link">Terms of Service</a> 
+    and acknowledge you've read our 
+    <a routerLink="/legal/privacy-policy" class="footnote-link">Privacy Policy</a>.
+  </p>
+</main>

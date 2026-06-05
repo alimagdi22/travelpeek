@@ -1,0 +1,23 @@
+@use "sass:map";
+@use "colors" as *;
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: $font-family-base;
+  background-color: map.get($background-colors, "primary");
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display-font,
+.large-text {
+  font-family: $font-family-display;
+}

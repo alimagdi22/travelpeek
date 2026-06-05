@@ -1,0 +1,293 @@
+@use "../../../styles/variables" as vars;
+
+.my-trips-page-wrapper {
+  background-color: #f8f9ff;
+  min-height: calc(100vh - 130px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-container-v2 {
+  max-width: 800px;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages-container {
+  max-height: 600px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(11, 26, 48, 0.1);
+    border-radius: 3px;
+  }
+}
+
+.message-row {
+  max-width: 85%;
+  
+  &.user-row {
+    align-self: flex-end;
+  }
+
+  &.system-row {
+    align-self: flex-start;
+    max-width: 90%;
+  }
+}
+
+/* User & System Bubbles */
+.user-bubble {
+  background-color: #ffffff;
+  border-radius: 16px 16px 4px 16px;
+  border: 1px solid rgba(11, 26, 48, 0.02);
+  box-shadow: 0 4px 15px rgba(11, 26, 48, 0.03);
+
+  .text-content {
+    font-family: vars.$font-family-base;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
+    color: #0b1a30;
+  }
+}
+
+.system-bubble {
+  background-color: #eff4ff;
+  border-radius: 20px;
+  
+  .system-intro-text {
+    font-family: vars.$font-family-base;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
+    color: #0b1a30;
+  }
+}
+
+/* Shared Flight Card Base Styles */
+.flight-card-v2 {
+  border: 1px solid rgba(11, 26, 48, 0.03);
+  box-shadow: 0 6px 18px rgba(11, 26, 48, 0.03);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(11, 26, 48, 0.06);
+  }
+
+  .airline-icon-box {
+    width: 32px;
+    height: 32px;
+    background-color: #eff4ff;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .airline-name {
+    font-family: vars.$font-family-base;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0b1a30;
+  }
+
+  .badge-v2 {
+    font-family: vars.$font-family-base;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+
+    &.badge-fastest {
+      background-color: rgba(37, 99, 235, 0.1);
+      color: #2563eb;
+    }
+
+    &.badge-cheapest {
+      background-color: rgba(92, 100, 121, 0.1);
+      color: #5c6479;
+    }
+  }
+
+  /* Shared Typography Helpers to reduce CSS output size */
+  .flight-time, .flight-price {
+    font-family: vars.$font-family-display;
+    font-weight: 700;
+    color: #0b1a30;
+  }
+
+  .flight-time {
+    font-size: 24px;
+    letter-spacing: -0.4px;
+  }
+
+  .flight-price {
+    font-size: 18px;
+  }
+
+  .airport-code, .timeline-duration, .timeline-stops, .cabin-class {
+    font-family: vars.$font-family-base;
+    color: #8a94a6;
+  }
+
+  .airport-code {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+
+  .timeline-duration {
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .timeline-stops {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .cabin-class {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .timeline-graphic-v2 {
+    height: 6px;
+
+    .line-v2 {
+      height: 1px;
+      background-color: #d1d5db;
+    }
+
+    .circle-indicator-v2 {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #8a94a6;
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  .card-divider-v2 {
+    border-top: 1px solid #f0f3f6;
+    opacity: 1;
+  }
+}
+
+/* Typing indicator */
+.system-typing-bubble {
+  background-color: #eff4ff;
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 4px 15px rgba(11, 26, 48, 0.02);
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background-color: vars.$color-primary;
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: typingPulse 1.2s infinite ease-in-out;
+
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.4s; }
+  }
+}
+
+@keyframes typingPulse {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Suggestion Pills */
+.suggestion-btn-v2 {
+  font-family: vars.$font-family-base;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5c6479;
+  background-color: #eff4ff;
+  border: 1px solid rgba(0, 74, 198, 0.04);
+  padding: 8px 18px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+
+  &:hover {
+    background-color: #e0ecff;
+    color: vars.$color-primary;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 74, 198, 0.05);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Chat Input Bar */
+.chat-input-bar-v2 {
+  border: 1px solid #eaeaea;
+  background-color: #ffffff;
+  box-shadow: 0 6px 20px rgba(11, 26, 48, 0.04);
+
+  .stars-svg-chat {
+    width: 18px;
+    height: 18px;
+    user-select: none;
+  }
+
+  .chat-input-field-v2 {
+    font-family: vars.$font-family-base;
+    font-size: 14px;
+    color: #0b1a30;
+    outline: none;
+
+    &::placeholder {
+      color: #98a2b3;
+    }
+  }
+
+  .attachment-btn-v2 {
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: #f5f6f8 !important;
+    }
+  }
+
+  .send-btn-v2 {
+    width: 38px;
+    height: 38px;
+    background-color: vars.$color-primary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    svg {
+      color: #ffffff;
+    }
+
+    &:hover {
+      background-color: #1d4ed8;
+      transform: scale(1.04);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}

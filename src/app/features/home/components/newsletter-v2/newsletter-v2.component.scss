@@ -1,0 +1,127 @@
+@use "../../../../../styles/variables" as vars;
+
+.newsletter-v2-section {
+  padding: 48px 0;
+  background-color: transparent;
+}
+
+.newsletter-card-v2 {
+  background-color: #1a2536; // Premium dark blue navy background
+  border-radius: 24px;
+  padding: 72px 48px !important;
+  box-shadow: 0 12px 32px rgba(11, 26, 48, 0.08);
+
+  @media (max-width: 767px) {
+    padding: 48px 24px !important;
+  }
+}
+
+.newsletter-title-v2 {
+  font-family: vars.$font-family-display;
+  font-weight: 700;
+  font-style: Bold;
+  font-size: 56px;
+  line-height: 61.6px;
+  letter-spacing: -1.12px;
+  text-align: center;
+  vertical-align: middle;
+  color: #ffffff;
+  max-width: 720px;
+
+  @media (max-width: 991px) {
+    font-size: 40px;
+    line-height: 48px;
+    letter-spacing: -0.8px;
+  }
+
+  @media (max-width: 575px) {
+    font-size: 32px;
+    line-height: 38px;
+    letter-spacing: -0.5px;
+  }
+}
+
+.newsletter-subtitle-v2 {
+  font-family: vars.$font-family-base;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0px;
+  text-align: center;
+  vertical-align: middle;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 560px;
+}
+
+.form-container-v2 {
+  max-width: 480px;
+
+  .newsletter-form-v2 {
+    width: 100%;
+  }
+
+  .newsletter-input-v2 {
+    flex: 1;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-family: vars.$font-family-base;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.45);
+      background-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.03);
+    }
+  }
+
+  .btn-subscribe-v2 {
+    background-color: #2563eb; // Vibrant blue color matching mock
+    color: #ffffff;
+    font-family: vars.$font-family-base;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+
+    &:hover {
+      background-color: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(1px);
+    }
+
+    @media (max-width: 575px) {
+      width: 100%;
+      margin-top: 4px;
+    }
+  }
+}
+
+.disclaimer-text-v2 {
+  font-family: vars.$font-family-base;
+  font-weight: 400;
+  font-style: Regular;
+  font-size: 13px;
+  line-height: 20px;
+  letter-spacing: 0px;
+  text-align: center;
+  vertical-align: middle;
+  color: rgba(255, 255, 255, 0.45);
+}

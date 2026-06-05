@@ -1,0 +1,65 @@
+<section class="beach-escapes-section py-5">
+  <div class="container px-4">
+    <!-- Header with Section Title and Arrow Navigation -->
+    <div class="row align-items-center justify-content-between mb-4">
+      <div class="col-auto">
+        <h2 class="section-title">Beach Escapes</h2>
+      </div>
+      <div class="col-auto d-flex gap-2">
+        <button class="nav-arrow-btn">
+          <!-- Left Arrow Icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <button class="nav-arrow-btn">
+          <!-- Right Arrow Icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cards Row -->
+    <div class="row g-4">
+      <div *ngFor="let beach of beaches" class="col-lg-4 col-md-6 col-sm-12">
+        <div class="beach-card position-relative overflow-hidden rounded-4">
+          <!-- Image Wrapper -->
+          <div class="image-wrapper position-relative overflow-hidden">
+            <img [src]="beach.image" [alt]="beach.title" class="beach-image" />
+            <button 
+              class="favorite-btn d-flex align-items-center justify-content-center"
+              [class.active]="beach.isFavorite"
+              (click)="toggleFavorite(beach, $event)">
+              <svg width="18" height="18" viewBox="0 0 24 24" [attr.fill]="beach.isFavorite ? '#ff4d4f' : 'none'" [attr.stroke]="beach.isFavorite ? '#ff4d4f' : 'currentColor'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Card Content -->
+          <div class="card-content-box p-4 d-flex flex-column gap-3">
+            <div class="title-rating-row d-flex align-items-start justify-content-between">
+              <h3 class="beach-title mb-0">{{ beach.title }}</h3>
+              <div class="rating-badge d-flex align-items-center gap-1">
+                <img src="/assets/icons/home/beach/star.svg" class="star-svg" alt="Star Rating" />
+                <span class="rating-text">{{ beach.rating }}</span>
+              </div>
+            </div>
+
+            <p class="beach-desc mb-0">{{ beach.description }}</p>
+
+            <div class="footer-action-row d-flex align-items-center justify-content-between mt-2">
+              <div class="price-container d-flex flex-column">
+                <span class="price-meta">STARTING FROM</span>
+                <span class="price-value">{{ beach.price }}</span>
+              </div>
+              <button class="btn-book">Book</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

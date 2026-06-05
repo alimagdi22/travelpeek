@@ -1,0 +1,56 @@
+<div class="faq-wrapper">
+  <h2 class="section-title">Frequently Asked Questions</h2>
+
+  <div class="faq-list d-flex flex-column gap-3">
+    <!-- FAQ 1 -->
+    <div class="faq-item" [class.active]="activeIndex === 0">
+      <button class="faq-header w-100 d-flex align-items-center justify-content-between text-start" (click)="toggleFaq(0)">
+        <span class="faq-question">How do I change my flight date?</span>
+        <span class="faq-arrow d-flex align-items-center justify-scale-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="#004ac6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+      <div class="faq-body">
+        <p class="faq-answer">
+          You can change your flight date by navigating to <strong>Manage Bookings</strong> inside the app, selecting your active flight, and clicking <strong>Change flight date</strong>. Standard airline change fees and fare differences may apply.
+        </p>
+      </div>
+    </div>
+
+    <!-- FAQ 2 -->
+    <div class="faq-item" [class.active]="activeIndex === 1">
+      <button class="faq-header w-100 d-flex align-items-center justify-content-between text-start" (click)="toggleFaq(1)">
+        <span class="faq-question">What is Peek AI Travel Discovery?</span>
+        <span class="faq-arrow d-flex align-items-center justify-scale-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="#004ac6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+      <div class="faq-body">
+        <p class="faq-answer">
+          Peek AI Travel Discovery is our advanced recommendation engine. You can naturally describe what kind of trip you want (e.g. "I want a quiet beach with clear water in October...") and our AI will search, build, and suggest the perfect custom itinerary for you instantly.
+        </p>
+      </div>
+    </div>
+
+    <!-- FAQ 3 -->
+    <div class="faq-item" [class.active]="activeIndex === 2">
+      <button class="faq-header w-100 d-flex align-items-center justify-content-between text-start" (click)="toggleFaq(2)">
+        <span class="faq-question">How long do refunds take to process?</span>
+        <span class="faq-arrow d-flex align-items-center justify-scale-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9L12 15L18 9" stroke="#004ac6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </button>
+      <div class="faq-body">
+        <p class="faq-answer">
+          Most refunds are reviewed within 24 hours. Depending on your payment provider, the refunded credit will typically reflect on your bank or credit card statement within 5 to 10 business days.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

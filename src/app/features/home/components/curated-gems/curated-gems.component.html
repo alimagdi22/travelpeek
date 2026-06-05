@@ -1,0 +1,172 @@
+<section class="curated-gems-section py-5">
+  <div class="container px-4">
+    <!-- Header with title and filter pills -->
+    <div class="row align-items-end justify-content-between mb-4">
+      <div class="col-lg-6 col-md-7">
+        <h2 class="section-title">Curated for you</h2>
+        <p class="section-subtitle">
+          Intelligent collections based on current travel trends and Peek's
+          secret spots.
+        </p>
+      </div>
+      <div
+        class="col-lg-6 col-md-5 d-flex justify-content-md-end justify-content-start mt-3 mt-md-0"
+      >
+        <div class="filter-pills d-flex flex-wrap gap-2">
+          <button
+            *ngFor="let filter of filters"
+            class="filter-pill-btn"
+            [class.active]="filter === activeFilter"
+            (click)="setActiveFilter(filter)"
+          >
+            {{ filter }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Gems Title Row -->
+    <div class="row align-items-center justify-content-between mt-5 mb-4">
+      <div class="col-auto">
+        <h3 class="subsection-title">Hidden Gems in Europe</h3>
+      </div>
+      <div class="col-auto">
+        <a href="#" class="view-all-link">View all &rsaquo;</a>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="row g-4">
+      <!-- Left Column: Large Featured Card -->
+      <div class="col-lg-6 col-md-12">
+        <div
+          class="gem-card large-card position-relative overflow-hidden rounded-4"
+        >
+          <img
+            src="/assets/images/home/hidden-gems/italy.png"
+            alt="Positano, Italy"
+            class="gem-card-bg"
+          />
+          <div
+            class="gem-card-overlay d-flex flex-column justify-content-end gap-2 p-4 p-md-5"
+          >
+            <div class="tag-row">
+              <span class="most-loved-badge">MOST LOVED</span>
+            </div>
+            <div
+              class="info-row d-flex align-items-end justify-content-between"
+            >
+              <div class="text-content text-white">
+                <h4 class="gem-title fw-bold text-white mb-2">
+                  Positano, Italy
+                </h4>
+                <p class="gem-price mb-0 text-white-50">Starting from $340</p>
+              </div>
+              <div
+                class="arrow-circle-btn d-flex align-items-center justify-content-center"
+              >
+                <!-- Arrow Icon -->
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="7" y1="17" x2="17" y2="7" />
+                  <polyline points="7 7 17 7 17 17" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Sub Grid -->
+      <div
+        class="col-lg-6 col-md-12 d-flex flex-column justify-content-between gap-4"
+      >
+        <!-- Top Row: Two Equal Cards -->
+        <div class="row g-4">
+          <div class="col-6">
+            <div
+              class="gem-card small-card position-relative overflow-hidden rounded-4"
+            >
+              <img
+                src="/assets/images/home/hidden-gems/hallstat.png"
+                alt="Hallstatt"
+                class="gem-card-bg"
+              />
+              <div
+                class="gem-card-overlay d-flex flex-column justify-content-end p-4"
+              >
+                <div class="text-content text-white">
+                  <h4 class="gem-title fw-bold text-white mb-1">Hallstatt</h4>
+                  <p class="gem-price mb-0 text-white-50">From $520</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div
+              class="gem-card small-card position-relative overflow-hidden rounded-4"
+            >
+              <img
+                src="/assets/images/home/hidden-gems/normandy.png"
+                alt="Normandy"
+                class="gem-card-bg"
+              />
+              <div
+                class="gem-card-overlay d-flex flex-column justify-content-end p-4"
+              >
+                <div class="text-content text-white">
+                  <h4 class="gem-title fw-bold text-white mb-1">Normandy</h4>
+                  <p class="gem-price mb-0 text-white-50">From $410</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Wide Card -->
+        <div class="row h-100">
+          <div class="col-12 d-flex">
+            <div
+              class="gem-card wide-card position-relative overflow-hidden rounded-4 w-100"
+            >
+              <img
+                src="/assets/images/home/hidden-gems/cinque.png"
+                alt="Cinque Terre"
+                class="gem-card-bg"
+              />
+              <div
+                class="gem-card-overlay d-flex flex-column justify-content-end p-4 p-md-5"
+              >
+                <div
+                  class="d-flex align-items-end justify-content-between w-100"
+                >
+                  <div class="text-content text-white">
+                    <h4 class="gem-title fw-bold text-white mb-1">
+                      Cinque Terre
+                    </h4>
+                    <p class="gem-desc mb-0 text-white-50">
+                      Experience the coast
+                    </p>
+                  </div>
+                  <div class="price-container">
+                    <span class="gem-price text-white font-weight-bold"
+                      >From $790</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
