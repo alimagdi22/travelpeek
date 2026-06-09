@@ -17,6 +17,7 @@ import { RpTravelUiModule } from 'rp-travel-ui';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { RouterModule } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
 const AngularMaterialModules = [
   MatProgressSpinnerModule,
   MatIconModule,
@@ -30,6 +31,9 @@ const AngularMaterialModules = [
   MatPaginatorModule,
   MatButtonModule,
   MatProgressBarModule,
+  MatMenuModule,
+  MatButtonModule,
+  MatIconModule,
 ];
 
 const SharedComponents = [HeaderComponent, FooterComponent];

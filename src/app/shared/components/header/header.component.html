@@ -32,14 +32,50 @@
       <!-- Actions (Right Aligned) -->
       <div class="col-auto">
         <div class="header-actions d-flex align-items-center gap-4">
-          <span class="currency-selector">AED</span>
+          <div
+            class="currency-selector d-flex align-items-center gap-2"
+            [matMenuTriggerFor]="currencyMenu"
+          >
+            <img
+              class="flags"
+              [src]="this.homePageService.selectedCurrency['Image_Url']"
+            />
+            <p>
+              {{ this.homePageService.selectedCurrency["Currency_Code"] }}
+            </p>
+          </div>
+          <mat-menu #currencyMenu="matMenu">
+            @for (
+              currency of this.homePageService.allCurrency;
+              track currency
+            ) {
+              <button mat-menu-item (click)="updateCurrency(currency)">
+                <img
+                  width="25"
+                  height="25"
+                  [src]="currency.Image_Url"
+                  title="Currency Icon"
+                />
+                {{ currency["Currency_Code"] }}
+              </button>
+            }
+          </mat-menu>
           @if (profileService.isLoading) {
-            <mat-spinner />
+            <mat-spinner [diameter]="30" [strokeWidth]="5" />
           } @else if (!profileService.isLoading && successLogin) {
-            <span class="currency-selector"
+            <span
+              class="currency-selector"
+              mat-button
+              [matMenuTriggerFor]="userMenu"
               >{{ profileService.user.firstName }}
               {{ profileService.user.lastName }}</span
             >
+            <mat-menu #userMenu="matMenu">
+              <button mat-menu-item (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                Logout
+              </button>
+            </mat-menu>
           } @else {
             <button class="btn-login" routerLink="/login">Login</button>
           }

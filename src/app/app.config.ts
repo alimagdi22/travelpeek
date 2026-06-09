@@ -1,7 +1,12 @@
-import { ApplicationConfig, provideZoneChangeDetection, importProvidersFrom } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideZoneChangeDetection,
+  importProvidersFrom,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
 
 import { routes } from './app.routes';
 
@@ -10,6 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(),
-    importProvidersFrom(TranslateModule.forRoot())
-  ]
+    importProvidersFrom(TranslateModule.forRoot()),
+    DatePipe,
+  ],
 };

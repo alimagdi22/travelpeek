@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { AuthService, OTP_STATUS, RESEND_OTP_STATUS } from 'rp-travel-ui';
+import { AuthService, OTP_STATUS, RESEND_OTP_STATUS, UserProfileService } from 'rp-travel-ui';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
 })
 export class OtpComponent implements OnInit, OnDestroy {
   authService = inject(AuthService);
+  profileService = inject(UserProfileService);
   router = inject(Router);
 
   otpControl = new FormControl('');
@@ -30,6 +31,7 @@ export class OtpComponent implements OnInit, OnDestroy {
       if (status === OTP_STATUS.success) {
         // Clean up sessionStorage
         sessionStorage.removeItem('otpEmail');
+        this.profileService.getUserProfile();
         // Route to home on success
         this.router.navigate(['/']);
       } else if (status === OTP_STATUS.faild) {

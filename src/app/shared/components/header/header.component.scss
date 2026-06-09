@@ -13,7 +13,9 @@
     height: 100%;
   }
 }
-
+.currency {
+  font-size: 14px;
+}
 .brand {
   .logo-text {
     font-family: vars.$font-family-display;
@@ -74,6 +76,21 @@
 
   &:hover {
     color: vars.$color-primary;
+  }
+
+  padding: 10px;
+
+  img {
+    margin-inline-start: 5px;
+    object-fit: cover;
+    object-position: center;
+    height: 25px;
+    width: 40px;
+  }
+
+  p {
+    width: 30px;
+    margin: 0;
   }
 }
 
