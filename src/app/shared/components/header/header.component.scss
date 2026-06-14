@@ -73,12 +73,11 @@
   color: #6c757d;
   cursor: pointer;
   transition: color 0.2s ease;
+  padding: 10px;
 
   &:hover {
     color: vars.$color-primary;
   }
-
-  padding: 10px;
 
   img {
     margin-inline-start: 5px;
