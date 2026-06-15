@@ -1,0 +1,159 @@
+<div class="flight-card-v2 p-4 rounded-3 shadow-sm bg-white">
+  <!-- ── Card Header: Airline code + Cabin badge ── -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <!-- <div class="d-flex align-items-center gap-2">
+      <div
+        class="airline-icon-box d-flex align-items-center justify-content-center"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M21 16V14.5L13 9.5V3.5C13 2.67 12.33 2 11.5 2C10.67 2 10 2.67 10 3.5V9.5L2 14.5V16L10 13.5V19L8 20.5V22L11.5 21L15 22V20.5L13 19V13.5L21 16Z"
+            fill="#004AC6"
+          />
+        </svg>
+      </div>
+      <span class="airline-name">{{ airlineCode }}</span>
+    </div>
+    <span class="cabin-badge text-uppercase">{{ cabinClass }}</span> -->
+  </div>
+
+  <!-- ── Outbound Flight Row ── -->
+  @if (outboundFlight) {
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <div
+        class="airline-icon-box d-flex align-items-center justify-content-center"
+      >
+        <img
+          [src]="outboundFlight.flightSegments[0].flightAirline.airlineLogo"
+          alt=""
+        />
+      </div>
+      <div class="d-flex flex-column">
+        <span class="airline-name"
+          >{{ outboundFlight.flightSegments[0].flightAirline.airlineName }}
+        </span>
+        <span class="airline-details"
+          >{{ outboundFlight.flightSegments[0].flightAirline.airlineCode }} -
+          {{ outboundFlight.flightSegments[0].flightInfo.flightNumber }}</span
+        >
+      </div>
+    </div>
+    <div class="flight-leg-row d-flex align-items-center gap-2 mb-2">
+      <!-- <span class="leg-label leg-out">OUT</span> -->
+
+      <div class="leg-time-block text-start">
+        <div class="flight-time">
+          {{ getDeptDate(outboundFlight) | date: "HH:mm" }}
+        </div>
+        <div class="airport-code">{{ getDeptCode(outboundFlight) }}</div>
+      </div>
+
+      <div
+        class="leg-timeline flex-grow-1 d-flex flex-column align-items-center px-2"
+      >
+        <span class="timeline-duration mb-1">{{
+          formatDuration(outboundFlight.elapsedTime)
+        }}</span>
+        <div
+          class="timeline-graphic-v2 w-100 d-flex align-items-center position-relative"
+        >
+          <div class="line-v2 w-100"></div>
+          <div class="circle-indicator-v2"></div>
+        </div>
+        <span class="timeline-stops mt-1">{{
+          getStopsLabel(outboundFlight)
+        }}</span>
+      </div>
+
+      <div class="leg-time-block text-end">
+        <div class="flight-time">
+          {{ getArrDate(outboundFlight) | date: "HH:mm" }}
+        </div>
+        <div class="airport-code">{{ getArrCode(outboundFlight) }}</div>
+      </div>
+    </div>
+    @if (itinerary.allJourney.flights.length > 1) {
+      <hr />
+    }
+  }
+
+  <!-- ── Return Flight Row (only for round-trips) ── -->
+  @if (returnFlight) {
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <div
+        class="airline-icon-box d-flex align-items-center justify-content-center"
+      >
+        <img
+          [src]="
+            returnFlight.flightSegments[returnFlight.flightSegments.length - 1]
+              .flightAirline.airlineLogo
+          "
+          alt=""
+        />
+      </div>
+      <div class="d-flex flex-column">
+        <span class="airline-name">{{
+          returnFlight.flightSegments[returnFlight.flightSegments.length - 1]
+            .flightAirline.airlineName
+        }}</span>
+        <span class="airline-details"
+          >{{ returnFlight.flightSegments[0].flightAirline.airlineCode }} -
+          {{ returnFlight.flightSegments[0].flightInfo.flightNumber }}</span
+        >
+      </div>
+    </div>
+    <div class="flight-leg-row d-flex align-items-center gap-2">
+      <!-- <span class="leg-label leg-ret">RET</span> -->
+
+      <div class="leg-time-block text-start">
+        <div class="flight-time">
+          {{ getDeptDate(returnFlight) | date: "HH:mm" }}
+        </div>
+        <div class="airport-code">{{ getDeptCode(returnFlight) }}</div>
+      </div>
+
+      <div
+        class="leg-timeline flex-grow-1 d-flex flex-column align-items-center px-2"
+      >
+        <span class="timeline-duration mb-1">{{
+          formatDuration(returnFlight.elapsedTime)
+        }}</span>
+        <div
+          class="timeline-graphic-v2 w-100 d-flex align-items-center position-relative"
+        >
+          <div class="line-v2 w-100"></div>
+          <div class="circle-indicator-v2"></div>
+        </div>
+        <span class="timeline-stops mt-1">{{
+          getStopsLabel(returnFlight)
+        }}</span>
+      </div>
+
+      <div class="leg-time-block text-end">
+        <div class="flight-time">
+          {{ getArrDate(returnFlight) | date: "HH:mm" }}
+        </div>
+        <div class="airport-code">{{ getArrCode(returnFlight) }}</div>
+      </div>
+    </div>
+  }
+
+  <hr class="card-divider-v2 my-3" />
+
+  <!-- ── Footer: Price ── -->
+  <div class="d-flex align-items-center justify-content-between">
+    <span class="refund-status">{{
+      itinerary.isRefundable ? "Refundable" : "Non-refundable"
+    }}</span>
+    <span class="flight-price">
+      {{ totalPrice | number: "1.0-0" }}
+      <span class="currency-label">{{ currencyCode }}</span>
+    </span>
+  </div>
+</div>

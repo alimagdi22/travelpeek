@@ -10,14 +10,73 @@
 
 .chat-container-v2 {
   max-width: 800px;
-  background-color: transparent;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 24px;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 12px 40px rgba(11, 26, 48, 0.05);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header-v2 {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eaeaea !important;
+  padding: 18px 24px;
+  
+  .chat-title {
+    font-family: vars.$font-family-display;
+    font-weight: 700;
+    font-size: 16px;
+    color: #0b1a30;
+  }
+  
+  .chat-status-badge {
+    font-family: vars.$font-family-base;
+    font-size: 11px;
+    font-weight: 600;
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.08);
+    padding: 3px 10px;
+    border-radius: 100px;
+    
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  }
+  
+  .btn-new-chat {
+    font-family: vars.$font-family-base;
+    font-size: 13px;
+    font-weight: 600;
+    color: vars.$color-primary;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background-color: transparent;
+    
+    &:hover {
+      background-color: #eff4ff;
+      color: #1d4ed8;
+      transform: translateY(-0.5px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
 }
 
 .chat-messages-container {
-  max-height: 600px;
+  max-height: 520px;
   overflow-y: auto;
+  background-color: #fbfcfe;
   scrollbar-width: thin;
   scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
 
@@ -72,120 +131,6 @@
   }
 }
 
-/* Shared Flight Card Base Styles */
-.flight-card-v2 {
-  border: 1px solid rgba(11, 26, 48, 0.03);
-  box-shadow: 0 6px 18px rgba(11, 26, 48, 0.03);
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(11, 26, 48, 0.06);
-  }
-
-  .airline-icon-box {
-    width: 32px;
-    height: 32px;
-    background-color: #eff4ff;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-
-  .airline-name {
-    font-family: vars.$font-family-base;
-    font-size: 14px;
-    font-weight: 600;
-    color: #0b1a30;
-  }
-
-  .badge-v2 {
-    font-family: vars.$font-family-base;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 6px;
-    letter-spacing: 0.5px;
-
-    &.badge-fastest {
-      background-color: rgba(37, 99, 235, 0.1);
-      color: #2563eb;
-    }
-
-    &.badge-cheapest {
-      background-color: rgba(92, 100, 121, 0.1);
-      color: #5c6479;
-    }
-  }
-
-  /* Shared Typography Helpers to reduce CSS output size */
-  .flight-time, .flight-price {
-    font-family: vars.$font-family-display;
-    font-weight: 700;
-    color: #0b1a30;
-  }
-
-  .flight-time {
-    font-size: 24px;
-    letter-spacing: -0.4px;
-  }
-
-  .flight-price {
-    font-size: 18px;
-  }
-
-  .airport-code, .timeline-duration, .timeline-stops, .cabin-class {
-    font-family: vars.$font-family-base;
-    color: #8a94a6;
-  }
-
-  .airport-code {
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-  }
-
-  .timeline-duration {
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  .timeline-stops {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-  }
-
-  .cabin-class {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-
-  .timeline-graphic-v2 {
-    height: 6px;
-
-    .line-v2 {
-      height: 1px;
-      background-color: #d1d5db;
-    }
-
-    .circle-indicator-v2 {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: #8a94a6;
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-  }
-
-  .card-divider-v2 {
-    border-top: 1px solid #f0f3f6;
-    opacity: 1;
-  }
-}
 
 /* Typing indicator */
 .system-typing-bubble {

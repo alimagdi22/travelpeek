@@ -16,8 +16,10 @@ import { TranslateModule } from '@ngx-translate/core';
 import { RpTravelUiModule } from 'rp-travel-ui';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { ResultCardComponent } from './components/result-card/result-card.component';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
+import { DatePipe } from '@angular/common';
 const AngularMaterialModules = [
   MatProgressSpinnerModule,
   MatIconModule,
@@ -36,7 +38,11 @@ const AngularMaterialModules = [
   MatIconModule,
 ];
 
-const SharedComponents = [HeaderComponent, FooterComponent];
+const SharedComponents = [
+  HeaderComponent,
+  FooterComponent,
+  ResultCardComponent,
+];
 // const SharedDirectives = [];
 // const SharedPipes = [];
 
@@ -48,6 +54,7 @@ const SharedComponents = [HeaderComponent, FooterComponent];
     TranslateModule,
     RpTravelUiModule,
     RouterModule,
+    DatePipe,
   ],
   exports: [
     ...SharedComponents,

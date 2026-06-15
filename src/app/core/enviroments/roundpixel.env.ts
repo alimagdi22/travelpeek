@@ -1,6 +1,7 @@
 export let envRP = {
   offlineSeats: 'http://41.223.55.14:7025',
   searchflow: 'https://flightsearch.round-pixel.net',
+  searchflowAi: 'https://automation.round-pixel.net',
   BookingFlow: 'https://flightflow.round-pixel.net',
   FareRules: 'https://flightprov.round-pixel.net',
   asm: 'https://backofficeapi.round-pixel.net',
