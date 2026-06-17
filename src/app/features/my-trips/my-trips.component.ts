@@ -111,9 +111,16 @@ export class MyTripsComponent implements OnInit {
           !this.flightResultService.ResultFound ||
           !this.flightResultService.responseAi
         ) {
-          replyText =
-            this.flightResultService.normalError ||
-            'No flights found matching your query. Please try again.';
+          const rawError = this.flightResultService.normalError;
+          let errorMessage = 'No flights found matching your query. Please try again.';
+          if (rawError) {
+            if (typeof rawError === 'string') {
+              errorMessage = rawError;
+            } else if (typeof rawError === 'object') {
+              errorMessage = (rawError as any).message || (rawError as any).error?.message || 'Failed to search flights. Please try again later.';
+            }
+          }
+          replyText = errorMessage;
         }
 
         const resultFound = this.flightResultService.ResultFound;

@@ -18,14 +18,24 @@
   }
 
   .airline-icon-box {
-    width: 32px;
-    height: 32px;
+    width: 10%;
+    height: 10%;
     background-color: #eff4ff;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+  .airline-logo {
+    width: 100%;
+    height: 100%;
+  }
+
+  .cabin-class {
+    margin-inline-start: 5px;
+    font-size: 12px;
+    font-weight: 500;
   }
 
   .airline-name {

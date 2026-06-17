@@ -30,17 +30,21 @@
         class="airline-icon-box d-flex align-items-center justify-content-center"
       >
         <img
-          [src]="outboundFlight.flightSegments[0].flightAirline.airlineLogo"
-          alt=""
+          [src]="outboundFlight.flightDTO[0].flightAirline.airlineLogo"
+          class="airline-logo"
+          alt="airline-logo"
         />
       </div>
       <div class="d-flex flex-column">
         <span class="airline-name"
-          >{{ outboundFlight.flightSegments[0].flightAirline.airlineName }}
+          >{{ outboundFlight.flightDTO[0].flightAirline.airlineName }}
+          <span class="cabin-class">{{
+            outboundFlight.flightDTO[0].flightInfo.cabinClass
+          }}</span>
         </span>
         <span class="airline-details"
-          >{{ outboundFlight.flightSegments[0].flightAirline.airlineCode }} -
-          {{ outboundFlight.flightSegments[0].flightInfo.flightNumber }}</span
+          >{{ outboundFlight.flightDTO[0].flightAirline.airlineCode }} -
+          {{ outboundFlight.flightDTO[0].flightInfo.flightNumber }}</span
         >
       </div>
     </div>
@@ -91,20 +95,26 @@
       >
         <img
           [src]="
-            returnFlight.flightSegments[returnFlight.flightSegments.length - 1]
+            returnFlight.flightDTO[returnFlight.flightDTO.length - 1]
               .flightAirline.airlineLogo
           "
-          alt=""
+          class="airline-logo"
+          alt="airline-logo"
         />
       </div>
       <div class="d-flex flex-column">
-        <span class="airline-name">{{
-          returnFlight.flightSegments[returnFlight.flightSegments.length - 1]
-            .flightAirline.airlineName
-        }}</span>
+        <span class="airline-name"
+          >{{
+            returnFlight.flightDTO[returnFlight.flightDTO.length - 1]
+              .flightAirline.airlineName
+          }}
+          <span class="cabin-class">{{
+            returnFlight.flightDTO[0].flightInfo.cabinClass
+          }}</span></span
+        >
         <span class="airline-details"
-          >{{ returnFlight.flightSegments[0].flightAirline.airlineCode }} -
-          {{ returnFlight.flightSegments[0].flightInfo.flightNumber }}</span
+          >{{ returnFlight.flightDTO[0].flightAirline.airlineCode }} -
+          {{ returnFlight.flightDTO[0].flightInfo.flightNumber }}</span
         >
       </div>
     </div>

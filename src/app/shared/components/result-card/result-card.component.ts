@@ -43,20 +43,20 @@ export class ResultCardComponent {
   }
 
   getDeptCode(flight: IFlight): string {
-    return flight?.flightSegments?.[0]?.departureTerminalAirport?.airportCode ?? '';
+    return flight?.flightDTO?.[0]?.departureTerminalAirport?.airportCode ?? '';
   }
 
   getArrCode(flight: IFlight): string {
-    const segs = flight?.flightSegments;
+    const segs = flight?.flightDTO;
     return segs?.[segs.length - 1]?.arrivalTerminalAirport?.airportCode ?? '';
   }
 
   getDeptDate(flight: IFlight): string {
-    return flight?.flightSegments?.[0]?.departureDate ?? '';
+    return flight?.flightDTO?.[0]?.departureDate ?? '';
   }
 
   getArrDate(flight: IFlight): string {
-    const segs = flight?.flightSegments;
+    const segs = flight?.flightDTO;
     return segs?.[segs.length - 1]?.arrivalDate ?? '';
   }
 
