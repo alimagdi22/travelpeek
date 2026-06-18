@@ -1,0 +1,15 @@
+<article class="p-4 rounded-4 bg-white text-center shadow">
+  <img src="assets/icons/userPage/warning-icon.svg" title="Warning Icon" width="50" class="mb-3" />
+
+  <div class="mb-4">
+    <p class="title h4 mb-2 font-weight-bold">Sign Out</p>
+    <p class="text-muted mb-0">Are you sure you want to sign out of your account?</p>
+  </div>
+
+  <div class="actions d-flex gap-3 justify-content-center">
+    <button class="btn-signout" (click)="onClickSignOut()">Sign Out</button>
+    <button class="btn-cancel" (click)="onClickCancel()">Cancel</button>
+  </div>
+</article>
+
+<div class="background" (click)="onClickCancel()"></div>

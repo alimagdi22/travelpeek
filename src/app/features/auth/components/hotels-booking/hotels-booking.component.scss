@@ -1,0 +1,19 @@
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.empty-state {
+  font-size: 20px;
+  color: #8b96ad;
+  font-weight: 500;
+}

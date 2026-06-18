@@ -1,0 +1,25 @@
+@if (!isLoading && trips.length) {
+  <mat-paginator
+    [length]="allTrips.length"
+    [pageSize]="pageSize"
+    [hidePageSize]="true"
+    (page)="onPaginate($event.pageIndex + 1)"
+    aria-label="Select page"
+  />
+}
+
+@if (isLoading) {
+  <div class="loading-state d-flex justify-content-center align-items-center py-5">
+    <mat-spinner color="primary" />
+  </div>
+}
+
+@if (!isLoading && !trips.length) {
+  <p class="empty-state text-center text-muted py-5">No Flights Booking to Show</p>
+}
+
+<main class="d-flex flex-column gap-3 mt-3">
+  @for (trip of trips; track trip) {
+    <app-flight-card [trip]="trip" />
+  }
+</main>

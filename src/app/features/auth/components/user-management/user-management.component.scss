@@ -1,0 +1,19 @@
+@use "../../../../../styles/variables" as vars;
+
+.main {
+  margin: 20px 0;
+}
+
+aside {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 74, 198, 0.04);
+  box-shadow: 0 12px 40px rgba(11, 26, 48, 0.04);
+  padding: 24px 16px;
+  height: fit-content;
+}
+
+.content-wrapper {
+  min-height: 70vh;
+  border: 1px solid rgba(0, 74, 198, 0.04);
+}

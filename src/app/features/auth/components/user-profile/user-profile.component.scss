@@ -1,0 +1,127 @@
+@use "../../../../../styles/variables" as vars;
+@use "sass:color";
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px;
+}
+
+.custom-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+
+  div {
+    flex-basis: calc(50% - 10px);
+    flex-grow: 1;
+    min-width: 250px;
+  }
+}
+
+.form-label {
+  font-family: vars.$font-family-base;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0b1a30;
+  margin-bottom: 6px;
+}
+
+.login-input {
+  width: 100%;
+  background-color: vars.$color-background-secondary; /* #eff4ff */
+  border: 1px solid rgba(0, 74, 198, 0.06);
+  color: #0b1a30;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: vars.$font-family-base;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &::placeholder {
+    color: #8b96ad;
+  }
+
+  &:focus {
+    border-color: vars.$color-primary;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(0, 74, 198, 0.08);
+  }
+
+  &:disabled {
+    background-color: rgba(11, 26, 48, 0.03);
+    color: #8b96ad;
+    cursor: not-allowed;
+    border-color: rgba(11, 26, 48, 0.05);
+  }
+}
+
+.invalid-feedback {
+  font-family: vars.$font-family-base;
+  font-size: 12px;
+  color: #dc3545;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 20px;
+
+  button {
+    height: 45px;
+    padding: 0 24px;
+    font-family: vars.$font-family-base;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+  }
+
+  .btn-change-password-toggle {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 74, 198, 0.15);
+    color: vars.$color-primary;
+
+    &:hover {
+      background-color: vars.$color-background-secondary;
+      border-color: vars.$color-primary;
+    }
+  }
+
+  .btn-save {
+    background-color: vars.$color-primary;
+    border: 1px solid transparent;
+    color: #ffffff;
+
+    &:hover:not(:disabled) {
+      background-color: color.adjust(vars.$color-primary, $lightness: -6%);
+      box-shadow: 0 4px 12px rgba(0, 74, 198, 0.15);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      background-color: #cbd5e1;
+      color: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

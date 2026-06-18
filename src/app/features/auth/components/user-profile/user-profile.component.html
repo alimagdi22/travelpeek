@@ -1,0 +1,142 @@
+<div
+  class="wrapper"
+  [ngStyle]="{
+    display: isChangePasswordShowed ? 'none' : 'flex'
+  }"
+>
+  <form [formGroup]="profileForm">
+    <div class="custom-radio-group">
+      <div>
+        <label class="form-label">First Name</label>
+
+        <div class="custom-input-container">
+          <input type="text" placeholder="First Name" formControlName="firstName" class="login-input" />
+        </div>
+
+        @if (profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched) {
+          <p
+            [ngStyle]="{
+              visibility: 'visible'
+            }"
+            class="invalid-feedback"
+          >
+            {{ getFirstNameErrorMessage(profileForm.get('firstName')!, 'en') }}
+          </p>
+        } @else {
+          <p
+            [ngStyle]="{
+              visibility: 'hidden'
+            }"
+            class="invalid-feedback"
+          >
+            Error Message Placeholder
+          </p>
+        }
+      </div>
+
+      <div>
+        <label class="form-label">Last Name</label>
+
+        <div class="custom-input-container">
+          <input type="text" placeholder="Last Name" formControlName="lastName" class="login-input" />
+        </div>
+
+        @if (profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched) {
+          <p
+            [ngStyle]="{
+              visibility: 'visible'
+            }"
+            class="invalid-feedback"
+          >
+            {{ getLastNameErrorMessage(profileForm.get('lastName')!, 'en') }}
+          </p>
+        } @else {
+          <p
+            [ngStyle]="{
+              visibility: 'hidden'
+            }"
+            class="invalid-feedback"
+          >
+            Error Message Placeholder
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="custom-radio-group">
+      <div>
+        <label class="form-label">Email</label>
+        <div class="custom-input-container">
+          <input type="text" placeholder="Email" [value]="email" disabled class="login-input" />
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="actions">
+    <button type="button" class="btn-change-password-toggle" (click)="isChangePasswordShowed = true">
+      Change Password
+    </button>
+
+    <button type="button" class="btn-save" (click)="onSubmit()" [disabled]="isLoading || !profileForm.touched">
+      @if (!isLoading) {
+        Save
+      } @else {
+        <mat-spinner diameter="20" color="primary" />
+      }
+    </button>
+  </div>
+</div>
+
+<div
+  class="wrapper"
+  [ngStyle]="{
+    display: isChangePasswordShowed ? 'flex' : 'none'
+  }"
+>
+  <form [formGroup]="changePasswordForm">
+    <div class="custom-radio-group">
+      <div [ngStyle]="{ flexBasis: '100%' }">
+        <label class="form-label">Email</label>
+        <div class="custom-input-container">
+          <input type="text" placeholder="Email" [value]="email" disabled class="login-input" />
+        </div>
+      </div>
+
+      <div [ngStyle]="{ flexBasis: '100%' }">
+        <label class="form-label">Current Password</label>
+        <div class="custom-input-container">
+          <input type="password" formControlName="oldPassword" class="login-input" />
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">New Password</label>
+        <div class="custom-input-container">
+          <input type="password" formControlName="newPassword" autocomplete="new-password" class="login-input" />
+        </div>
+      </div>
+
+      <div>
+        <label class="form-label">Confirm New Password</label>
+        <div class="custom-input-container">
+          <input type="password" formControlName="confirmPassword" autocomplete="new-password" class="login-input" />
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="actions">
+    <button type="button" class="btn-change-password-toggle" (click)="isChangePasswordShowed = false">
+      Cancel
+    </button>
+
+    <button type="button" class="btn-save" (click)="onChangePassword()" [disabled]="isLoading">
+      @if (!isLoading) {
+        Save
+      } @else {
+        <mat-spinner diameter="20" color="primary" />
+      }
+    </button>
+  </div>
+</div>

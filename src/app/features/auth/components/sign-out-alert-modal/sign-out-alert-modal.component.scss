@@ -1,0 +1,61 @@
+@use "../../../../../styles/variables" as vars;
+
+article {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  width: 90%;
+  max-width: 400px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 74, 198, 0.08);
+
+  .title {
+    color: #0b1a30;
+  }
+
+  .actions {
+    button {
+      padding: 10px 24px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-signout {
+      background-color: transparent;
+      border: 1px solid #dc3545;
+      color: #dc3545;
+
+      &:hover {
+        background-color: #dc3545;
+        color: #ffffff;
+      }
+    }
+
+    .btn-cancel {
+      background-color: vars.$color-primary;
+      border: 1px solid transparent;
+      color: #ffffff;
+
+      &:hover {
+        background-color: #003fa6;
+      }
+    }
+  }
+}
+
+.background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 26, 48, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+}

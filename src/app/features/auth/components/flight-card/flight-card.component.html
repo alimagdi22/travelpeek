@@ -1,0 +1,42 @@
+<article class="flight-card row justify-content-center gap-0 p-3 bg-white rounded-3 border mb-3">
+  <section class="flight-card__left col-12 col-md-5 position-relative">
+    <div class="flight-card__left__icons position-absolute top-0 start-0 m-3 d-flex gap-2" style="z-index: 10;">
+      <img src="assets/icons/userPage/airplane-card-icon.svg" title="Flight Icon" width="24" height="24" />
+      <img src="assets/icons/userPage/checked-card-icon.svg" title="Check Icon" width="24" height="24" />
+    </div>
+
+    <img
+      class="flight-card__left__img w-100 rounded-3"
+      [src]="trip.cityImage ? trip.cityImage : 'assets/icons/userPage/otp-background.jpg'"
+      (error)="onImageError($event)"
+      title="Flight Card Image"
+      style="height: 180px; object-fit: cover;"
+    />
+  </section>
+
+  <section class="flight-card__right col-12 col-md-7 d-flex flex-column justify-content-between p-3">
+    <div class="flight-card__right__top">
+      <p class="flight-card__right__top__title h5 mb-2 font-weight-bold text-dark">{{ trip.route }}</p>
+      <p class="flight-card__right__top__info text-muted mb-2">{{ trip.dates }} &bull; {{ flightType }}</p>
+      
+      <div class="tickets-list" *ngFor="let ticket of trip.ticketNumber | slice: 0 : 3">
+        <p class="flight-card__right__top__info text-muted mb-1">
+          {{ ticket.ticketNumber ? 'Ticket # ' + ticket.ticketNumber : '' }}
+        </p>
+      </div>
+      
+      <p class="flight-card__right__top__btn text-primary font-weight-bold mb-0 mt-2" style="cursor: pointer;" *ngIf="trip.ticketNumber.length > 3" (click)="trigger = true">
+        Click to show more tickets...
+      </p>
+    </div>
+
+    <div class="flight-card__right__down mt-3 pt-3 border-top d-flex justify-content-between">
+      <div>
+        <p class="flight-card__right__down__sub-title text-muted mb-1 small">{{ trip.airline }} Booking Ref</p>
+        <p class="flight-card__right__down__sub-info font-weight-bold text-dark mb-0">{{ trip.bookingRef }}</p>
+      </div>
+    </div>
+  </section>
+</article>
+
+<app-tickets (clickCancel)="trigger = false" [tickets]="trip.ticketNumber" *ngIf="trigger" />

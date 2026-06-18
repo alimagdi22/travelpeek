@@ -1,0 +1,33 @@
+@use "../../../../../styles/variables" as vars;
+
+.flight-card {
+  border: 1px solid rgba(0, 74, 198, 0.06);
+  box-shadow: 0 4px 20px rgba(11, 26, 48, 0.02);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: 0 12px 30px rgba(11, 26, 48, 0.05);
+    transform: translateY(-2px);
+  }
+
+  .flight-card__left__icons {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 6px 12px;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 12px rgba(11, 26, 48, 0.05);
+  }
+
+  .flight-card__right__top__title {
+    font-family: vars.$font-family-display;
+  }
+
+  .flight-card__right__top__btn {
+    text-decoration: none;
+    font-size: 13px;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
