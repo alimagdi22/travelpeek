@@ -2,9 +2,10 @@
   <ul class="nav flex-column gap-2 p-0 m-0">
     <li class="nav-item">
       <a
-        class="nav-link d-flex align-items-center gap-3 py-3 px-4 rounded-3 text-secondary font-weight-bold"
+        class="nav-link d-flex align-items-center gap-3 py-3 px-4 rounded-3 font-weight-bold"
         routerLink="user-profile"
         routerLinkActive="active"
+        [class.active]="{ color: 'white' }"
       >
         <img
           src="assets/icons/userPage/navigation/profile-icon.svg"
@@ -16,7 +17,7 @@
     </li>
 
     <li class="nav-item">
-      <a
+      <!-- <a
         class="nav-link d-flex align-items-center gap-3 py-3 px-4 rounded-3 text-secondary font-weight-bold"
         routerLinkActive="active"
       >
@@ -26,11 +27,20 @@
           height="20"
         />
         <span>Flight Booking</span>
-      </a>
-      <!-- <a class="nav-link d-flex align-items-center gap-3 py-3 px-4 rounded-3 text-secondary font-weight-bold" routerLink="flight-booking" routerLinkActive="active">
-        <img src="assets/icons/userPage/navigation/airplane-icon.svg" width="20" height="20" />
-        <span>Flight Booking</span>
       </a> -->
+      <a
+        class="nav-link d-flex align-items-center gap-3 py-3 px-4 rounded-3 font-weight-bold"
+        routerLink="flight-booking"
+        routerLinkActive="active"
+        [class.active]="{ color: 'white' }"
+      >
+        <img
+          src="assets/icons/userPage/navigation/airplane-icon.svg"
+          width="20"
+          height="20"
+        />
+        <span>Flight Booking</span>
+      </a>
     </li>
 
     <li class="nav-item border-top mt-3 pt-3">

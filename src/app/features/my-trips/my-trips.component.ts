@@ -121,6 +121,8 @@ export class MyTripsComponent implements OnInit {
             }
           }
           replyText = errorMessage;
+        } else if (this.flightResultService.responseAi.output) {
+          replyText = this.flightResultService.responseAi.output;
         }
 
         const resultFound = this.flightResultService.ResultFound;
