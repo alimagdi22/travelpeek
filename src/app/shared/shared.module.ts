@@ -17,6 +17,7 @@ import { RpTravelUiModule } from 'rp-travel-ui';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ResultCardComponent } from './components/result-card/result-card.component';
+import { AvailableFlightsComponent } from './components/available-flights/available-flights.component';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { DatePipe } from '@angular/common';
@@ -42,6 +43,7 @@ const SharedComponents = [
   HeaderComponent,
   FooterComponent,
   ResultCardComponent,
+  AvailableFlightsComponent,
 ];
 // const SharedDirectives = [];
 // const SharedPipes = [];

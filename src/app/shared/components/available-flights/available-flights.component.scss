@@ -1,0 +1,251 @@
+@use "../../../../styles/variables" as vars;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.available-flights-card {
+  background-color: #f3f7ff;
+  border: 1px solid rgba(0, 74, 198, 0.05);
+  font-family: vars.$font-family-base;
+  color: #0b1c30;
+}
+
+.available-flights-header {
+  border-bottom: 1px solid #c3c6d74d;
+  padding-bottom: 4%;
+  .header-icon {
+    width: 22px;
+    height: 20px;
+  }
+
+  .header-title {
+    font-weight: 700;
+    font-style: Semi Bold;
+    font-size: 18px;
+    leading-trim: NONE;
+    line-height: 28px;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    color: black;
+  }
+}
+
+.options-list {
+  .option-block {
+    &:first-child {
+      padding-top: 0 !important;
+    }
+  }
+
+  .option-divider {
+    border-top: 1px solid rgba(11, 28, 48, 0.08);
+    opacity: 1;
+    margin: 0;
+  }
+}
+
+.option-header {
+  .option-title {
+    font-family: vars.$font-family-display;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0b1c30;
+  }
+
+  .airline-pill {
+    background-color: #d3e4fe;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 20px;
+
+    .airline-icon {
+      width: 15px;
+      height: 12px;
+    }
+
+    .airline-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: #0b1c30;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+.flight-legs-container {
+  .flight-leg {
+    .leg-header {
+      height: 28px;
+      display: flex;
+      align-items: center;
+    }
+
+    .timeline-node {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+      flex-shrink: 0;
+
+      &.outbound {
+        background-color: #004ac6;
+      }
+
+      &.inbound {
+        background-color: #495057;
+      }
+
+      .leg-icon {
+        width: 14px;
+        height: 14px;
+      }
+    }
+
+    .leg-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b1c30;
+    }
+
+    .leg-details {
+      margin-left: 13px; /* (28px width / 2) - 1px border offset */
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      // Dotted line connects outbound details to return flight
+      border-left: 2px dotted #c5d2e8;
+      padding-bottom: 24px;
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+
+    // Last leg (e.g. Return, or Outbound if one-way) shouldn't have a dotted line at the bottom
+    &:last-child {
+      .leg-details {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        padding-left: 22px; /* compensate for border-left removal */
+      }
+    }
+  }
+}
+
+.detail-row {
+  .detail-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .detail-text {
+    font-weight: 400;
+    font-style: Regular;
+    font-size: 14px;
+    leading-trim: NONE;
+    line-height: 20px;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    color: #5c6479;
+
+    &.main-route {
+      font-weight: 400;
+      font-style: Regular;
+      font-size: 14px;
+      leading-trim: NONE;
+      line-height: 20px;
+      letter-spacing: 0px;
+      vertical-align: middle;
+      color: #0b1c30;
+    }
+  }
+
+  .time-item {
+    font-size: 13px;
+
+    .time-value {
+      font-weight: 400;
+      font-style: Semi Bold;
+      font-size: 14px;
+      leading-trim: NONE;
+      line-height: 20px;
+      letter-spacing: 0px;
+      vertical-align: middle;
+      color: #0b1c30;
+      margin-block-start: 2px;
+    }
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    color: #5c6479;
+    font-weight: 500;
+
+    .meta-text {
+      color: #5c6479;
+      font-weight: 500;
+
+      &.text-primary {
+        color: #004ac6 !important;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+.option-footer {
+  border-top: 1px dashed rgba(11, 28, 48, 0.08);
+
+  .price-section {
+    .price-label {
+      margin-bottom: 2px;
+      font-weight: 700;
+      font-style: Semi Bold;
+      font-size: 14px;
+      leading-trim: NONE;
+      line-height: 20px;
+      letter-spacing: 0px;
+      vertical-align: middle;
+    }
+
+    .price-value {
+      font-family: vars.$font-family-display;
+      color: #004ac6;
+      font-weight: 700;
+      font-style: Semi Bold;
+      font-size: 20px;
+      leading-trim: NONE;
+      line-height: 28px;
+      letter-spacing: 0px;
+      vertical-align: middle;
+    }
+  }
+
+  .btn-select-flight {
+    background-color: #004ac6;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    border: none;
+    transition: all 0.2s ease-in-out;
+    padding: 5px 30px;
+    box-shadow: 0 4px 12px rgba(0, 74, 198, 0.15);
+
+    &:hover {
+      background-color: #0039a6;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 74, 198, 0.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}

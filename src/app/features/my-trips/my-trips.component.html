@@ -1,8 +1,8 @@
 <div class="my-trips-page-wrapper py-5">
   <div class="container chat-container-v2">
     <!-- Premium Chat Header -->
-    <div
-      class="chat-header-v2 d-flex align-items-center justify-content-between px-4 py-3 bg-white border-bottom rounded-top-4"
+    <!-- <div
+      class="chat-header-v2 d-flex align-items-center justify-content-between px-4 py-3 border-bottom rounded-top-4"
     >
       <div class="d-flex align-items-center gap-2">
         <span class="chat-title">Travel Assistant</span>
@@ -30,7 +30,7 @@
         </svg>
         <span>New Chat</span>
       </button>
-    </div>
+    </div> -->
 
     <!-- Chat Messages Scroll Container -->
     <div class="chat-messages-container d-flex flex-column gap-4 p-4">
@@ -51,22 +51,15 @@
         <!-- System Chat Bubble (With Nested Flight Cards) -->
         @if (msg.sender === "system") {
           <div class="system-bubble-wrapper w-100">
-            <div class="system-bubble p-4 rounded-4">
+            <div class="system-bubble p-1 rounded-4">
               <!-- Text Description -->
-              <p class="system-intro-text mb-4">{{ msg.text }}</p>
+              <!-- <p class="system-intro-text mb-4">{{ msg.text }}</p> -->
 
               <!-- Flight Results Cards -->
               @if (msg.itineraries && msg.itineraries.length > 0) {
-                <div class="flight-cards-list d-flex flex-column gap-3">
-                  @for (
-                    itinerary of msg.itineraries.slice(0, 5);
-                    track itinerary.sequenceNum
-                  ) {
-                    <app-result-card
-                      [itinerary]="itinerary"
-                    ></app-result-card>
-                  }
-                </div>
+                <app-available-flights
+                  [itineraries]="msg.itineraries.slice(0, 5)"
+                ></app-available-flights>
               }
             </div>
           </div>
@@ -105,9 +98,32 @@
 
     <!-- Chat Input Controls Container -->
     <div class="chat-input-bar-container px-4 pb-4">
-      <div
-        class="chat-input-bar-v2 d-flex align-items-center p-2 rounded-5 shadow-sm bg-white"
-      >
+      <div class="d-flex align-items-center gap-3">
+        <!-- New Chat Button -->
+        <button
+          class="btn-new-chat-circle border-0 d-flex align-items-center justify-content-center rounded-circle"
+          (click)="startNewChat()"
+          title="Start New Chat"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+
+        <!-- Input Bar -->
+        <div
+          class="chat-input-bar-v2 d-flex align-items-center p-2 rounded-5 shadow-sm bg-white flex-grow-1"
+        >
         <!-- Sparkle Prompt Icon (Left) -->
         <div
           class="sparkle-prompt-box d-flex align-items-center justify-content-center ms-2"
@@ -167,6 +183,7 @@
             <polyline points="5 12 12 5 19 12" />
           </svg>
         </button>
+      </div>
       </div>
     </div>
   </div>

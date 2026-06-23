@@ -9,29 +9,28 @@
 }
 
 .chat-container-v2 {
-  max-width: 800px;
+  max-width: 60%;
   width: 100%;
-  background-color: #ffffff;
-  border-radius: 24px;
-  border: 1px solid #eaeaea;
-  box-shadow: 0 12px 40px rgba(11, 26, 48, 0.05);
+  // background-color: #ffffff;
+  // border-radius: 24px;
+  // border: 1px solid #eaeaea;
+  // box-shadow: 0 12px 40px rgba(11, 26, 48, 0.05);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .chat-header-v2 {
-  background-color: #ffffff;
   border-bottom: 1px solid #eaeaea !important;
   padding: 18px 24px;
-  
+
   .chat-title {
     font-family: vars.$font-family-display;
     font-weight: 700;
     font-size: 16px;
     color: #0b1a30;
   }
-  
+
   .chat-status-badge {
     font-family: vars.$font-family-base;
     font-size: 11px;
@@ -40,7 +39,7 @@
     background-color: rgba(16, 185, 129, 0.08);
     padding: 3px 10px;
     border-radius: 100px;
-    
+
     .status-dot {
       width: 6px;
       height: 6px;
@@ -49,7 +48,7 @@
       display: inline-block;
     }
   }
-  
+
   .btn-new-chat {
     font-family: vars.$font-family-base;
     font-size: 13px;
@@ -60,7 +59,7 @@
     padding: 6px 14px;
     border-radius: 8px;
     background-color: transparent;
-    
+
     &:hover {
       background-color: #eff4ff;
       color: #1d4ed8;
@@ -76,7 +75,7 @@
 .chat-messages-container {
   max-height: 520px;
   overflow-y: auto;
-  background-color: #fbfcfe;
+  // background-color: #fbfcfe;
   scrollbar-width: thin;
   scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
 
@@ -91,7 +90,7 @@
 
 .message-row {
   max-width: 85%;
-  
+
   &.user-row {
     align-self: flex-end;
   }
@@ -119,9 +118,9 @@
 }
 
 .system-bubble {
-  background-color: #eff4ff;
+  // background-color: #eff4ff;
   border-radius: 20px;
-  
+
   .system-intro-text {
     font-family: vars.$font-family-base;
     font-size: 15px;
@@ -130,7 +129,6 @@
     color: #0b1a30;
   }
 }
-
 
 /* Typing indicator */
 .system-typing-bubble {
@@ -146,14 +144,25 @@
     opacity: 0.4;
     animation: typingPulse 1.2s infinite ease-in-out;
 
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
   }
 }
 
 @keyframes typingPulse {
-  0%, 100% { transform: translateY(0); opacity: 0.4; }
-  50% { transform: translateY(-4px); opacity: 1; }
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 
 /* Suggestion Pills */
@@ -234,5 +243,40 @@
     &:active {
       transform: scale(0.96);
     }
+  }
+}
+
+.btn-new-chat-circle {
+  width: 48px;
+  height: 48px;
+  background-color: #ffffff;
+  color: #004ac6;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 6px 20px rgba(11, 26, 48, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  flex-shrink: 0;
+
+  svg {
+    stroke: #004ac6;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    background-color: #eff4ff;
+    border-color: rgba(0, 74, 198, 0.2);
+    color: #1d4ed8;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 10px 24px rgba(0, 74, 198, 0.1);
+
+    svg {
+      stroke: #1d4ed8;
+      transform: rotate(90deg);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.96);
+    box-shadow: 0 4px 12px rgba(0, 74, 198, 0.05);
   }
 }

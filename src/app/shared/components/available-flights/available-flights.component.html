@@ -1,0 +1,290 @@
+<div class="available-flights-card p-4 shadow-sm">
+  <!-- ── Header ── -->
+  <div class="available-flights-header d-flex align-items-center gap-2 mb-2">
+    <img
+      src="/assets/icons/mytrips/available-flights.svg"
+      alt="Available Flights"
+      class="header-icon"
+    />
+    <h2 class="header-title mb-0">Available Flights</h2>
+    <hr />
+  </div>
+
+  <!-- ── Options List ── -->
+  <div class="options-list d-flex flex-column">
+    @for (
+      itinerary of itineraries;
+      track itinerary.sequenceNum;
+      let idx = $index;
+      let isLast = $last
+    ) {
+      <div class="option-block d-flex flex-column py-3">
+        <!-- Option Header -->
+        <div
+          class="option-header d-flex align-items-center justify-content-between mb-3"
+        >
+          <span class="option-title">Option {{ idx + 1 }}</span>
+          <div
+            class="airline-pill d-flex align-items-center gap-1 px-3 py-1 rounded-pill"
+          >
+            <img
+              src="/assets/icons/mytrips/airline.svg"
+              alt="Airline Logo"
+              class="airline-icon"
+            />
+            <span class="airline-text text-uppercase">{{
+              getAirlineName(itinerary)
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Flight Legs Container -->
+        <div class="flight-legs-container position-relative ps-2">
+          <!-- Outbound Flight -->
+          @if (getOutboundFlight(itinerary); as outbound) {
+            <div class="flight-leg d-flex flex-column position-relative mb-4">
+              <!-- Leg Header -->
+              <div class="leg-header d-flex align-items-center gap-2 mb-2">
+                <div
+                  class="timeline-node outbound d-flex align-items-center justify-content-center"
+                >
+                  <img
+                    src="/assets/icons/mytrips/outbound.svg"
+                    alt="Outbound"
+                    class="leg-icon"
+                  />
+                  <!-- Dotted connection line -->
+                  <div
+                    class="timeline-line"
+                    [class.has-return]="getReturnFlight(itinerary) !== null"
+                  ></div>
+                </div>
+                <span class="leg-title">Outbound Flight</span>
+              </div>
+
+              <!-- Leg Details -->
+              <div class="leg-details ps-4 ms-2 d-flex flex-column gap-2">
+                <!-- From / To -->
+                <div class="detail-row d-flex align-items-center gap-2">
+                  <img
+                    src="/assets/icons/mytrips/from.svg"
+                    class="detail-icon"
+                    alt="from/to"
+                  />
+                  <span class="detail-text main-route">
+                    From {{ getDeptCity(outbound) }} ({{
+                      getDeptCode(outbound)
+                    }}) to {{ getArrCity(outbound) }} ({{
+                      getArrCode(outbound)
+                    }})
+                  </span>
+                </div>
+
+                <!-- Departure / Arrival Times -->
+                <div class="detail-row d-flex gap-3">
+                  <div class="time-item d-flex align-items-center gap-2">
+                    <img
+                      src="/assets/icons/mytrips/departure-time.svg"
+                      class="detail-icon"
+                      alt="departure"
+                    />
+                    <span class="detail-text text-muted">
+                      Departure:
+                      <strong class="time-value text-dark">{{
+                        getDeptDate(outbound) | date: "hh:mm a, EEE d MMMM yyyy"
+                      }}</strong>
+                    </span>
+                  </div>
+                  @if (getArrDate(outbound)) {
+                    <div class="time-item d-flex align-items-center gap-2">
+                      <img
+                        src="/assets/icons/mytrips/arrival-time.svg"
+                        class="detail-icon"
+                        alt="arrival"
+                      />
+                      <span class="detail-text text-muted">
+                        Arrival:
+                        <strong class="time-value text-dark">{{
+                          getArrDate(outbound)
+                            | date: "hh:mm a, EEE d MMMM yyyy"
+                        }}</strong>
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Stops, Class, Weight -->
+                <div
+                  class="detail-row d-flex flex-wrap align-items-center gap-3 mt-1"
+                >
+                  <div class="meta-item d-flex align-items-center gap-1">
+                    <img
+                      src="/assets/icons/mytrips/direct.svg"
+                      class="detail-icon"
+                      alt="stops"
+                    />
+                    <span class="meta-text text-primary font-medium">{{
+                      getStopsLabel(outbound)
+                    }}</span>
+                  </div>
+
+                  @if (getCabinClassLabel(outbound, itinerary); as cabinClass) {
+                    <div class="meta-item d-flex align-items-center gap-1">
+                      <img
+                        src="/assets/icons/mytrips/class.svg"
+                        class="detail-icon"
+                        alt="class"
+                      />
+                      <span class="meta-text">{{ cabinClass }}</span>
+                    </div>
+                  }
+
+                  @if (getWeight(outbound, itinerary); as weight) {
+                    <div class="meta-item d-flex align-items-center gap-1">
+                      <img
+                        src="/assets/icons/mytrips/weight.svg"
+                        class="detail-icon"
+                        alt="weight"
+                      />
+                      <span class="meta-text">weight: {{ weight }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Return Flight -->
+          @if (getReturnFlight(itinerary); as returnF) {
+            <div class="flight-leg d-flex flex-column position-relative">
+              <!-- Leg Header -->
+              <div class="leg-header d-flex align-items-center gap-2 mb-2">
+                <div
+                  class="timeline-node inbound d-flex align-items-center justify-content-center"
+                >
+                  <img
+                    src="/assets/icons/mytrips/inbound.svg"
+                    alt="Inbound"
+                    class="leg-icon"
+                  />
+                </div>
+                <span class="leg-title">Return Flight</span>
+              </div>
+
+              <!-- Leg Details -->
+              <div class="leg-details ps-4 ms-2 d-flex flex-column gap-2">
+                <!-- From / To -->
+                <div class="detail-row d-flex align-items-center gap-2">
+                  <img
+                    src="/assets/icons/mytrips/from.svg"
+                    class="detail-icon"
+                    alt="from/to"
+                  />
+                  <span class="detail-text main-route">
+                    From {{ getDeptCity(returnF) }} ({{ getDeptCode(returnF) }})
+                    to {{ getArrCity(returnF) }} ({{ getArrCode(returnF) }})
+                  </span>
+                </div>
+
+                <!-- Departure / Arrival Times -->
+                <div
+                  class="detail-row d-flex flex-wrap align-items-center gap-3"
+                >
+                  <div class="time-item d-flex align-items-center gap-2">
+                    <img
+                      src="/assets/icons/mytrips/departure-time.svg"
+                      class="detail-icon"
+                      alt="departure"
+                    />
+                    <span class="detail-text text-muted">
+                      Departure:
+                      <strong class="time-value text-dark">{{
+                        getDeptDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                      }}</strong>
+                    </span>
+                  </div>
+                  @if (getArrDate(returnF)) {
+                    <div class="time-item d-flex align-items-center gap-2">
+                      <img
+                        src="/assets/icons/mytrips/arrival-time.svg"
+                        class="detail-icon"
+                        alt="arrival"
+                      />
+                      <span class="detail-text text-muted">
+                        Arrival:
+                        <strong class="time-value text-dark">{{
+                          getArrDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                        }}</strong>
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <!-- Stops -->
+                <div
+                  class="detail-row d-flex flex-wrap align-items-center gap-3 mt-1"
+                >
+                  <div class="meta-item d-flex align-items-center gap-1">
+                    <img
+                      src="/assets/icons/mytrips/direct.svg"
+                      class="detail-icon"
+                      alt="stops"
+                    />
+                    <span class="meta-text text-primary font-medium">{{
+                      getStopsLabel(returnF)
+                    }}</span>
+                  </div>
+
+                  @if (getCabinClassLabel(returnF, itinerary); as cabinClass) {
+                    <div class="meta-item d-flex align-items-center gap-1">
+                      <img
+                        src="/assets/icons/mytrips/class.svg"
+                        class="detail-icon"
+                        alt="class"
+                      />
+                      <span class="meta-text">{{ cabinClass }}</span>
+                    </div>
+                  }
+
+                  @if (getWeight(returnF, itinerary); as weight) {
+                    <div class="meta-item d-flex align-items-center gap-1">
+                      <img
+                        src="/assets/icons/mytrips/weight.svg"
+                        class="detail-icon"
+                        alt="weight"
+                      />
+                      <span class="meta-text">weight: {{ weight }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Option Footer: Total Price + Select Button -->
+        <div
+          class="option-footer d-flex align-items-center justify-content-between mt-3 pt-3"
+        >
+          <div class="price-section d-flex flex-column">
+            <span class="price-label">Total Price</span>
+            <span class="price-value"
+              >{{ getTotalPrice(itinerary) | number: "1.0-0" }}
+              <span class="currency-code">{{
+                getCurrencyCode(itinerary)
+              }}</span>
+            </span>
+          </div>
+          <button class="btn btn-select-flight font-semibold">
+            Select Flight
+          </button>
+        </div>
+      </div>
+
+      <!-- Divider between options -->
+      @if (!isLast) {
+        <hr class="option-divider my-2" />
+      }
+    }
+  </div>
+</div>
