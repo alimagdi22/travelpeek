@@ -106,10 +106,14 @@ export class MyTripsComponent implements OnInit {
         clearInterval(checkInterval);
         this.isTyping = false;
 
-        let replyText = `Found flights matching your search: "${text}".`;
-        if (
+        let replyText = '';
+        const responseAi = this.flightResultService.responseAi;
+
+        if (responseAi && responseAi.output) {
+          replyText = responseAi.output;
+        } else if (
           !this.flightResultService.ResultFound ||
-          !this.flightResultService.responseAi
+          !responseAi
         ) {
           const rawError = this.flightResultService.normalError;
           let errorMessage = 'No flights found matching your query. Please try again.';
@@ -121,8 +125,8 @@ export class MyTripsComponent implements OnInit {
             }
           }
           replyText = errorMessage;
-        } else if (this.flightResultService.responseAi.output) {
-          replyText = this.flightResultService.responseAi.output;
+        } else {
+          replyText = `Found flights matching your search: "${text}".`;
         }
 
         const resultFound = this.flightResultService.ResultFound;

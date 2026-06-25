@@ -130,6 +130,21 @@
   }
 }
 
+.system-text-bubble {
+  background-color: #eff4ff;
+  border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 4px 15px rgba(11, 26, 48, 0.02);
+  border: 1px solid rgba(0, 74, 198, 0.02);
+
+  .system-intro-text {
+    font-family: vars.$font-family-base;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 22px;
+    color: #0b1a30;
+  }
+}
+
 /* Typing indicator */
 .system-typing-bubble {
   background-color: #eff4ff;
