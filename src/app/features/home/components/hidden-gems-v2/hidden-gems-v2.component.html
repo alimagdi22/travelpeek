@@ -6,20 +6,34 @@
       <span class="trending-badge-v2">Trending</span>
     </div>
 
-    <!-- Cards Grid -->
-    <div class="row g-4">
-      <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12">
-        <div class="gem-card-v2 position-relative overflow-hidden rounded-4">
-          <!-- Card Background Image -->
-          <img [src]="gem.image" [alt]="gem.name" class="card-bg-v2" />
+    <!-- Cards Grid / Slider -->
+    <div class="slider-wrapper position-relative">
+      <div class="row g-4 slider-container" #slider>
+        <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12 slider-item">
+          <div class="gem-card-v2 position-relative overflow-hidden rounded-4">
+            <!-- Card Background Image -->
+            <img [src]="gem.image" [alt]="gem.name" class="card-bg-v2" />
 
-          <!-- Gradient Overlay -->
-          <div class="card-overlay-v2 d-flex flex-column justify-content-end">
-            <h3 class="gem-name-v2 mb-1">{{ gem.name }}</h3>
-            <p class="gem-tagline-v2 mb-0">{{ gem.icon }} {{ gem.tagline }}</p>
+            <!-- Gradient Overlay -->
+            <div class="card-overlay-v2 d-flex flex-column justify-content-end">
+              <h3 class="gem-name-v2 mb-1">{{ gem.name }}</h3>
+              <p class="gem-tagline-v2 mb-0">{{ gem.icon }} {{ gem.tagline }}</p>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Floating Slider Navigation Arrows (Mobile/Tablet only) -->
+      <button class="slider-arrow-btn prev" (click)="scrollSlider(slider, 'left')" aria-label="Previous slide">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button class="slider-arrow-btn next" (click)="scrollSlider(slider, 'right')" aria-label="Next slide">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
     </div>
   </div>
 </section>

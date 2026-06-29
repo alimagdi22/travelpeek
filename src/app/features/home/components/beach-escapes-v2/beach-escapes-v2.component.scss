@@ -142,3 +142,72 @@
     }
   }
 }
+
+// Responsive Slider Layout
+.slider-arrow-btn {
+  display: none;
+}
+
+@media (max-width: 991px) {
+  .slider-wrapper {
+    overflow: visible;
+  }
+
+  .slider-container {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 !important;
+    padding: 10px 4px 20px 4px !important;
+    gap: 16px;
+    
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  
+  .slider-item {
+    flex: 0 0 82% !important;
+    max-width: 82% !important;
+    scroll-snap-align: start;
+    padding: 0 !important;
+  }
+
+  // Cool Floating Slider Navigation Arrows
+  .slider-arrow-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: vars.$color-primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(11, 26, 48, 0.12);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      background: #ffffff;
+      transform: translateY(-50%) scale(1.08);
+      box-shadow: 0 6px 16px rgba(11, 26, 48, 0.18);
+    }
+    
+    &:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+    
+    &.prev { left: -10px; }
+    &.next { right: -10px; }
+  }
+}

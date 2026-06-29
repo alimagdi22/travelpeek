@@ -1,6 +1,6 @@
 <header class="header">
   <div class="container-fluid px-4">
-    <div class="row align-items-center">
+    <div class="row align-items-center justify-content-between">
       <!-- Brand Logo -->
       <div class="col-auto">
         <div class="brand" (click)="navigateHome()">
@@ -8,29 +8,17 @@
         </div>
       </div>
 
-      <!-- Navigation Menu -->
-      <div class="col">
+      <!-- Navigation Menu (Desktop) -->
+      <div class="col d-none d-lg-block">
         <nav class="nav-menu d-flex align-items-center gap-4 ms-5">
-          <a routerLink="/" [class.active]="isExploreActive" class="nav-item"
-            >Explore</a
-          >
-          <a
-            routerLink="/my-trips"
-            [class.active]="isMyTripsActive"
-            class="nav-item"
-            >My Trips</a
-          >
-          <a
-            routerLink="/support"
-            [class.active]="isSupportActive"
-            class="nav-item"
-            >Support</a
-          >
+          <a routerLink="/" [class.active]="isExploreActive" class="nav-item">Explore</a>
+          <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="nav-item">My Trips</a>
+          <a routerLink="/support" [class.active]="isSupportActive" class="nav-item">Support</a>
         </nav>
       </div>
 
-      <!-- Actions (Right Aligned) -->
-      <div class="col-auto">
+      <!-- Actions (Desktop, Right Aligned) -->
+      <div class="col-auto d-none d-lg-block">
         <div class="header-actions d-flex align-items-center gap-4">
           <div
             class="currency-selector d-flex align-items-center gap-2"
@@ -85,6 +73,118 @@
           }
         </div>
       </div>
+
+      <!-- Mobile Menu Button (Hamburger) -->
+      <div class="col-auto d-lg-none">
+        <button class="btn-mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle navigation">
+          <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+        </button>
+      </div>
     </div>
   </div>
 </header>
+
+<!-- Mobile Navigation Drawer -->
+<div class="mobile-drawer-backdrop" [class.active]="isMobileMenuOpen" (click)="closeMobileMenu()"></div>
+<div class="mobile-drawer" [class.open]="isMobileMenuOpen">
+  <div class="drawer-header">
+    <div class="brand" (click)="navigateHome(); closeMobileMenu()">
+      <span class="logo-text">Peek</span>
+    </div>
+    <button class="btn-close-drawer" (click)="closeMobileMenu()" aria-label="Close menu">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <!-- Navigation Links -->
+    <nav class="drawer-nav">
+      <a routerLink="/" [class.active]="isExploreActive" class="drawer-nav-item" (click)="closeMobileMenu()">
+        <mat-icon class="nav-icon">explore</mat-icon>
+        <span>Explore</span>
+      </a>
+      <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="drawer-nav-item" (click)="closeMobileMenu()">
+        <mat-icon class="nav-icon">card_travel</mat-icon>
+        <span>My Trips</span>
+      </a>
+      <a routerLink="/support" [class.active]="isSupportActive" class="drawer-nav-item" (click)="closeMobileMenu()">
+        <mat-icon class="nav-icon">help_outline</mat-icon>
+        <span>Support</span>
+      </a>
+    </nav>
+
+    <div class="drawer-divider"></div>
+
+    <!-- Currency Selector -->
+    <div class="drawer-section">
+      <h3 class="section-title">Currency</h3>
+      <div class="drawer-currency-selector" (click)="toggleCurrencyPopup()">
+        <div class="currency-info">
+          <img class="flags" [src]="this.homePageService.selectedCurrency['Image_Url']" alt="Currency Flag" />
+          <span class="currency-code">{{ this.homePageService.selectedCurrency["Currency_Code"] }}</span>
+        </div>
+        <mat-icon class="arrow-icon">arrow_drop_down</mat-icon>
+      </div>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <!-- Account / Actions -->
+    <div class="drawer-section drawer-actions">
+      @if (profileService.isLoading) {
+        <div class="d-flex justify-content-center py-2">
+          <mat-spinner [diameter]="30" [strokeWidth]="5" />
+        </div>
+      } @else if (!profileService.isLoading && successLogin) {
+        <div class="user-profile-info">
+          <mat-icon class="user-avatar-icon">account_circle</mat-icon>
+          <div class="user-name">
+            {{ profileService.user.firstName }} {{ profileService.user.lastName }}
+          </div>
+        </div>
+        <div class="drawer-account-links">
+          <a class="drawer-account-link" routerLink="/user-management/user-profile" (click)="closeMobileMenu()">
+            <mat-icon>person</mat-icon>
+            <span>My Profile</span>
+          </a>
+          <button class="drawer-account-btn-logout" (click)="logout(); closeMobileMenu()">
+            <mat-icon>logout</mat-icon>
+            <span>Logout</span>
+          </button>
+        </div>
+      } @else {
+        <button class="btn-drawer-login" routerLink="/login" (click)="closeMobileMenu()">Login</button>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Currency Popup Modal -->
+<div class="currency-popup-backdrop" [class.active]="isCurrencyPopupOpen" (click)="closeCurrencyPopup()"></div>
+<div class="currency-popup" [class.open]="isCurrencyPopupOpen">
+  <div class="popup-header">
+    <h3>Select Currency</h3>
+    <button class="btn-close-popup" (click)="closeCurrencyPopup()" aria-label="Close currency popup">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+  <div class="popup-body">
+    <div class="currency-options-list">
+      @for (currency of this.homePageService.allCurrency; track currency) {
+        <button
+          class="currency-option-item"
+          [class.active]="currency.Currency_Code === this.homePageService.selectedCurrency.Currency_Code"
+          (click)="selectCurrencyMobile(currency)"
+        >
+          <div class="currency-item-info">
+            <img class="flags" [src]="currency.Image_Url" alt="Currency Flag" />
+            <span class="currency-item-code">{{ currency.Currency_Code }}</span>
+          </div>
+          @if (currency.Currency_Code === this.homePageService.selectedCurrency.Currency_Code) {
+            <mat-icon class="check-icon">check</mat-icon>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>

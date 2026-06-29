@@ -1,6 +1,7 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { FlightResultService, IAirItinerary } from 'rp-travel-ui';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { FlightResultService, IAirItinerary, UserProfileService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
+import { Subscription } from 'rxjs';
 
 interface FlightCard {
   airline: string;
@@ -29,14 +30,18 @@ interface Message {
   templateUrl: './my-trips.component.html',
   styleUrl: './my-trips.component.scss',
 })
-export class MyTripsComponent implements OnInit {
+export class MyTripsComponent implements OnInit, OnDestroy {
   messages: Message[] = [];
   newMessage: string = '';
   isTyping: boolean = false;
   chatID: string = '';
+  searchHistory: string[] = [];
+  isMobileHistoryOpen: boolean = false;
 
   flightResultService = inject(FlightResultService);
   sharedService = inject(SharedService);
+  profileService = inject(UserProfileService);
+  private subscription = new Subscription();
 
   suggestions: string[] = [
     'Add travel insurance',
@@ -44,8 +49,42 @@ export class MyTripsComponent implements OnInit {
     'Window seat preference',
   ];
 
+  get isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  get userInitials(): string {
+    if (!this.isLoggedIn) return 'G';
+    const user = this.profileService.user;
+    if (!user) return 'U';
+    const name = user.userName || user.email || '';
+    if (!name) return 'U';
+    const parts = name.split(/[ @._-]/).filter(Boolean);
+    const initials = parts.map((p: string) => p.charAt(0)).join('').toUpperCase();
+    return initials.slice(0, 2) || 'U';
+  }
+
+  get userDisplayName(): string {
+    if (!this.isLoggedIn) return 'Guest';
+    const user = this.profileService.user;
+    return user?.userName || user?.email || 'User';
+  }
+
   ngOnInit() {
     this.generateChatId();
+
+    // Listen to user profile notify events to refresh history on login/logout
+    this.subscription.add(
+      this.profileService.notify.subscribe(() => {
+        this.loadSearchHistory();
+      })
+    );
+
+    if (this.isLoggedIn) {
+      this.profileService.getUserProfile();
+      this.loadSearchHistory();
+    }
+
     const query = this.sharedService.getSearchQuery();
     if (query) {
       this.sharedService.clearSearchQuery();
@@ -53,6 +92,45 @@ export class MyTripsComponent implements OnInit {
     } else {
       this.initializeChat();
     }
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
+  }
+
+  loadSearchHistory() {
+    if (!this.isLoggedIn) {
+      this.searchHistory = [];
+      return;
+    }
+    const email = this.profileService.user?.email || 'guest';
+    const raw = localStorage.getItem(`travelpeek_history_${email}`);
+    this.searchHistory = raw ? JSON.parse(raw) : [];
+  }
+
+  saveSearchHistory(text: string) {
+    if (!this.isLoggedIn || !text.trim()) return;
+    const email = this.profileService.user?.email || 'guest';
+    const key = `travelpeek_history_${email}`;
+    const raw = localStorage.getItem(key);
+    let history: string[] = raw ? JSON.parse(raw) : [];
+    history = history.filter(item => item.toLowerCase() !== text.toLowerCase());
+    history.unshift(text);
+    if (history.length > 20) {
+      history = history.slice(0, 20);
+    }
+    localStorage.setItem(key, JSON.stringify(history));
+    this.searchHistory = history;
+  }
+
+  clearSearchHistory() {
+    const email = this.profileService.user?.email || 'guest';
+    localStorage.removeItem(`travelpeek_history_${email}`);
+    this.searchHistory = [];
+  }
+
+  toggleMobileHistory(isOpen?: boolean) {
+    this.isMobileHistoryOpen = isOpen !== undefined ? isOpen : !this.isMobileHistoryOpen;
   }
 
   generateChatId() {
@@ -80,6 +158,9 @@ export class MyTripsComponent implements OnInit {
   sendMessage(text: string) {
     if (!text.trim()) return;
 
+    // Save history
+    this.saveSearchHistory(text);
+
     // Add user message
     this.messages.push({
       sender: 'user',
@@ -88,6 +169,10 @@ export class MyTripsComponent implements OnInit {
     });
 
     this.newMessage = '';
+    const textarea = document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement;
+    if (textarea) {
+      textarea.style.height = 'auto';
+    }
 
     // Scroll to bottom
     this.scrollToBottom();
@@ -146,6 +231,27 @@ export class MyTripsComponent implements OnInit {
 
   selectSuggestion(suggestion: string) {
     this.sendMessage(suggestion);
+  }
+
+  scrollSuggestions(element: HTMLElement, direction: string) {
+    const item = element.querySelector('.suggestion-slider-item');
+    if (!item) return;
+    const itemWidth = item.getBoundingClientRect().width;
+    const scrollAmount = itemWidth + 8; // item width + gap
+    element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  }
+
+  onInputKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage(this.newMessage);
+    }
+  }
+
+  adjustTextareaHeight(textarea: any) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
   }
 
   scrollToBottom() {

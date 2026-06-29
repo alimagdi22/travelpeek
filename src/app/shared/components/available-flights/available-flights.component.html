@@ -269,9 +269,9 @@
           <div class="price-section d-flex flex-column">
             <span class="price-label">Total Price</span>
             <span class="price-value"
-              >{{ getTotalPrice(itinerary) | number: "1.0-0" }}
+              >{{ getTotalPrice(itinerary) | exchange : 'value'| number: "1.0-0" }}
               <span class="currency-code">{{
-                getCurrencyCode(itinerary)
+                getCurrencyCode(itinerary) | exchange : 'code'
               }}</span>
             </span>
           </div>

@@ -20,6 +20,11 @@
   justify-content: center;
   color: #ffffff;
   padding: 0 20px;
+
+  @media (max-width: 576px) {
+    height: 420px;
+    padding: 0 16px;
+  }
 }
 
 .hero-content {
@@ -83,6 +88,10 @@
     background: rgba(255, 255, 255, 0.5);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
   }
+
+  @media (max-width: 576px) {
+    padding: 6px 6px 6px 16px;
+  }
 }
 
 .stars-svg {
@@ -90,6 +99,12 @@
   height: 24px;
   margin-right: 16px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+
+  @media (max-width: 576px) {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
 }
 
 .search-input {
@@ -105,10 +120,18 @@
   &::placeholder {
     color: rgba(11, 26, 48, 0.55); /* Dark grey placeholder matching mockup */
     font-weight: 400;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   @media (max-width: 576px) {
-    font-size: 15px;
+    font-size: 14px;
+    padding: 6px 0;
+
+    &::placeholder {
+      font-size: 12px;
+    }
   }
 }
 
@@ -132,10 +155,25 @@
   &:active {
     transform: scale(0.95);
   }
+
+  @media (max-width: 576px) {
+    width: 40px;
+    height: 40px;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
 }
 
 .recommendations-container {
   margin-top: 28px;
+
+  @media (max-width: 576px) {
+    margin-top: 20px;
+    gap: 8px !important;
+  }
 }
 
 .rec-pill {

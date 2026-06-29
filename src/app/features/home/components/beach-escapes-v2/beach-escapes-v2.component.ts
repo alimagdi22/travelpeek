@@ -7,6 +7,14 @@ import { Component } from '@angular/core';
   styleUrl: './beach-escapes-v2.component.scss'
 })
 export class BeachEscapesV2Component {
+  scrollSlider(element: HTMLElement, direction: string) {
+    const card = element.querySelector('.slider-item');
+    if (!card) return;
+    const cardWidth = card.getBoundingClientRect().width;
+    const scrollAmount = cardWidth + 16; // width + gap
+    element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  }
+
   escapes = [
     {
       name: 'Maldives',

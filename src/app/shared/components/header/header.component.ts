@@ -23,6 +23,41 @@ export class HeaderComponent implements OnInit, OnDestroy {
   profileService = inject(UserProfileService);
   successLogin = false;
   public selectedCurrency: currencyModel = CURRENCY_DEFAULT;
+  isMobileMenuOpen = false;
+  isCurrencyPopupOpen = false;
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    this.updateBodyOverflow();
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+    this.updateBodyOverflow();
+  }
+
+  toggleCurrencyPopup() {
+    this.isCurrencyPopupOpen = !this.isCurrencyPopupOpen;
+    this.updateBodyOverflow();
+  }
+
+  closeCurrencyPopup() {
+    this.isCurrencyPopupOpen = false;
+    this.updateBodyOverflow();
+  }
+
+  selectCurrencyMobile(currency: currencyModel) {
+    this.updateCurrency(currency);
+    this.closeCurrencyPopup();
+    this.closeMobileMenu();
+  }
+
+  private updateBodyOverflow() {
+    if (typeof document !== 'undefined') {
+      const lockScroll = this.isMobileMenuOpen || this.isCurrencyPopupOpen;
+      document.body.style.overflow = lockScroll ? 'hidden' : '';
+    }
+  }
 
   ngOnInit(): void {
     const storedCurrency = sessionStorage.getItem('curr');
@@ -91,5 +126,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+    }
   }
 }

@@ -1,21 +1,17 @@
 <footer class="footer mb-2">
-  <div class="container-fluid px-5 py-4">
-    <div class="row align-items-center justify-content-between">
-      <!-- Left side: brand and copyright -->
-      <div class="col-md-6 d-flex flex-column align-items-start gap-1">
-        <div class="brand">
+  <div class="container px-4 py-4">
+    <div class="row align-items-center justify-content-between g-3">
+      <!-- Left side: brand and copyright (Desktop) -->
+      <div class="col-md-auto d-flex flex-column align-items-center align-items-md-start gap-1">
+        <div class="brand" routerLink="/">
           <span class="logo-text">Peek</span>
         </div>
-        <span class="copyright"
-          >© 2024 Peek AI Travel. All rights reserved.</span
-        >
+        <span class="copyright d-none d-md-block">© 2024 Peek AI Travel. All rights reserved.</span>
       </div>
 
       <!-- Right side: footer nav links -->
-      <div
-        class="col-md-6 d-flex justify-content-md-end justify-content-start mt-3 mt-md-0"
-      >
-        <nav class="footer-nav d-flex align-items-center gap-4">
+      <div class="col-md-auto d-flex justify-content-center justify-content-md-end">
+        <nav class="footer-nav d-flex flex-wrap justify-content-center align-items-center gap-3 gap-md-4">
           <a
             routerLink="/legal/privacy-policy"
             routerLinkActive="active"
@@ -38,6 +34,11 @@
             >Contact</a
           >
         </nav>
+      </div>
+
+      <!-- Bottom copyright (Mobile only) -->
+      <div class="col-12 d-block d-md-none text-center mt-2">
+        <span class="copyright">© 2024 Peek AI Travel. All rights reserved.</span>
       </div>
     </div>
   </div>

@@ -7,6 +7,14 @@ import { Component } from '@angular/core';
   styleUrl: './curated-for-you-v2.component.scss'
 })
 export class CuratedForYouV2Component {
+  scrollSlider(element: HTMLElement, direction: string) {
+    const card = element.querySelector('.slider-item');
+    if (!card) return;
+    const cardWidth = card.getBoundingClientRect().width;
+    const scrollAmount = cardWidth + 16; // width + gap
+    element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  }
+
   destinations = [
     {
       name: 'Istanbul',
