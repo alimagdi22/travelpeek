@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { IAirItinerary, IFlight } from 'rp-travel-ui';
+import { Component, inject, Input } from '@angular/core';
+import { FlightCheckoutService, FlightResultService, IAirItinerary, IFlight } from 'rp-travel-ui';
 
 @Component({
   selector: 'app-available-flights',
@@ -9,7 +9,8 @@ import { IAirItinerary, IFlight } from 'rp-travel-ui';
 })
 export class AvailableFlightsComponent {
   @Input() itineraries: IAirItinerary[] = [];
-
+  flightResultService = inject(FlightResultService);
+  flightCheckoutService = inject(FlightCheckoutService);
   getOutboundFlight(itinerary: IAirItinerary): IFlight | null {
     return itinerary?.allJourney?.flights?.[0] ?? null;
   }
@@ -35,14 +36,14 @@ export class AvailableFlightsComponent {
   getArrCity(flight: IFlight): string {
     const segs = flight?.flightDTO;
     return segs && segs.length > 0
-      ? segs[segs.length - 1]?.arrivalTerminalAirport?.cityName ?? ''
+      ? (segs[segs.length - 1]?.arrivalTerminalAirport?.cityName ?? '')
       : '';
   }
 
   getArrCode(flight: IFlight): string {
     const segs = flight?.flightDTO;
     return segs && segs.length > 0
-      ? segs[segs.length - 1]?.arrivalTerminalAirport?.airportCode ?? ''
+      ? (segs[segs.length - 1]?.arrivalTerminalAirport?.airportCode ?? '')
       : '';
   }
 
@@ -53,7 +54,7 @@ export class AvailableFlightsComponent {
   getArrDate(flight: IFlight): string {
     const segs = flight?.flightDTO;
     return segs && segs.length > 0
-      ? segs[segs.length - 1]?.arrivalDate ?? ''
+      ? (segs[segs.length - 1]?.arrivalDate ?? '')
       : '';
   }
 
@@ -93,5 +94,14 @@ export class AvailableFlightsComponent {
 
   getCurrencyCode(itinerary: IAirItinerary): string {
     return itinerary?.itinTotalFare?.currencyCode ?? '';
+  }
+
+  selectFlight(itinerary: IAirItinerary) {
+    console.log(this.flightResultService.responseAi);
+
+    console.log(itinerary, 'itenaries');
+    if (this.flightResultService.responseAi) {
+      this.flightCheckoutService.getSelectedFlightData(this.flightResultService.responseAi?.searchCriteria.searchId,itinerary.sequenceNum,itinerary.pKey,true,itinerary.pcc)
+    }
   }
 }

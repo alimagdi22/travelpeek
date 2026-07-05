@@ -2,7 +2,7 @@
 
 .my-trips-page-wrapper {
   background-color: #f8f9ff;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 9%);
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -46,8 +46,19 @@
   }
   @media (max-width: 991px) {
     max-width: 100%;
-    padding: 0 16px;
-    height: auto;
+    padding: 0 16px 30% 16px;
+    height: 100%;
+    justify-content: space-between;
+    position: relative;
+  }
+}
+
+.bottom-section{
+  @media(max-width:991px){
+    position: fixed;
+    bottom: 0;
+    background-color: #f8f9ff;
+    z-index: 10;
   }
 }
 
@@ -119,7 +130,7 @@
 
   @media (max-width: 991px) {
     flex-grow: 0;
-    max-height: 500px;
+    height: 100%;
   }
 }
 
@@ -392,10 +403,10 @@
   z-index: 5;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: all 0.2s;
-  
+
   &.prev { left: 4px; }
   &.next { right: 4px; }
-  
+
   &:active {
     transform: translateY(-50%) scale(0.95);
   }
