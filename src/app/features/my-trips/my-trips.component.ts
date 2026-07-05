@@ -215,7 +215,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         }
 
         const resultFound = this.flightResultService.ResultFound;
-        const airItineraries = this.flightResultService.responseAi?.airItineraries;
+        const airItineraries = this.flightResultService.responseAi?.airItineraries || this.flightResultService.responseAi?.itineraries;
 
         this.messages.push({
           sender: 'system',
