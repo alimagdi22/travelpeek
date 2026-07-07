@@ -5,16 +5,18 @@
   width: 100%;
 }
 
-.available-flights-card {
+.selected-flight-card {
   background-color: #f3f7ff;
   border: 1px solid rgba(0, 74, 198, 0.05);
   font-family: vars.$font-family-base;
   color: #0b1c30;
+  border-radius: 16px;
 }
 
-.available-flights-header {
+.selected-flight-header {
   border-bottom: 1px solid #c3c6d74d;
   padding-bottom: 4%;
+  
   .header-icon {
     width: 22px;
     height: 20px;
@@ -22,36 +24,17 @@
 
   .header-title {
     font-weight: 700;
-    font-style: Semi Bold;
     font-size: 18px;
-    leading-trim: NONE;
     line-height: 28px;
-    letter-spacing: 0px;
-    vertical-align: middle;
     color: black;
   }
-}
 
-.options-list {
-  .option-block {
-    &:first-child {
-      padding-top: 0 !important;
-    }
-  }
-
-  .option-divider {
-    border-top: 1px solid rgba(11, 28, 48, 0.08);
-    opacity: 1;
-    margin: 0;
-  }
-}
-
-.option-header {
-  .option-title {
-    font-family: vars.$font-family-display;
-    font-size: 16px;
-    font-weight: 700;
-    color: #0b1c30;
+  .passenger-badge {
+    background-color: #e0ecff;
+    color: #004ac6;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
   }
 
   .airline-pill {
@@ -61,8 +44,8 @@
     border-radius: 20px;
 
     .airline-icon {
-      width: 25px;
-      height: 22px;
+      width: 15px;
+      height: 12px;
     }
 
     .airline-text {
@@ -144,22 +127,14 @@
 
   .detail-text {
     font-weight: 400;
-    font-style: Regular;
     font-size: 14px;
-    leading-trim: NONE;
     line-height: 20px;
-    letter-spacing: 0px;
-    vertical-align: middle;
     color: #5c6479;
 
     &.main-route {
       font-weight: 400;
-      font-style: Regular;
       font-size: 14px;
-      leading-trim: NONE;
       line-height: 20px;
-      letter-spacing: 0px;
-      vertical-align: middle;
       color: #0b1c30;
     }
   }
@@ -169,12 +144,8 @@
 
     .time-value {
       font-weight: 400;
-      font-style: Semi Bold;
       font-size: 14px;
-      leading-trim: NONE;
       line-height: 20px;
-      letter-spacing: 0px;
-      vertical-align: middle;
       color: #0b1c30;
       margin-block-start: 2px;
     }
@@ -206,68 +177,20 @@
     .price-label {
       margin-bottom: 2px;
       font-weight: 700;
-      font-style: Semi Bold;
       font-size: 14px;
-      leading-trim: NONE;
       line-height: 20px;
-      letter-spacing: 0px;
-      vertical-align: middle;
     }
 
     .price-value {
       font-family: vars.$font-family-display;
       color: #004ac6;
       font-weight: 700;
-      font-style: Semi Bold;
       font-size: 20px;
-      leading-trim: NONE;
       line-height: 28px;
-      letter-spacing: 0px;
-      vertical-align: middle;
-    }
-  }
-
-  .btn-select-flight {
-    background-color: #004ac6;
-    color: #ffffff;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    border: none;
-    transition: all 0.2s ease-in-out;
-    padding: 5px 30px;
-    box-shadow: 0 4px 12px rgba(0, 74, 198, 0.15);
-
-    &:hover {
-      background-color: #0039a6;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 74, 198, 0.2);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-  }
-
-  @media (max-width: 480px) {
-    flex-direction: column !important;
-    align-items: stretch !important;
-    gap: 16px;
-
-    .price-section {
-      align-items: center;
-      text-align: center;
-    }
-
-    .btn-select-flight {
-      width: 100%;
-      padding: 10px 20px;
-      text-align: center;
     }
   }
 }
 
-// Mobile specific overrides for flight details
 @media (max-width: 768px) {
   .detail-row {
     &.d-flex.gap-3 {
@@ -278,7 +201,7 @@
 }
 
 @media (max-width: 576px) {
-  .available-flights-card {
+  .selected-flight-card {
     padding: 16px !important;
   }
 }

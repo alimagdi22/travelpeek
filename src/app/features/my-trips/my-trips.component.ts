@@ -2,6 +2,7 @@ import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FlightResultService, IAirItinerary, UserProfileService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription } from 'rxjs';
+import { DatePipe } from '@angular/common';
 
 interface FlightCard {
   airline: string;
@@ -22,6 +23,9 @@ interface Message {
   timestamp: Date;
   flights?: FlightCard[];
   itineraries?: IAirItinerary[];
+  isFlightSelection?: boolean;
+  showBookingPrompt?: boolean;
+  passengerCountLabel?: string;
 }
 
 @Component({
@@ -77,6 +81,25 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.profileService.notify.subscribe(() => {
         this.loadSearchHistory();
+      })
+    );
+
+    // Listen to flight selection events
+    this.subscription.add(
+      this.sharedService.selectedItinerary$.subscribe((itinerary) => {
+        if (itinerary) {
+          this.handleFlightSelection(itinerary);
+        }
+      })
+    );
+
+    // Listen to messages pushed from shared service
+    this.subscription.add(
+      this.sharedService.message$.subscribe((msg) => {
+        if (msg) {
+          this.messages.push(msg);
+          this.scrollToBottom();
+        }
       })
     );
 
@@ -162,10 +185,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.saveSearchHistory(text);
 
     // Add user message
-    this.messages.push({
+    this.sharedService.addMessage({
       sender: 'user',
-      text: text,
-      timestamp: new Date(),
+      text: text
     });
 
     this.newMessage = '';
@@ -217,10 +239,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         const resultFound = this.flightResultService.ResultFound;
         const airItineraries = this.flightResultService.responseAi?.airItineraries || this.flightResultService.responseAi?.itineraries;
 
-        this.messages.push({
+        this.sharedService.addMessage({
           sender: 'system',
           text: replyText,
-          timestamp: new Date(),
           itineraries: resultFound && airItineraries ? [...airItineraries] : undefined,
         });
 
@@ -252,6 +273,104 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     if (!textarea) return;
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  handleFlightSelection(itinerary: IAirItinerary) {
+    const passengerLabel = this.getPassengersCountLabel();
+    const passengerLabelLower = passengerLabel.toLowerCase();
+
+    const outbound = itinerary?.allJourney?.flights?.[0] ?? null;
+    const airlineName = outbound?.flightDTO?.[0]?.flightAirline?.airlineName ?? 'Emirates';
+    const destCity = outbound?.flightDTO ? (outbound.flightDTO[outbound.flightDTO.length - 1]?.arrivalTerminalAirport?.cityName ?? 'Dubai') : 'Dubai';
+
+    // Outbound details for user message
+    const deptDate = outbound?.flightDTO?.[0]?.departureDate ?? '';
+    const segs = outbound?.flightDTO;
+    const arrDate = segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalDate ?? '') : '';
+    let cabinClass = outbound?.flightDTO?.[0]?.flightInfo?.cabinClass || itinerary?.cabinClass || '';
+    cabinClass = cabinClass.trim();
+    if (cabinClass && !cabinClass.toLowerCase().includes('class')) {
+      cabinClass = cabinClass + ' Class';
+    }
+
+    const datePipe = new DatePipe('en-US');
+    const formattedDept = datePipe.transform(deptDate, 'hh:mm a, EEE d MMMM yyyy') || deptDate;
+    const formattedArr = datePipe.transform(arrDate, 'hh:mm a, EEE d MMMM yyyy') || arrDate;
+
+    // 1. Add user message saying "I selected the flight with..."
+    const userMsgText = `I selected the flight with ${airlineName}, departure date ${formattedDept}, arrival date ${formattedArr} and class ${cabinClass}`;
+    this.sharedService.addMessage({
+      sender: 'user',
+      text: userMsgText
+    });
+
+    // 2. Add selected flight and prompt as a single unified system message
+    const promptText = `Excellent choice. I'm ready to book your ${airlineName} flight to ${destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of the ${passengerLabelLower}?`;
+
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: promptText,
+      itineraries: [itinerary],
+      isFlightSelection: true,
+      passengerCountLabel: passengerLabel,
+      showBookingPrompt: true
+    });
+
+    // Clear the selected itinerary to prevent re-triggering
+    this.sharedService.setSelectedItinerary(null);
+  }
+
+  getPassengersCountLabel(): string {
+    const criteria = this.flightResultService.responseAi?.searchCriteria;
+    if (!criteria) return '';
+    const parts: string[] = [];
+    if (criteria.adultNum > 0) {
+      parts.push(`${criteria.adultNum} Adult${criteria.adultNum > 1 ? 's' : ''}`);
+    }
+    if (criteria.childNum > 0) {
+      parts.push(`${criteria.childNum} Child${criteria.childNum > 1 ? 'ren' : ''}`);
+    }
+    if (criteria.infantNum > 0) {
+      parts.push(`${criteria.infantNum} Infant${criteria.infantNum > 1 ? 's' : ''}`);
+    }
+    return parts.join(', ');
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Add a user message indicating file upload
+      this.sharedService.addMessage({
+        sender: 'user',
+        text: `Uploaded passport copy: ${file.name}`
+      });
+
+      // Simulate system processing the passport
+      this.isTyping = true;
+      setTimeout(() => {
+        this.isTyping = false;
+        this.sharedService.addMessage({
+          sender: 'system',
+          text: `Thank you for uploading the passport copy (${file.name}). I have successfully received it and am now processing the details to finalize your booking.`
+        });
+      }, 1500);
+    }
+  }
+
+  enterNamesManually() {
+    this.sharedService.addMessage({
+      sender: 'user',
+      text: 'Enter Names Manually'
+    });
+
+    this.isTyping = true;
+    setTimeout(() => {
+      this.isTyping = false;
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: 'Please provide the traveler details (Full Name, Email, Phone, Passport Number, Expiry Date, Issue Country, Current Country, Birthdate) in the chat below.'
+      });
+    }, 1200);
   }
 
   scrollToBottom() {

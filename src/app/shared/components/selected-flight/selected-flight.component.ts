@@ -1,18 +1,15 @@
-import { Component, inject, Input } from '@angular/core';
-import { FlightCheckoutService, FlightResultService, IAirItinerary, IFlight } from 'rp-travel-ui';
-import { SharedService } from '../../shared.service';
+import { Component, Input } from '@angular/core';
+import { IAirItinerary, IFlight } from 'rp-travel-ui';
 
 @Component({
-  selector: 'app-available-flights',
+  selector: 'app-selected-flight',
   standalone: false,
-  templateUrl: './available-flights.component.html',
-  styleUrl: './available-flights.component.scss',
+  templateUrl: './selected-flight.component.html',
+  styleUrl: './selected-flight.component.scss',
 })
-export class AvailableFlightsComponent {
-  @Input() itineraries: IAirItinerary[] = [];
-  flightResultService = inject(FlightResultService);
-  flightCheckoutService = inject(FlightCheckoutService);
-  sharedService = inject(SharedService);
+export class SelectedFlightComponent {
+  @Input() itinerary: IAirItinerary | null = null;
+  @Input() passengerCountLabel: string = '';
 
   getOutboundFlight(itinerary: IAirItinerary): IFlight | null {
     return itinerary?.allJourney?.flights?.[0] ?? null;
@@ -97,15 +94,5 @@ export class AvailableFlightsComponent {
 
   getCurrencyCode(itinerary: IAirItinerary): string {
     return itinerary?.itinTotalFare?.currencyCode ?? '';
-  }
-
-  selectFlight(itinerary: IAirItinerary) {
-    console.log(this.flightResultService.responseAi);
-
-    console.log(itinerary, 'itenaries');
-    if (this.flightResultService.responseAi) {
-      this.flightCheckoutService.getSelectedFlightData(this.flightResultService.responseAi?.searchCriteria.searchId,itinerary.sequenceNum,itinerary.pKey,true,itinerary.pcc)
-    }
-    this.sharedService.setSelectedItinerary(itinerary);
   }
 }

@@ -1,0 +1,129 @@
+@use "../../../../styles/variables" as vars;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.secure-payment-card {
+  background-color: #f3f7ff;
+  border: 1px solid rgba(0, 74, 198, 0.05);
+  font-family: vars.$font-family-base;
+  color: #0b1a30;
+  border-radius: 16px;
+}
+
+.secure-payment-header {
+  .header-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .header-title {
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 28px;
+    color: #0b1a30;
+  }
+}
+
+.amount-box {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(11, 26, 48, 0.02);
+
+  .amount-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #5c6479;
+  }
+
+  .amount-value {
+    font-family: vars.$font-family-display;
+    color: #004ac6;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 28px;
+
+    .currency {
+      font-size: 18px;
+      font-weight: 700;
+      margin-left: 2px;
+    }
+  }
+}
+
+.payment-method-section {
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #5c6479;
+    letter-spacing: 0.8px;
+  }
+
+  .payment-btn {
+    background-color: #f3f7ff;
+    border: 1px solid transparent;
+    color: #5c6479;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 1.5px solid rgba(11, 26, 48, 0.05);
+
+    .btn-icon {
+      color: #5c6479;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background-color: #e8f0ff;
+    }
+
+    &.selected {
+      background-color: #eff4ff;
+      border: 1.5px solid #004ac6;
+      color: #0b1a30;
+
+      .btn-icon {
+        color: #004ac6;
+      }
+    }
+  }
+}
+
+.btn-complete-payment {
+  background-color: #004ac6;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease-in-out;
+  padding: 12px 20px;
+  box-shadow: 0 4px 12px rgba(0, 74, 198, 0.15);
+
+  &:hover {
+    background-color: #0039a6;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 74, 198, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.secure-payment-footer {
+  .footer-icon {
+    flex-shrink: 0;
+    color: #5c6479;
+  }
+
+  .footer-text {
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 18px;
+    color: #5c6479;
+  }
+}
