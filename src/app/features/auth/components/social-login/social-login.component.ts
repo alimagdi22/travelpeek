@@ -29,6 +29,8 @@ export class SocialLoginComponent implements OnInit, OnDestroy {
       if (status === LOGIN_STATUS.success) {
         this.profileService.getUserProfile();
         this.router.navigate(['/']);
+      } else if (status === LOGIN_STATUS.faild) {
+        this.authService.isLoading = false;
       }
     });
   }
@@ -66,15 +68,22 @@ export class SocialLoginComponent implements OnInit, OnDestroy {
   }
 
   async login() {
-    const user = await this.loginWithGoogle();
-
-    if (user) {
-      this.authService.googleLoginSubmit(user);
-      console.log('Google Payload:', user);
-      console.log('Email:', user.email);
-      console.log('Name:', user.name);
-      console.log('Picture:', user.picture);
-      console.log('Sub:', user.sub);
+    this.authService.isLoading = true;
+    try {
+      const user = await this.loginWithGoogle();
+      if (user) {
+        this.authService.googleLoginSubmit(user);
+        console.log('Google Payload:', user);
+        console.log('Email:', user.email);
+        console.log('Name:', user.name);
+        console.log('Picture:', user.picture);
+        console.log('Sub:', user.sub);
+      } else {
+        this.authService.isLoading = false;
+      }
+    } catch (error) {
+      console.error(error);
+      this.authService.isLoading = false;
     }
   }
 

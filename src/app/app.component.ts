@@ -74,6 +74,7 @@ export class AppComponent implements OnInit {
     if (response.credential) {
       this.ngZone.run(() => {
         try {
+          this.authService.isLoading = true;
           const idToken = response.credential;
           const googleUser = jwtDecode<any>(idToken);
           console.log('One Tap Login user:', googleUser);
@@ -83,12 +84,16 @@ export class AppComponent implements OnInit {
               this.profileService.getUserProfile();
               this.router.navigate(['/']);
               sub.unsubscribe();
+            } else if (status === LOGIN_STATUS.faild) {
+              this.authService.isLoading = false;
+              sub.unsubscribe();
             }
           });
 
           this.authService.googleLoginSubmit(googleUser);
         } catch (error) {
           console.error('Error decoding One Tap credential:', error);
+          this.authService.isLoading = false;
         }
       });
     }

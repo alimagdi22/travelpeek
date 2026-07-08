@@ -51,7 +51,7 @@
               @if (msg.isFlightSelection) {
                 <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3">
                   <p class="mb-0 system-intro-text">The selected flight is:</p>
-                  
+
                   <app-selected-flight
                     [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
                     [passengerCountLabel]="msg.passengerCountLabel || ''"
@@ -78,7 +78,19 @@
                     </button>
                   </div>
                 </div>
-              } @else {
+              } @else if (msg.isPayment) {
+                <div class="w-100 p-1 rounded-4">
+                  <!--
+                    [amount] and [currency] bind data dynamically from the message object.
+                    (paymentCompleted) handles the custom event emitted when payment is clicked.
+                  -->
+                  <app-secure-payment
+                    [amount]="msg.paymentAmount || 1240"
+                    [currency]="msg.paymentCurrency || 'AED'"
+                    [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
+                  ></app-secure-payment>
+                </div>
+              }  @else {
                 @if (msg.text) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100">
                     <p class="mb-0 system-intro-text">{{ msg.text }}</p>

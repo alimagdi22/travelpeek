@@ -3,31 +3,7 @@ import { FlightResultService, IAirItinerary, UserProfileService } from 'rp-trave
 import { SharedService } from '../../shared/shared.service';
 import { Subscription } from 'rxjs';
 import { DatePipe } from '@angular/common';
-
-interface FlightCard {
-  airline: string;
-  badge: 'FASTEST' | 'CHEAPEST' | null;
-  badgeClass: string;
-  depTime: string;
-  depCode: string;
-  arrTime: string;
-  arrCode: string;
-  duration: string;
-  stops: string;
-  price: string;
-}
-
-interface Message {
-  sender: 'user' | 'system';
-  text: string;
-  timestamp: Date;
-  flights?: FlightCard[];
-  itineraries?: IAirItinerary[];
-  isFlightSelection?: boolean;
-  showBookingPrompt?: boolean;
-  passengerCountLabel?: string;
-}
-
+import { Message } from '../../core/models/message.interface';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -46,33 +22,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   sharedService = inject(SharedService);
   profileService = inject(UserProfileService);
   private subscription = new Subscription();
+  selectedItinerary: IAirItinerary | null = null;
 
   suggestions: string[] = [
     'Add travel insurance',
     'Check visa requirements',
     'Window seat preference',
   ];
-
-  get isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
-  }
-
-  get userInitials(): string {
-    if (!this.isLoggedIn) return 'G';
-    const user = this.profileService.user;
-    if (!user) return 'U';
-    const name = user.userName || user.email || '';
-    if (!name) return 'U';
-    const parts = name.split(/[ @._-]/).filter(Boolean);
-    const initials = parts.map((p: string) => p.charAt(0)).join('').toUpperCase();
-    return initials.slice(0, 2) || 'U';
-  }
-
-  get userDisplayName(): string {
-    if (!this.isLoggedIn) return 'Guest';
-    const user = this.profileService.user;
-    return user?.userName || user?.email || 'User';
-  }
 
   ngOnInit() {
     this.generateChatId();
@@ -81,7 +37,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.profileService.notify.subscribe(() => {
         this.loadSearchHistory();
-      })
+      }),
     );
 
     // Listen to flight selection events
@@ -90,7 +46,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         if (itinerary) {
           this.handleFlightSelection(itinerary);
         }
-      })
+      }),
     );
 
     // Listen to messages pushed from shared service
@@ -100,7 +56,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           this.messages.push(msg);
           this.scrollToBottom();
         }
-      })
+      }),
     );
 
     if (this.isLoggedIn) {
@@ -116,6 +72,30 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.initializeChat();
     }
   }
+  get isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
+  }
+
+  get userInitials(): string {
+    if (!this.isLoggedIn) return 'G';
+    const user = this.profileService.user;
+    if (!user) return 'U';
+    const name = user.userName || user.email || '';
+    if (!name) return 'U';
+    const parts = name.split(/[ @._-]/).filter(Boolean);
+    const initials = parts
+      .map((p: string) => p.charAt(0))
+      .join('')
+      .toUpperCase();
+    return initials.slice(0, 2) || 'U';
+  }
+
+  get userDisplayName(): string {
+    if (!this.isLoggedIn) return 'Guest';
+    const user = this.profileService.user;
+    return user?.userName || user?.email || 'User';
+  }
+
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
@@ -137,7 +117,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     const key = `travelpeek_history_${email}`;
     const raw = localStorage.getItem(key);
     let history: string[] = raw ? JSON.parse(raw) : [];
-    history = history.filter(item => item.toLowerCase() !== text.toLowerCase());
+    history = history.filter(
+      (item) => item.toLowerCase() !== text.toLowerCase(),
+    );
     history.unshift(text);
     if (history.length > 20) {
       history = history.slice(0, 20);
@@ -153,7 +135,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   toggleMobileHistory(isOpen?: boolean) {
-    this.isMobileHistoryOpen = isOpen !== undefined ? isOpen : !this.isMobileHistoryOpen;
+    this.isMobileHistoryOpen =
+      isOpen !== undefined ? isOpen : !this.isMobileHistoryOpen;
   }
 
   generateChatId() {
@@ -174,7 +157,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         sender: 'system',
         text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
         timestamp: new Date(),
-      }
+      },
     ];
   }
 
@@ -187,11 +170,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     // Add user message
     this.sharedService.addMessage({
       sender: 'user',
-      text: text
+      text: text,
     });
 
     this.newMessage = '';
-    const textarea = document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement;
+    const textarea = document.querySelector(
+      '.chat-input-field-v2',
+    ) as HTMLTextAreaElement;
     if (textarea) {
       textarea.style.height = 'auto';
     }
@@ -218,17 +203,18 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
         if (responseAi && responseAi.output) {
           replyText = responseAi.output;
-        } else if (
-          !this.flightResultService.ResultFound ||
-          !responseAi
-        ) {
+        } else if (!this.flightResultService.ResultFound || !responseAi) {
           const rawError = this.flightResultService.normalError;
-          let errorMessage = 'No flights found matching your query. Please try again.';
+          let errorMessage =
+            'No flights found matching your query. Please try again.';
           if (rawError) {
             if (typeof rawError === 'string') {
               errorMessage = rawError;
             } else if (typeof rawError === 'object') {
-              errorMessage = (rawError as any).message || (rawError as any).error?.message || 'Failed to search flights. Please try again later.';
+              errorMessage =
+                (rawError as any).message ||
+                (rawError as any).error?.message ||
+                'Failed to search flights. Please try again later.';
             }
           }
           replyText = errorMessage;
@@ -237,12 +223,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         }
 
         const resultFound = this.flightResultService.ResultFound;
-        const airItineraries = this.flightResultService.responseAi?.airItineraries || this.flightResultService.responseAi?.itineraries;
+        const airItineraries =
+          this.flightResultService.responseAi?.airItineraries ||
+          this.flightResultService.responseAi?.itineraries;
 
         this.sharedService.addMessage({
           sender: 'system',
           text: replyText,
-          itineraries: resultFound && airItineraries ? [...airItineraries] : undefined,
+          itineraries:
+            resultFound && airItineraries ? [...airItineraries] : undefined,
         });
 
         this.scrollToBottom();
@@ -259,7 +248,10 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     if (!item) return;
     const itemWidth = item.getBoundingClientRect().width;
     const scrollAmount = itemWidth + 8; // item width + gap
-    element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    element.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
   }
 
   onInputKeydown(event: KeyboardEvent) {
@@ -278,30 +270,40 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   handleFlightSelection(itinerary: IAirItinerary) {
     const passengerLabel = this.getPassengersCountLabel();
     const passengerLabelLower = passengerLabel.toLowerCase();
-
+    this.selectedItinerary = itinerary;
     const outbound = itinerary?.allJourney?.flights?.[0] ?? null;
-    const airlineName = outbound?.flightDTO?.[0]?.flightAirline?.airlineName ?? 'Emirates';
-    const destCity = outbound?.flightDTO ? (outbound.flightDTO[outbound.flightDTO.length - 1]?.arrivalTerminalAirport?.cityName ?? 'Dubai') : 'Dubai';
+    const airlineName =
+      outbound?.flightDTO?.[0]?.flightAirline?.airlineName ?? 'Emirates';
+    const destCity = outbound?.flightDTO
+      ? (outbound.flightDTO[outbound.flightDTO.length - 1]
+          ?.arrivalTerminalAirport?.cityName ?? 'Dubai')
+      : 'Dubai';
 
     // Outbound details for user message
     const deptDate = outbound?.flightDTO?.[0]?.departureDate ?? '';
     const segs = outbound?.flightDTO;
-    const arrDate = segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalDate ?? '') : '';
-    let cabinClass = outbound?.flightDTO?.[0]?.flightInfo?.cabinClass || itinerary?.cabinClass || '';
+    const arrDate =
+      segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalDate ?? '') : '';
+    let cabinClass =
+      outbound?.flightDTO?.[0]?.flightInfo?.cabinClass ||
+      itinerary?.cabinClass ||
+      '';
     cabinClass = cabinClass.trim();
     if (cabinClass && !cabinClass.toLowerCase().includes('class')) {
       cabinClass = cabinClass + ' Class';
     }
 
     const datePipe = new DatePipe('en-US');
-    const formattedDept = datePipe.transform(deptDate, 'hh:mm a, EEE d MMMM yyyy') || deptDate;
-    const formattedArr = datePipe.transform(arrDate, 'hh:mm a, EEE d MMMM yyyy') || arrDate;
+    const formattedDept =
+      datePipe.transform(deptDate, 'hh:mm a, EEE d MMMM yyyy') || deptDate;
+    const formattedArr =
+      datePipe.transform(arrDate, 'hh:mm a, EEE d MMMM yyyy') || arrDate;
 
     // 1. Add user message saying "I selected the flight with..."
     const userMsgText = `I selected the flight with ${airlineName}, departure date ${formattedDept}, arrival date ${formattedArr} and class ${cabinClass}`;
     this.sharedService.addMessage({
       sender: 'user',
-      text: userMsgText
+      text: userMsgText,
     });
 
     // 2. Add selected flight and prompt as a single unified system message
@@ -313,11 +315,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       itineraries: [itinerary],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
-      showBookingPrompt: true
+      showBookingPrompt: true,
     });
 
     // Clear the selected itinerary to prevent re-triggering
-    this.sharedService.setSelectedItinerary(null);
+    // this.sharedService.setSelectedItinerary(null);
   }
 
   getPassengersCountLabel(): string {
@@ -325,13 +327,19 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     if (!criteria) return '';
     const parts: string[] = [];
     if (criteria.adultNum > 0) {
-      parts.push(`${criteria.adultNum} Adult${criteria.adultNum > 1 ? 's' : ''}`);
+      parts.push(
+        `${criteria.adultNum} Adult${criteria.adultNum > 1 ? 's' : ''}`,
+      );
     }
     if (criteria.childNum > 0) {
-      parts.push(`${criteria.childNum} Child${criteria.childNum > 1 ? 'ren' : ''}`);
+      parts.push(
+        `${criteria.childNum} Child${criteria.childNum > 1 ? 'ren' : ''}`,
+      );
     }
     if (criteria.infantNum > 0) {
-      parts.push(`${criteria.infantNum} Infant${criteria.infantNum > 1 ? 's' : ''}`);
+      parts.push(
+        `${criteria.infantNum} Infant${criteria.infantNum > 1 ? 's' : ''}`,
+      );
     }
     return parts.join(', ');
   }
@@ -342,7 +350,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       // Add a user message indicating file upload
       this.sharedService.addMessage({
         sender: 'user',
-        text: `Uploaded passport copy: ${file.name}`
+        text: `Uploaded passport copy: ${file.name}`,
       });
 
       // Simulate system processing the passport
@@ -351,7 +359,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         this.isTyping = false;
         this.sharedService.addMessage({
           sender: 'system',
-          text: `Thank you for uploading the passport copy (${file.name}). I have successfully received it and am now processing the details to finalize your booking.`
+          text: `Thank you for uploading the passport copy (${file.name}). I have successfully received it and processed the details.`,
+        });
+        this.sharedService.addMessage({
+          sender: 'system',
+          text: '',
+          isPayment: true,
+          itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
+          paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
+          paymentCurrency: this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
         });
       }, 1500);
     }
@@ -360,7 +376,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   enterNamesManually() {
     this.sharedService.addMessage({
       sender: 'user',
-      text: 'Enter Names Manually'
+      text: 'Enter Names Manually',
     });
 
     this.isTyping = true;
@@ -368,7 +384,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.isTyping = false;
       this.sharedService.addMessage({
         sender: 'system',
-        text: 'Please provide the traveler details (Full Name, Email, Phone, Passport Number, Expiry Date, Issue Country, Current Country, Birthdate) in the chat below.'
+        text: 'Please provide the traveler details (Full Name, Email, Phone, Passport Number, Expiry Date, Issue Country, Current Country, Birthdate) in the chat below.',
+      });
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: '',
+        isPayment: true,
+        itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
+        paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
+        paymentCurrency: this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
       });
     }, 1200);
   }
