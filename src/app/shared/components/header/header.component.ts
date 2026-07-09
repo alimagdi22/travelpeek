@@ -8,6 +8,7 @@ import {
 } from 'rp-travel-ui';
 import { Subscription } from 'rxjs';
 import { CURRENCY_DEFAULT } from '../../../core/constants/default-currency';
+import { SharedService } from '../../shared.service';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +22,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   router = inject(Router);
   subscription = new Subscription();
   profileService = inject(UserProfileService);
+  sharedService = inject(SharedService);
   successLogin = false;
   public selectedCurrency: currencyModel = CURRENCY_DEFAULT;
   isMobileMenuOpen = false;
@@ -84,6 +86,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     );
     if (localStorage.getItem('token')) {
       this.profileService.getUserProfile();
+      this.flightResult.getSearchHistory();
     }
   }
 
@@ -122,6 +125,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
     localStorage.removeItem('tokenHash');
     this.successLogin = false;
     this.router.navigate(['/login']);
+  }
+
+  onSelectQuery(item: any) {
+    this.sharedService.triggerSelectQuery(item);
+    this.closeMobileMenu();
+  }
+
+  get searchHistory(): any[] {
+    const res = this.flightResult.searchHistoryResponse;
+    return res && res.success && res.data ? res.data : [];
+  }
+
+  get isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
   }
 
   ngOnDestroy(): void {

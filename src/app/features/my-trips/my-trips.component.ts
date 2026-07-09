@@ -110,6 +110,22 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       }),
     );
 
+    // Listen to mobile history toggle events
+    this.subscription.add(
+      this.sharedService.toggleMobileHistory$.subscribe((open) => {
+        this.isMobileHistoryOpen = open;
+      })
+    );
+
+    // Listen to query selections from mobile header drawer
+    this.subscription.add(
+      this.sharedService.selectQuery$.subscribe((query) => {
+        if (query) {
+          this.onHistorySelect(query);
+        }
+      })
+    );
+
     if (this.isLoggedIn) {
       this.profileService.getUserProfile();
       this.loadSearchHistory();
@@ -300,7 +316,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                 ? this.getPassengerLabel(firstPassenger)
                 : 'Adult 1';
 
-              const promptText = `Excellent choice. I'm ready to book your ${this.airlineName} flight to ${this.destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
+              const promptText = `Excellent choice. I'm ready to book your ${this.airlineName} flight to ${this.destCity}. To finalize the booking, I need a few more details. Could you provide the first name , last name , birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
 
               this.sharedService.addMessage({
                 sender: 'system',

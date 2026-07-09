@@ -52,4 +52,18 @@ export class SharedService {
     }
     this.messageSubject.next(message);
   }
+
+  private toggleMobileHistorySubject = new Subject<boolean>();
+  toggleMobileHistory$ = this.toggleMobileHistorySubject.asObservable();
+
+  triggerToggleMobileHistory(open?: boolean) {
+    this.toggleMobileHistorySubject.next(open ?? true);
+  }
+
+  private selectQuerySubject = new Subject<any>();
+  selectQuery$ = this.selectQuerySubject.asObservable();
+
+  triggerSelectQuery(query: any) {
+    this.selectQuerySubject.next(query);
+  }
 }
