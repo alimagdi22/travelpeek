@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { FlightResultService, IAirItinerary, UserProfileService } from 'rp-travel-ui';
+import { FlightResultService, IAirItinerary, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -23,6 +23,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   flightResultService = inject(FlightResultService);
   sharedService = inject(SharedService);
+  flightCheckoutServiceApi = inject(FlightCheckoutApiService);
+  flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
   private subscription = new Subscription();
   selectedItinerary: IAirItinerary | null = null;
@@ -370,18 +372,45 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                 // Last passenger completed! Log the value
                 console.log('Final travellersDetails:', this.sharedService.travellersDetails);
 
-                // Show payment card
+                // Show please wait message
                 this.sharedService.addMessage({
                   sender: 'system',
-                  text: '',
-                  isPayment: true,
-                  itineraries: this.selectedItinerary
-                    ? [this.selectedItinerary]
-                    : undefined,
-                  paymentAmount:
-                    this.selectedItinerary?.itinTotalFare?.amount || 1240,
-                  paymentCurrency:
-                    this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+                  text: 'Please wait while providing payment methods.'
+                });
+                this.flightResultService.loading = true;
+                this.scrollToBottom();
+
+                const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
+
+                // Initialize selectedFlight for flightCheckoutService
+                this.flightCheckoutService.selectedFlight = {
+                  searchCriteria: this.flightResultService.responseAi?.searchCriteria!,
+                  airItineraryDTO: this.selectedItinerary!
+                } as any;
+
+                this.flightCheckoutServiceApi.addPaymentGateways(currency, 'EG', this.selectedItinerary!).subscribe({
+                  next: (gateways) => {
+                    this.flightResultService.loading = false;
+                    this.sharedService.addMessage({
+                      sender: 'system',
+                      text: '',
+                      isPayment: true,
+                      itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
+                      paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
+                      paymentCurrency: currency,
+                      gateways: gateways // Pass the gateways array to the component
+                    });
+                    this.scrollToBottom();
+                  },
+                  error: (err) => {
+                    this.flightResultService.loading = false;
+                    console.error('Error adding payment gateways:', err);
+                    this.sharedService.addMessage({
+                      sender: 'system',
+                      text: 'Failed to load payment methods. Please try again.'
+                    });
+                    this.scrollToBottom();
+                  }
                 });
               }
             }

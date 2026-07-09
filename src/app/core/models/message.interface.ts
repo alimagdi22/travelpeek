@@ -14,6 +14,7 @@ export interface Message {
   paymentCurrency?: string;
   paymentImg?: string;
   paymentMethod?: string;
+  gateways?: any[];
 }
 
 

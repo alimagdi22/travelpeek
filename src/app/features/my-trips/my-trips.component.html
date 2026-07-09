@@ -122,6 +122,7 @@
                     [amount]="msg.paymentAmount || 1240"
                     [currency]="msg.paymentCurrency || 'AED'"
                     [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
+                    [gateways]="msg.gateways || []"
                   ></app-secure-payment>
                 </div>
               }  @else {
