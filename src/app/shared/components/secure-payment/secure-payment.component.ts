@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, inject, OnInit, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, OnInit, OnChanges, OnDestroy } from '@angular/core';
 import { SharedService } from '../../shared.service';
 import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, IAirItinerary } from 'rp-travel-ui';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-secure-payment',
@@ -8,7 +9,7 @@ import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, I
   templateUrl: './secure-payment.component.html',
   styleUrl: './secure-payment.component.scss'
 })
-export class SecurePaymentComponent implements OnInit, OnChanges {
+export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   @Input() amount: number = 1240;
   @Input() currency: string = 'AED';
   @Input() itinerary: IAirItinerary | null = null;
@@ -22,13 +23,28 @@ export class SecurePaymentComponent implements OnInit, OnChanges {
   flightResultService = inject(FlightResultService);
 
   selectedGateway: any = null;
+  private paymentLinkFailureSubscription!: Subscription;
 
   ngOnInit() {
     this.autoSelectDefaultGateway();
+
+    this.paymentLinkFailureSubscription = this.flightCheckoutService.paymentLinkFailure.subscribe(() => {
+      this.flightResultService.loading = false;
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: 'Booking/Payment failed. Please check your details or select a different payment method.'
+      });
+    });
   }
 
   ngOnChanges() {
     this.autoSelectDefaultGateway();
+  }
+
+  ngOnDestroy() {
+    if (this.paymentLinkFailureSubscription) {
+      this.paymentLinkFailureSubscription.unsubscribe();
+    }
   }
 
   autoSelectDefaultGateway() {
