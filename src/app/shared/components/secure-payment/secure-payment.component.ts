@@ -22,13 +22,22 @@ export class SecurePaymentComponent implements OnInit {
   selectedMethod: 'card' | 'applepay' = 'card';
 
   ngOnInit() {
+    console.log(this.itinerary);
+
     if (this.itinerary) {
       console.log('Using itinerary from Input:', this.itinerary);
       this.flightCheckoutServiceApi.addPaymentGateways(
         this.itinerary.itinTotalFare.currencyCode,
         'EG',
         this.itinerary,
-      );
+      ).subscribe({
+        next: (res) => {
+          console.log('Payment gateways added successfully:', res);
+        },
+        error: (err) => {
+          console.error('Error adding payment gateways:', err);
+        }
+      });
     }
   }
 

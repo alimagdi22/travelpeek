@@ -33,6 +33,38 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     'Window seat preference',
   ];
 
+  passengerList: Array<{ type: 'adult' | 'child' | 'infant'; index: number }> = [];
+  currentPassengerIndex: number = 0;
+
+  initializePassengerList() {
+    const criteria = this.flightResultService.responseAi?.searchCriteria;
+    this.passengerList = [];
+    this.currentPassengerIndex = 0;
+    if (!criteria) return;
+
+    if (criteria.adultNum > 0) {
+      for (let i = 1; i <= criteria.adultNum; i++) {
+        this.passengerList.push({ type: 'adult', index: i });
+      }
+    }
+    if (criteria.childNum > 0) {
+      for (let i = 1; i <= criteria.childNum; i++) {
+        this.passengerList.push({ type: 'child', index: i });
+      }
+    }
+    if (criteria.infantNum > 0) {
+      for (let i = 1; i <= criteria.infantNum; i++) {
+        this.passengerList.push({ type: 'infant', index: i });
+      }
+    }
+  }
+
+  getPassengerLabel(passenger: { type: 'adult' | 'child' | 'infant'; index: number } | undefined): string {
+    if (!passenger) return 'passenger';
+    const typeCapitalized = passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1);
+    return `${typeCapitalized} ${passenger.index}`;
+  }
+
   ngOnInit() {
     this.generateChatId();
 
@@ -176,6 +208,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.flightResultService.normalError = '';
     this.isEnteringNamesManually = false; // Reset the state flag
     this.selectedItinerary = null; // Clear selected itinerary
+    this.passengerList = [];
+    this.currentPassengerIndex = 0;
   }
 
   initializeChat() {
@@ -212,10 +246,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.isTyping = true;
 
     if (this.isEnteringNamesManually) {
+      // Build dynamic chatID
+      const currentPassenger = this.passengerList[this.currentPassengerIndex];
+      const suffix = currentPassenger ? `_${currentPassenger.type}${currentPassenger.index}` : '';
+      const dynamicChatId = `${this.chatID}${suffix}`;
+
       // ── Booking Flow ──
       this.flightResultService.bookFromAiUrl({
         chat: text,
-        chatID: this.chatID,
+        chatID: dynamicChatId,
       });
 
       const checkInterval = setInterval(() => {
@@ -234,18 +273,36 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
             // Show Secure Payment Card only if booking status is completed
             if (response.status === 'completed') {
-              this.sharedService.addMessage({
-                sender: 'system',
-                text: '',
-                isPayment: true,
-                itineraries: this.selectedItinerary
-                  ? [this.selectedItinerary]
-                  : undefined,
-                paymentAmount:
-                  this.selectedItinerary?.itinTotalFare?.amount || 1240,
-                paymentCurrency:
-                  this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
-              });
+              if (this.passengerList.length > 0 && this.currentPassengerIndex < this.passengerList.length - 1) {
+                // Not the last passenger yet!
+                const completedPassenger = this.passengerList[this.currentPassengerIndex];
+                this.currentPassengerIndex++;
+                const nextPassenger = this.passengerList[this.currentPassengerIndex];
+
+                const completedLabel = this.getPassengerLabel(completedPassenger);
+                const nextLabel = this.getPassengerLabel(nextPassenger);
+
+                const transitionMessage = `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`;
+                
+                this.sharedService.addMessage({
+                  sender: 'system',
+                  text: transitionMessage,
+                });
+              } else {
+                // Last passenger completed, show payment card
+                this.sharedService.addMessage({
+                  sender: 'system',
+                  text: '',
+                  isPayment: true,
+                  itineraries: this.selectedItinerary
+                    ? [this.selectedItinerary]
+                    : undefined,
+                  paymentAmount:
+                    this.selectedItinerary?.itinTotalFare?.amount || 1240,
+                  paymentCurrency:
+                    this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+                });
+              }
             }
           } else {
             // Error handling
@@ -340,6 +397,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   handleFlightSelection(itinerary: IAirItinerary) {
+    this.initializePassengerList();
     const passengerLabel = this.getPassengersCountLabel();
     const passengerLabelLower = passengerLabel.toLowerCase();
     this.selectedItinerary = itinerary;
@@ -379,7 +437,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     });
 
     // 2. Add selected flight and prompt as a single unified system message
-    const promptText = `Excellent choice. I'm ready to book your ${airlineName} flight to ${destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of the ${passengerLabelLower}?`;
+    const firstPassenger = this.passengerList[0];
+    const targetPassengerLabel = firstPassenger
+      ? this.getPassengerLabel(firstPassenger)
+      : (passengerLabelLower ? 'the ' + passengerLabelLower : 'the passenger');
+
+    const promptText = `Excellent choice. I'm ready to book your ${airlineName} flight to ${destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
 
     this.sharedService.addMessage({
       sender: 'system',
@@ -389,9 +452,6 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       passengerCountLabel: passengerLabel,
       showBookingPrompt: true,
     });
-
-    // Clear the selected itinerary to prevent re-triggering
-    // this.sharedService.setSelectedItinerary(null);
   }
 
   getPassengersCountLabel(): string {
@@ -459,9 +519,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
     setTimeout(() => {
       this.isTyping = false;
-      const passengerLabel =
-        this.getPassengersCountLabel().toLowerCase() || '1 adult';
-      const promptText = `I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of the ${passengerLabel}?`;
+      const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
+      const targetPassengerLabel = currentPassenger 
+        ? this.getPassengerLabel(currentPassenger) 
+        : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
+      const promptText = `I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
 
       this.sharedService.addMessage({
         sender: 'system',
