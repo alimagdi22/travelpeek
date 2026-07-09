@@ -10,35 +10,44 @@ export class TokenInterceptor implements HttpInterceptor {
   authService = inject(AuthService);
   router = inject(Router);
 
-  segments = ['HistoryAndUpcomingFlights', 'getUser', 'editUser', 'changePassword', 'SaveBooking'];
-
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let isIncludesSegment = false;
+    const isBackendUrl = req.url.startsWith('/') ||
+      req.url.includes('round-pixel.net') ||
+      req.url.includes('flytoall.com') ||
+      req.url.includes('rhlaty.com') ||
+      req.url.includes('ticketboarding.com') ||
+      req.url.includes('41.223.55.14') ||
+      req.url.includes('41.215.243.36') ||
+      req.url.includes('178.63.214.221') ||
+      req.url.includes('154.41.209.93');
+console.log(isBackendUrl , 'backend');
 
-    this.segments.forEach((segment) => {
-      if (req.url.includes(segment)) {
-        isIncludesSegment = true;
-      }
-    });
-
-    if (isIncludesSegment && localStorage.getItem('token') && localStorage.getItem('tokenHash')) {
+    if (isBackendUrl && localStorage.getItem('token') && localStorage.getItem('tokenHash')) {
       return from(this.authService.getToken()).pipe(
         switchMap((token) => {
+          console.log(token,'token');
+          console.log(this.authService.isTokenExpired(),'is expired');
+
           if (!token || this.authService.isTokenExpired()) {
             this.authService.removeToken();
             this.router.navigate(['/login']);
             return throwError(() => new Error('Unauthorized'));
           }
 
+          const parsedToken = JSON.parse(token);
           req = req.clone({
-            setHeaders: { Token: JSON.parse(token) },
+            setHeaders: {
+              Authorization: `Bearer ${parsedToken}`,
+            },
           });
           return next.handle(req);
         }),
         catchError((error) => {
           if (error.status === 401) {
-            this.authService.removeToken();
-            this.router.navigate(['/login']);
+            console.log('error');
+
+            // this.authService.removeToken();
+            // this.router.navigate(['/login']);
           }
           return throwError(() => error);
         }),

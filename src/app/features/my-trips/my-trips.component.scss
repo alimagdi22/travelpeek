@@ -452,3 +452,57 @@
     }
   }
 }
+
+/* ── Chat Skeleton Loader ── */
+.chat-skeleton-loader {
+  width: 100%;
+}
+
+.skeleton-message-row {
+  max-width: 80%;
+  width: 100%;
+  display: flex;
+  margin-bottom: 24px;
+
+  &.user-row {
+    align-self: flex-end;
+    justify-content: flex-end;
+  }
+
+  &.system-row {
+    align-self: flex-start;
+    justify-content: flex-start;
+  }
+}
+
+.skeleton-bubble {
+  height: 48px;
+  border-radius: 16px;
+  animation: chatPulse 1.5s infinite ease-in-out;
+
+  &.user-skeleton-bubble {
+    width: 60%;
+    background-color: #ffffff;
+    border-radius: 16px 16px 4px 16px;
+    border: 1px solid rgba(11, 26, 48, 0.02);
+  }
+
+  &.system-skeleton-bubble {
+    width: 80%;
+    background-color: #eff4ff;
+    border-radius: 16px 16px 16px 4px;
+    border: 1px solid rgba(0, 74, 198, 0.02);
+  }
+}
+
+@keyframes chatPulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}

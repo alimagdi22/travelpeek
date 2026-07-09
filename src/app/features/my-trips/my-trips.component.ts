@@ -15,7 +15,10 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   newMessage: string = '';
   isTyping: boolean = false;
   chatID: string = '';
-  searchHistory: string[] = [];
+  get searchHistory(): any[] {
+    const res = this.flightResultService.searchHistoryResponse;
+    return res && res.success && res.data ? res.data : [];
+  }
   isMobileHistoryOpen: boolean = false;
 
   flightResultService = inject(FlightResultService);
@@ -23,7 +26,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   profileService = inject(UserProfileService);
   private subscription = new Subscription();
   selectedItinerary: IAirItinerary | null = null;
-
+  isEnteringNamesManually = false;
   suggestions: string[] = [
     'Add travel insurance',
     'Check visa requirements',
@@ -96,42 +99,63 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     return user?.userName || user?.email || 'User';
   }
 
-
   ngOnDestroy() {
     this.subscription.unsubscribe();
   }
 
   loadSearchHistory() {
-    if (!this.isLoggedIn) {
-      this.searchHistory = [];
+    if (!this.isLoggedIn || this.flightResultService.searchHistoryLoading)
       return;
-    }
-    const email = this.profileService.user?.email || 'guest';
-    const raw = localStorage.getItem(`travelpeek_history_${email}`);
-    this.searchHistory = raw ? JSON.parse(raw) : [];
+    this.flightResultService.getSearchHistory();
   }
 
   saveSearchHistory(text: string) {
-    if (!this.isLoggedIn || !text.trim()) return;
-    const email = this.profileService.user?.email || 'guest';
-    const key = `travelpeek_history_${email}`;
-    const raw = localStorage.getItem(key);
-    let history: string[] = raw ? JSON.parse(raw) : [];
-    history = history.filter(
-      (item) => item.toLowerCase() !== text.toLowerCase(),
-    );
-    history.unshift(text);
-    if (history.length > 20) {
-      history = history.slice(0, 20);
-    }
-    localStorage.setItem(key, JSON.stringify(history));
-    this.searchHistory = history;
+    // Search history is saved on the backend during AI search requests
   }
 
   clearSearchHistory() {
-    const email = this.profileService.user?.email || 'guest';
-    localStorage.removeItem(`travelpeek_history_${email}`);
-    this.searchHistory = [];
+    // Clear search history is not supported by the API
+  }
+
+  onHistorySelect(item: any) {
+    if (!item) return;
+    
+    // Fallback if item is just a string query
+    if (typeof item === 'string') {
+      this.sendMessage(item);
+      return;
+    }
+    
+    if (!item.id) return;
+    
+    this.chatID = item.id;
+    this.messages = [];
+    
+    this.flightResultService.getConversationDetails(item.id);
+    
+    const checkInterval = setInterval(() => {
+      if (!this.flightResultService.conversationsLoading) {
+        clearInterval(checkInterval);
+        
+        const error = this.flightResultService.conversationError;
+        const response = this.flightResultService.conversationResponse;
+        
+        if (!error && response && response.success && response.data && response.data.items) {
+          this.messages = response.data.items.map((msgItem: any) => ({
+            sender: msgItem.role === 'User' ? 'user' : 'system',
+            text: msgItem.content,
+            timestamp: new Date(msgItem.createdAt)
+          }));
+          this.scrollToBottom();
+        }
+      }
+    }, 200);
+  }
+
+  retryConversationLoad() {
+    if (this.chatID) {
+      this.onHistorySelect({ id: this.chatID });
+    }
   }
 
   toggleMobileHistory(isOpen?: boolean) {
@@ -147,8 +171,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.messages = [];
     this.generateChatId();
     this.flightResultService.responseAi = undefined;
+    this.flightResultService.bookResponseAi = undefined; // Clear booking response
     this.flightResultService.ResultFound = false;
     this.flightResultService.normalError = '';
+    this.isEnteringNamesManually = false; // Reset the state flag
+    this.selectedItinerary = null; // Clear selected itinerary
   }
 
   initializeChat() {
@@ -181,62 +208,107 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       textarea.style.height = 'auto';
     }
 
-    // Scroll to bottom
     this.scrollToBottom();
-
-    // Trigger system response typing simulation
     this.isTyping = true;
 
-    // Call the AI search API
-    this.flightResultService.getDataFromAiUrl({
-      chat: text,
-      chatID: this.chatID,
-    });
+    if (this.isEnteringNamesManually) {
+      // ── Booking Flow ──
+      this.flightResultService.bookFromAiUrl({
+        chat: text,
+        chatID: this.chatID,
+      });
 
-    const checkInterval = setInterval(() => {
-      if (!this.flightResultService.loading) {
-        clearInterval(checkInterval);
-        this.isTyping = false;
+      const checkInterval = setInterval(() => {
+        if (!this.flightResultService.loading) {
+          clearInterval(checkInterval);
+          this.isTyping = false;
 
-        let replyText = '';
-        const responseAi = this.flightResultService.responseAi;
+          const response = this.flightResultService.bookResponseAi;
 
-        if (responseAi && responseAi.output) {
-          replyText = responseAi.output;
-        } else if (!this.flightResultService.ResultFound || !responseAi) {
-          const rawError = this.flightResultService.normalError;
-          let errorMessage =
-            'No flights found matching your query. Please try again.';
-          if (rawError) {
-            if (typeof rawError === 'string') {
-              errorMessage = rawError;
-            } else if (typeof rawError === 'object') {
-              errorMessage =
-                (rawError as any).message ||
-                (rawError as any).error?.message ||
-                'Failed to search flights. Please try again later.';
+          if (response) {
+            // Always display the system reply in the chat window
+            this.sharedService.addMessage({
+              sender: 'system',
+              text: response.reply,
+            });
+
+            // Show Secure Payment Card only if booking status is completed
+            if (response.status === 'completed') {
+              this.sharedService.addMessage({
+                sender: 'system',
+                text: '',
+                isPayment: true,
+                itineraries: this.selectedItinerary
+                  ? [this.selectedItinerary]
+                  : undefined,
+                paymentAmount:
+                  this.selectedItinerary?.itinTotalFare?.amount || 1240,
+                paymentCurrency:
+                  this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+              });
             }
+          } else {
+            // Error handling
+            this.sharedService.addMessage({
+              sender: 'system',
+              text: 'Failed to process booking details. Please try again.',
+            });
           }
-          replyText = errorMessage;
-        } else {
-          replyText = `Found flights matching your search: "${text}".`;
+          this.scrollToBottom();
         }
+      }, 200);
+    } else {
+      // ── Normal Flight Search Flow ──
+      this.flightResultService.getDataFromAiUrl({
+        chat: text,
+        chatID: this.chatID,
+      });
 
-        const resultFound = this.flightResultService.ResultFound;
-        const airItineraries =
-          this.flightResultService.responseAi?.airItineraries ||
-          this.flightResultService.responseAi?.itineraries;
+      const checkInterval = setInterval(() => {
+        if (!this.flightResultService.loading) {
+          clearInterval(checkInterval);
+          this.isTyping = false;
 
-        this.sharedService.addMessage({
-          sender: 'system',
-          text: replyText,
-          itineraries:
-            resultFound && airItineraries ? [...airItineraries] : undefined,
-        });
+          let replyText = '';
+          const responseAi = this.flightResultService.responseAi;
 
-        this.scrollToBottom();
-      }
-    }, 200);
+          if (responseAi && responseAi.output) {
+            replyText = responseAi.output;
+          } else if (!this.flightResultService.ResultFound || !responseAi) {
+            const rawError = this.flightResultService.normalError;
+            let errorMessage =
+              'No flights found matching your query. Please try again.';
+            if (rawError) {
+              if (typeof rawError === 'string') {
+                errorMessage = rawError;
+              } else if (typeof rawError === 'object') {
+                errorMessage =
+                  (rawError as any).message ||
+                  (rawError as any).error?.message ||
+                  'Failed to search flights.';
+              }
+            }
+            replyText = errorMessage;
+          } else {
+            replyText = `Found flights matching your search: "${text}".`;
+          }
+
+          const resultFound = this.flightResultService.ResultFound;
+          const airItineraries =
+            this.flightResultService.responseAi?.airItineraries ||
+            this.flightResultService.responseAi?.itineraries;
+
+          this.sharedService.addMessage({
+            sender: 'system',
+            text: replyText,
+            itineraries:
+              resultFound && airItineraries ? [...airItineraries] : undefined,
+          });
+
+          this.scrollToBottom();
+        }
+      }, 200);
+    }
   }
 
   selectSuggestion(suggestion: string) {
@@ -365,9 +437,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           sender: 'system',
           text: '',
           isPayment: true,
-          itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
+          itineraries: this.selectedItinerary
+            ? [this.selectedItinerary]
+            : undefined,
           paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
-          paymentCurrency: this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+          paymentCurrency:
+            this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
         });
       }, 1500);
     }
@@ -380,19 +455,17 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     });
 
     this.isTyping = true;
+    this.isEnteringNamesManually = true; // Switch context to booking flow
+
     setTimeout(() => {
       this.isTyping = false;
+      const passengerLabel =
+        this.getPassengersCountLabel().toLowerCase() || '1 adult';
+      const promptText = `I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of the ${passengerLabel}?`;
+
       this.sharedService.addMessage({
         sender: 'system',
-        text: 'Please provide the traveler details (Full Name, Email, Phone, Passport Number, Expiry Date, Issue Country, Current Country, Birthdate) in the chat below.',
-      });
-      this.sharedService.addMessage({
-        sender: 'system',
-        text: '',
-        isPayment: true,
-        itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
-        paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
-        paymentCurrency: this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+        text: promptText,
       });
     }, 1200);
   }

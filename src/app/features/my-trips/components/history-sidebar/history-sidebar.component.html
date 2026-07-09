@@ -30,19 +30,34 @@
       <!-- Recents Search History Section -->
       <div class="d-flex justify-content-between align-items-center mb-2 px-2 mt-2">
         <span class="text-xs font-semibold text-uppercase tracking-wider text-muted">Recents</span>
-        <button *ngIf="isLoggedIn && searchHistory.length > 0" class="btn-clear border-0 bg-transparent text-xs font-semibold p-0" (click)="onClear()">
-          Clear
-        </button>
       </div>
 
       <!-- History Items -->
       <ng-container *ngIf="isLoggedIn; else loginPromptDesktop">
-        <div *ngIf="searchHistory.length === 0" class="text-center py-4 text-muted text-sm">
+        <!-- Skeleton Loader -->
+        <div *ngIf="flightResultService.searchHistoryLoading" class="skeleton-loader py-2">
+          <div *ngFor="let i of [1, 2, 3, 4, 5]" class="skeleton-item">
+            <div class="skeleton-bar"></div>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <div *ngIf="!flightResultService.searchHistoryLoading && flightResultService.searchHistoryError" class="sidebar-error text-center py-4 px-2">
+          <p class="text-xs text-danger mb-0">Failed to load history</p>
+          <button class="btn btn-xs btn-link p-0 text-decoration-none mt-1" style="font-size: 11px;" (click)="flightResultService.getSearchHistory()">
+            Retry
+          </button>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!flightResultService.searchHistoryLoading && !flightResultService.searchHistoryError && searchHistory.length === 0" class="text-center py-4 text-muted text-sm">
           No recent searches.
         </div>
-        <div *ngIf="searchHistory.length > 0" class="d-flex flex-column gap-1">
-          <button *ngFor="let item of searchHistory" class="history-item-btn border-0 text-start px-3 py-2 rounded-3 text-truncate" (click)="onSelectQuery(item)" [title]="item">
-            {{ item }}
+
+        <!-- History items -->
+        <div *ngIf="!flightResultService.searchHistoryLoading && !flightResultService.searchHistoryError && searchHistory.length > 0" class="d-flex flex-column gap-1">
+          <button *ngFor="let item of searchHistory" class="history-item-btn border-0 text-start px-3 py-2 rounded-3 text-truncate" (click)="onSelectQuery(item)" [title]="item.title || item">
+            {{ item.title || item }}
           </button>
         </div>
       </ng-container>
@@ -76,13 +91,29 @@
 
         <!-- History shortcut or login icon -->
         <ng-container *ngIf="isLoggedIn; else loginIconCollapsed">
-          <!-- Magnifying glass / search shortcuts representation -->
-          <button *ngFor="let item of searchHistory.slice(0, 5)" class="collapsed-history-btn rounded-circle d-flex align-items-center justify-content-center border-0" (click)="onSelectQuery(item)" [title]="item">
+          <!-- Small Spinner for loading state -->
+          <div *ngIf="flightResultService.searchHistoryLoading" class="spinner-border spinner-border-sm text-primary" role="status" style="width: 1rem; height: 1rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+
+          <!-- Error retry icon -->
+          <button *ngIf="!flightResultService.searchHistoryLoading && flightResultService.searchHistoryError" class="collapsed-history-btn rounded-circle d-flex align-items-center justify-content-center border-0 text-danger" (click)="flightResultService.getSearchHistory()" title="Failed to load history. Click to retry.">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
           </button>
+
+          <!-- Magnifying glass / search shortcuts representation -->
+          <ng-container *ngIf="!flightResultService.searchHistoryLoading && !flightResultService.searchHistoryError">
+            <button *ngFor="let item of searchHistory.slice(0, 5)" class="collapsed-history-btn rounded-circle d-flex align-items-center justify-content-center border-0" (click)="onSelectQuery(item)" [title]="item.title || item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </ng-container>
         </ng-container>
         <ng-template #loginIconCollapsed>
           <button class="collapsed-action-btn rounded-circle d-flex align-items-center justify-content-center border-0" routerLink="/login" title="Log in to view history">
@@ -137,9 +168,6 @@
       <span>Recent Searches</span>
     </h3>
     <div class="d-flex align-items-center gap-3">
-      <button *ngIf="isLoggedIn && searchHistory.length > 0" class="btn-clear-history text-danger border-0 bg-transparent" (click)="onClear()">
-        Clear
-      </button>
       <button class="btn-close-history border-0 bg-transparent p-1" (click)="closeMobileDrawer.emit()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -151,7 +179,23 @@
 
   <!-- Search History Mobile Content -->
   <ng-container *ngIf="isLoggedIn; else loginPromptMobile">
-    <div *ngIf="searchHistory.length === 0" class="empty-history text-center py-5 text-muted">
+    <!-- Skeleton Loader -->
+    <div *ngIf="flightResultService.searchHistoryLoading" class="skeleton-loader py-3">
+      <div *ngFor="let i of [1, 2, 3, 4, 5]" class="skeleton-item">
+        <div class="skeleton-bar"></div>
+      </div>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="!flightResultService.searchHistoryLoading && flightResultService.searchHistoryError" class="text-center py-5 px-3">
+      <p class="text-sm text-danger mb-0">Failed to load search history</p>
+      <button class="btn btn-sm btn-link text-decoration-none mt-2" (click)="flightResultService.getSearchHistory()">
+        Retry
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!flightResultService.searchHistoryLoading && !flightResultService.searchHistoryError && searchHistory.length === 0" class="empty-history text-center py-5 text-muted">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-3">
         <circle cx="12" cy="12" r="10"></circle>
         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -160,9 +204,10 @@
       <p class="mb-0 text-sm">No recent search queries yet.</p>
     </div>
 
-    <div *ngIf="searchHistory.length > 0" class="history-list d-flex flex-column gap-2">
-      <button *ngFor="let item of searchHistory" class="history-item-btn border-0 text-start px-3 py-2 rounded-3 text-truncate" (click)="onSelectQuery(item)" [title]="item">
-        {{ item }}
+    <!-- History list -->
+    <div *ngIf="!flightResultService.searchHistoryLoading && !flightResultService.searchHistoryError && searchHistory.length > 0" class="history-list d-flex flex-column gap-2">
+      <button *ngFor="let item of searchHistory" class="history-item-btn border-0 text-start px-3 py-2 rounded-3 text-truncate" (click)="onSelectQuery(item)" [title]="item.title || item">
+        {{ item.title || item }}
       </button>
     </div>
   </ng-container>

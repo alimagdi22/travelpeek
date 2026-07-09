@@ -22,6 +22,7 @@ export class AppComponent implements OnInit {
   profileService = inject(UserProfileService);
   ngZone = inject(NgZone);
   isMyTrips = false;
+
   ngOnInit(): void {
     this.environmentService.envConfiguration(envRP);
     this.router.events.subscribe(() => {

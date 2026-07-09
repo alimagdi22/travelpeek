@@ -6,7 +6,7 @@
     [userInitials]="userInitials"
     [userDisplayName]="userDisplayName"
     [isMobileHistoryOpen]="isMobileHistoryOpen"
-    (querySelected)="sendMessage($event)"
+    (querySelected)="onHistorySelect($event)"
     (clearHistory)="clearSearchHistory()"
     (newChatTriggered)="startNewChat()"
     (closeMobileDrawer)="toggleMobileHistory(false)"
@@ -31,8 +31,38 @@
 
       <!-- Chat Messages Scroll Container -->
       <div class="chat-messages-container d-flex flex-column gap-4 p-4">
-        <div
-          *ngFor="let msg of messages"
+        <!-- Chat Skeleton Loader -->
+        <div *ngIf="flightResultService.conversationsLoading" class="chat-skeleton-loader d-flex flex-column gap-4 w-100">
+          <div class="skeleton-message-row user-row d-flex justify-content-end">
+            <div class="skeleton-bubble user-skeleton-bubble rounded-4 shadow-sm"></div>
+          </div>
+          <div class="skeleton-message-row system-row d-flex justify-content-start">
+            <div class="skeleton-bubble system-skeleton-bubble rounded-4 shadow-sm"></div>
+          </div>
+          <div class="skeleton-message-row user-row d-flex justify-content-end">
+            <div class="skeleton-bubble user-skeleton-bubble rounded-4 shadow-sm" style="width: 40%"></div>
+          </div>
+          <div class="skeleton-message-row system-row d-flex justify-content-start">
+            <div class="skeleton-bubble system-skeleton-bubble rounded-4 shadow-sm" style="width: 70%"></div>
+          </div>
+        </div>
+
+        <!-- Chat Load Error -->
+        <div *ngIf="!flightResultService.conversationsLoading && flightResultService.conversationError" class="text-center py-5">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d92727" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-3 mx-auto d-block">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <p class="text-sm text-danger font-semibold mb-2">Failed to load conversation history</p>
+          <button class="btn btn-sm btn-primary" (click)="retryConversationLoad()">
+            Retry
+          </button>
+        </div>
+
+        <ng-container *ngIf="!flightResultService.conversationsLoading && !flightResultService.conversationError">
+          <div
+            *ngFor="let msg of messages"
           class="message-row d-flex flex-column"
           [class.user-row]="msg.sender === 'user'"
           [class.system-row]="msg.sender === 'system'"
@@ -109,6 +139,7 @@
             </div>
           }
         </div>
+      </ng-container>
 
         <!-- Pulse Typing Indicator for AI Reply -->
         @if (flightResultService.loading) {
