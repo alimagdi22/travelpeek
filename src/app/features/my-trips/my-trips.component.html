@@ -80,33 +80,37 @@
             <div class="system-bubble-wrapper w-100 d-flex flex-column gap-2 align-items-start">
               @if (msg.isFlightSelection) {
                 <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3">
-                  <p class="mb-0 system-intro-text">The selected flight is:</p>
+                  @if (msg.itineraries && msg.itineraries.length > 0) {
+                    <p class="mb-0 system-intro-text">The selected flight is:</p>
 
-                  <app-selected-flight
-                    [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
-                    [passengerCountLabel]="msg.passengerCountLabel || ''"
-                  ></app-selected-flight>
+                    <app-selected-flight
+                      [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
+                      [passengerCountLabel]="msg.passengerCountLabel || ''"
+                    ></app-selected-flight>
+                  }
 
                   <p class="mb-0 system-intro-text">{{ msg.text }}</p>
 
-                  <div class="booking-prompt-actions d-flex gap-3 flex-wrap">
-                    <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="fileInput.click()">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <polyline points="9 15 12 12 15 15"></polyline>
-                      </svg>
-                      Upload Passport
-                    </button>
-                    <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="enterNamesManually()">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      Enter Names Manually
-                    </button>
-                  </div>
+                  @if (msg.showBookingPrompt) {
+                    <div class="booking-prompt-actions d-flex gap-3 flex-wrap">
+                      <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="fileInput.click()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="12" y1="18" x2="12" y2="12"></line>
+                          <polyline points="9 15 12 12 15 15"></polyline>
+                        </svg>
+                        Upload Passport
+                      </button>
+                      <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="enterNamesManually()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Enter Names Manually
+                      </button>
+                    </div>
+                  }
                 </div>
               } @else if (msg.isPayment) {
                 <div class="w-100 p-1 rounded-4">

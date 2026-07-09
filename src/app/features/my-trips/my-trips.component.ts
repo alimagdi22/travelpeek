@@ -27,6 +27,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   private subscription = new Subscription();
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
+  isEnteringContactDetails = false;
+  airlineName = '';
+  destCity = '';
   suggestions: string[] = [
     'Add travel insurance',
     'Check visa requirements',
@@ -57,6 +60,17 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         this.passengerList.push({ type: 'infant', index: i });
       }
     }
+
+    // Initialize travellersDetails object dynamically
+    const travellersObj: any = {};
+    for (const passenger of this.passengerList) {
+      const key = `${passenger.type}${passenger.index}`;
+      travellersObj[key] = {};
+    }
+    this.sharedService.travellersDetails = {
+      contactDetails: {},
+      travellers: travellersObj
+    };
   }
 
   getPassengerLabel(passenger: { type: 'adult' | 'child' | 'infant'; index: number } | undefined): string {
@@ -151,27 +165,27 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   onHistorySelect(item: any) {
     if (!item) return;
-    
+
     // Fallback if item is just a string query
     if (typeof item === 'string') {
       this.sendMessage(item);
       return;
     }
-    
+
     if (!item.id) return;
-    
+
     this.chatID = item.id;
     this.messages = [];
-    
+
     this.flightResultService.getConversationDetails(item.id);
-    
+
     const checkInterval = setInterval(() => {
       if (!this.flightResultService.conversationsLoading) {
         clearInterval(checkInterval);
-        
+
         const error = this.flightResultService.conversationError;
         const response = this.flightResultService.conversationResponse;
-        
+
         if (!error && response && response.success && response.data && response.data.items) {
           this.messages = response.data.items.map((msgItem: any) => ({
             sender: msgItem.role === 'User' ? 'user' : 'system',
@@ -207,6 +221,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.flightResultService.ResultFound = false;
     this.flightResultService.normalError = '';
     this.isEnteringNamesManually = false; // Reset the state flag
+    this.isEnteringContactDetails = false;
+    this.airlineName = '';
+    this.destCity = '';
     this.selectedItinerary = null; // Clear selected itinerary
     this.passengerList = [];
     this.currentPassengerIndex = 0;
@@ -245,7 +262,62 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.scrollToBottom();
     this.isTyping = true;
 
-    if (this.isEnteringNamesManually) {
+    if (this.isEnteringContactDetails) {
+      // ── Contact Details Flow ──
+      this.flightResultService.getContactDetails({
+        chat: text,
+        chatID: this.chatID,
+      });
+
+      const checkInterval = setInterval(() => {
+        if (!this.flightResultService.loading) {
+          clearInterval(checkInterval);
+          this.isTyping = false;
+
+          const response = this.flightResultService.ContactResponseAi;
+
+          if (response) {
+            // Always display the system reply in the chat window
+            this.sharedService.addMessage({
+              sender: 'system',
+              text: response.reply,
+            });
+
+            if (response.status === 'completed') {
+              // Store contact details in sharedService object
+              this.sharedService.travellersDetails.contactDetails = {
+                phone: response.contact.phoneNumber,
+                email: response.contact.email
+              };
+
+              this.isEnteringContactDetails = false;
+
+              // Prompt for first passenger
+              const firstPassenger = this.passengerList[0];
+              const targetPassengerLabel = firstPassenger
+                ? this.getPassengerLabel(firstPassenger)
+                : 'Adult 1';
+
+              const promptText = `Excellent choice. I'm ready to book your ${this.airlineName} flight to ${this.destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
+
+              this.sharedService.addMessage({
+                sender: 'system',
+                text: promptText,
+                isFlightSelection: true,
+                showBookingPrompt: true
+              });
+            }
+          } else {
+            // Error handling
+            this.sharedService.addMessage({
+              sender: 'system',
+              text: 'Failed to process contact details. Please try again.',
+            });
+          }
+          this.scrollToBottom();
+        }
+      }, 200);
+    } else if (this.isEnteringNamesManually) {
       // Build dynamic chatID
       const currentPassenger = this.passengerList[this.currentPassengerIndex];
       const suffix = currentPassenger ? `_${currentPassenger.type}${currentPassenger.index}` : '';
@@ -273,6 +345,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
             // Show Secure Payment Card only if booking status is completed
             if (response.status === 'completed') {
+              // Save completed traveler info to the sharedService object
+              if (currentPassenger) {
+                const passengerKey = `${currentPassenger.type}${currentPassenger.index}`;
+                this.sharedService.travellersDetails.travellers[passengerKey] = response.traveler;
+              }
+
               if (this.passengerList.length > 0 && this.currentPassengerIndex < this.passengerList.length - 1) {
                 // Not the last passenger yet!
                 const completedPassenger = this.passengerList[this.currentPassengerIndex];
@@ -283,13 +361,16 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                 const nextLabel = this.getPassengerLabel(nextPassenger);
 
                 const transitionMessage = `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`;
-                
+
                 this.sharedService.addMessage({
                   sender: 'system',
                   text: transitionMessage,
                 });
               } else {
-                // Last passenger completed, show payment card
+                // Last passenger completed! Log the value
+                console.log('Final travellersDetails:', this.sharedService.travellersDetails);
+
+                // Show payment card
                 this.sharedService.addMessage({
                   sender: 'system',
                   text: '',
@@ -399,15 +480,17 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   handleFlightSelection(itinerary: IAirItinerary) {
     this.initializePassengerList();
     const passengerLabel = this.getPassengersCountLabel();
-    const passengerLabelLower = passengerLabel.toLowerCase();
     this.selectedItinerary = itinerary;
     const outbound = itinerary?.allJourney?.flights?.[0] ?? null;
-    const airlineName =
+    this.airlineName =
       outbound?.flightDTO?.[0]?.flightAirline?.airlineName ?? 'Emirates';
-    const destCity = outbound?.flightDTO
+    this.destCity = outbound?.flightDTO
       ? (outbound.flightDTO[outbound.flightDTO.length - 1]
           ?.arrivalTerminalAirport?.cityName ?? 'Dubai')
       : 'Dubai';
+
+    this.isEnteringContactDetails = true;
+    this.isEnteringNamesManually = false;
 
     // Outbound details for user message
     const deptDate = outbound?.flightDTO?.[0]?.departureDate ?? '';
@@ -430,19 +513,14 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       datePipe.transform(arrDate, 'hh:mm a, EEE d MMMM yyyy') || arrDate;
 
     // 1. Add user message saying "I selected the flight with..."
-    const userMsgText = `I selected the flight with ${airlineName}, departure date ${formattedDept}, arrival date ${formattedArr} and class ${cabinClass}`;
+    const userMsgText = `I selected the flight with ${this.airlineName}, departure date ${formattedDept}, arrival date ${formattedArr} and class ${cabinClass}`;
     this.sharedService.addMessage({
       sender: 'user',
       text: userMsgText,
     });
 
-    // 2. Add selected flight and prompt as a single unified system message
-    const firstPassenger = this.passengerList[0];
-    const targetPassengerLabel = firstPassenger
-      ? this.getPassengerLabel(firstPassenger)
-      : (passengerLabelLower ? 'the ' + passengerLabelLower : 'the passenger');
-
-    const promptText = `Excellent choice. I'm ready to book your ${airlineName} flight to ${destCity}. To finalize the booking, I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
+    // 2. Add selected flight and prompt for contact details
+    const promptText = `Please provide contact details, phone and email.`;
 
     this.sharedService.addMessage({
       sender: 'system',
@@ -450,7 +528,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       itineraries: [itinerary],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
-      showBookingPrompt: true,
+      showBookingPrompt: false,
     });
   }
 
@@ -520,8 +598,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.isTyping = false;
       const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
-      const targetPassengerLabel = currentPassenger 
-        ? this.getPassengerLabel(currentPassenger) 
+      const targetPassengerLabel = currentPassenger
+        ? this.getPassengerLabel(currentPassenger)
         : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
       const promptText = `I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
 

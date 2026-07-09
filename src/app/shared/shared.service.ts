@@ -17,6 +17,11 @@ export class SharedService {
   selectedItinerary$ = this.selectedItinerarySubject.asObservable();
   message$ = this.messageSubject.asObservable();
 
+  travellersDetails: any = {
+    contactDetails: null,
+    travellers: {}
+  };
+
   setUser(user: any) {
     this.userSubject.next(user);
   }
