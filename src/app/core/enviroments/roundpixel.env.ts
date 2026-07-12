@@ -4,7 +4,7 @@ export let envRP = {
   searchflowAi: 'https://automation.round-pixel.net',
   BookingFlow: 'https://flightflow.flytoall.com',
   // BookingFlow: 'https://flightflow.round-pixel.net',
-  FareRules: 'https://flightprov.round-pixel.net',
+  FareRules: 'https://flightprov.flytoall.com',
   asm: 'https://backofficeapi.round-pixel.net',
   Apihotels: 'https://hotelsapi.round-pixel.net',
   users: 'https://flightsearch.flytoall.com',

@@ -187,6 +187,9 @@
     color: #5c6479;
     font-weight: 500;
 
+    .select-stops-label {
+      text-decoration: underline;
+    }
     .meta-text {
       color: #5c6479;
       font-weight: 500;
@@ -227,6 +230,20 @@
     }
   }
 
+  .policy-badges-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 3%;
+  }
+
+  .refundability , .cancel-policy{
+    margin-bottom: 0 !important;
+    color: #5c6479;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
   .btn-select-flight {
     background-color: #004ac6;
     color: #ffffff;
@@ -237,6 +254,7 @@
     transition: all 0.2s ease-in-out;
     padding: 5px 30px;
     box-shadow: 0 4px 12px rgba(0, 74, 198, 0.15);
+    margin-top: 3%;
 
     &:hover {
       background-color: #0039a6;
@@ -259,10 +277,29 @@
       text-align: center;
     }
 
+    .policy-badges-container {
+      width: 100%;
+      justify-content: space-between !important;
+      background-color: rgba(11, 28, 48, 0.03);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px dashed rgba(11, 28, 48, 0.06);
+      margin-top: 4px;
+      margin-bottom: 4px;
+
+      .refundability {
+        margin-top: 0 !important;
+      }
+      .cancel-policy {
+        margin-top: 0 !important;
+      }
+    }
+
     .btn-select-flight {
       width: 100%;
       padding: 10px 20px;
       text-align: center;
+      margin-top: 0 !important;
     }
   }
 }
@@ -271,14 +308,260 @@
 @media (max-width: 768px) {
   .detail-row {
     &.d-flex.gap-3 {
-      flex-direction: row !important;
+      flex-direction: row ;
       gap: 8px !important;
     }
+  }
+  .mobile-details{
+    flex-direction: column !important;
   }
 }
 
 @media (max-width: 576px) {
   .available-flights-card {
     padding: 16px !important;
+  }
+}
+
+.cancel-policy {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #004ac6 !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    color: #0039a6 !important;
+    opacity: 0.85;
+  }
+}
+
+/* ── Modal Popup Styles ── */
+.policy-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 28, 48, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 2000; /* Ensure it is above the chat input and headers */
+  animation: fadeIn 0.25s ease-out;
+}
+
+.policy-modal-card {
+  width: 90%;
+  max-width: 500px;
+  max-height: 85vh;
+  background-color: #ffffff;
+  border: 1px solid rgba(11, 28, 48, 0.08);
+  box-shadow: 0 15px 35px rgba(11, 28, 48, 0.15);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #0b1c30;
+}
+
+.policy-modal-header {
+  border-bottom: 1px solid rgba(11, 28, 48, 0.08);
+
+  .policy-modal-title {
+    font-family: vars.$font-family-display;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0b1c30;
+  }
+
+  .btn-close-modal {
+    color: #6c757d;
+    transition: color 0.15s ease;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    border: none;
+    outline: none;
+
+    &:hover {
+      color: #0b1c30;
+      background-color: rgba(11, 28, 48, 0.05);
+    }
+  }
+}
+
+.policy-modal-body {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 4px; /* Scrollbar padding */
+
+  /* Scrollbar styling */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(11, 28, 48, 0.1);
+    border-radius: 3px;
+    &:hover {
+      background: rgba(11, 28, 48, 0.2);
+    }
+  }
+}
+
+.option-summary {
+  background-color: #f8f9fa;
+  border: 1px solid rgba(11, 28, 48, 0.04);
+}
+
+.penalty-row {
+  border: 1px solid rgba(11, 28, 48, 0.08);
+  box-shadow: 0 2px 6px rgba(11, 28, 48, 0.02);
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: rgba(0, 74, 198, 0.15);
+  }
+}
+
+.bg-success-subtle {
+  background-color: #e6f4ea !important;
+}
+.text-success {
+  color: #137333 !important;
+}
+.bg-danger-subtle {
+  background-color: #fce8e6 !important;
+}
+.text-danger {
+  color: #c5221f !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.stops-trigger {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    .select-stops-label {
+      color: #0039a6 !important;
+      text-decoration: underline;
+    }
+  }
+}
+
+.timeline-container {
+  position: relative;
+
+  .timeline-line {
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 4px; /* Align to the center of bullet */
+    width: 2px;
+    border-left: 2px dashed rgba(11, 28, 48, 0.15);
+    z-index: 1;
+  }
+}
+
+.timeline-node-item {
+  position: relative;
+  z-index: 2;
+
+  .timeline-bullet {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px rgba(11, 28, 48, 0.15);
+    margin-top: 6px;
+    flex-shrink: 0;
+
+    &.bg-primary {
+      background-color: #004ac6 !important;
+      box-shadow: 0 0 0 2px rgba(0, 74, 198, 0.25);
+    }
+
+    &.bg-secondary {
+      background-color: #5c6479 !important;
+      box-shadow: 0 0 0 2px rgba(92, 100, 121, 0.25);
+    }
+  }
+
+  .timeline-content {
+    flex-grow: 1;
+  }
+}
+
+.timeline-flight-details {
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(11, 28, 48, 0.06) !important;
+  box-shadow: 0 4px 10px rgba(11, 28, 48, 0.02);
+
+  .airline-logo-modal {
+    flex-shrink: 0;
+  }
+}
+
+.timeline-layover {
+  position: relative;
+  z-index: 2;
+  background-color: #fffbeb !important;
+  border-left: 3px solid #f59e0b !important;
+  border-top: 1px solid #fef3c7 !important;
+  border-right: 1px solid #fef3c7 !important;
+  border-bottom: 1px solid #fef3c7 !important;
+
+  mat-icon {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .option-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px;
+  }
+
+  .airline-pill {
+    max-width: 70%;
+    padding: 2px 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 1 !important;
+    min-width: 0;
+
+    .airline-icon {
+      flex-shrink: 0;
+    }
+
+    .airline-text {
+      font-size: 8px !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
   }
 }

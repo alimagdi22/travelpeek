@@ -335,7 +335,10 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           this.scrollToBottom();
         }
       }, 200);
-    } else if (this.isEnteringNamesManually) {
+    } else if (this.isEnteringNamesManually || (this.selectedItinerary && this.currentPassengerIndex < this.passengerList.length)) {
+      if (!this.isEnteringNamesManually) {
+        this.isEnteringNamesManually = true;
+      }
       // Build dynamic chatID
       const currentPassenger = this.passengerList[this.currentPassengerIndex];
       const suffix = currentPassenger ? `_${currentPassenger.type}${currentPassenger.index}` : '';
