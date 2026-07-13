@@ -197,6 +197,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
     if (!item.id) return;
 
+    this.resetCheckoutState();
     this.chatID = item.id;
     this.messages = [];
 
@@ -236,6 +237,31 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.chatID = Math.floor(100000 + Math.random() * 900000).toString();
   }
 
+  resetCheckoutState() {
+    this.selectedItinerary = null;
+    this.sharedService.setSelectedItinerary(null);
+    this.passengerList = [];
+    this.currentPassengerIndex = 0;
+    this.isEnteringNamesManually = false;
+    this.isEnteringContactDetails = false;
+    this.airlineName = '';
+    this.destCity = '';
+
+    if (this.flightCheckoutService) {
+      this.flightCheckoutService.destroyer();
+      this.flightCheckoutService.paymentError = false;
+      this.flightCheckoutService.selectedFlightError = false;
+      this.flightCheckoutService.payLaterSuccess = null;
+    }
+
+    if (this.sharedService) {
+      this.sharedService.travellersDetails = {
+        contactDetails: null,
+        travellers: {}
+      };
+    }
+  }
+
   startNewChat() {
     this.messages = [];
     this.generateChatId();
@@ -243,14 +269,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.flightResultService.bookResponseAi = undefined; // Clear booking response
     this.flightResultService.ResultFound = false;
     this.flightResultService.normalError = '';
-    this.isEnteringNamesManually = false; // Reset the state flag
-    this.isEnteringContactDetails = false;
-    this.airlineName = '';
-    this.destCity = '';
-    this.selectedItinerary = null; // Clear selected itinerary
-    this.sharedService.setSelectedItinerary(null);
-    this.passengerList = [];
-    this.currentPassengerIndex = 0;
+    this.resetCheckoutState();
   }
 
   initializeChat() {
@@ -676,7 +695,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       const targetPassengerLabel = currentPassenger
         ? this.getPassengerLabel(currentPassenger)
         : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
-      const promptText = `I need a few more details. Could you provide the first name, last name,  birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
+      const promptText = `I need a few more details. Could you provide the first name, last name, gender, birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
 
       this.sharedService.addMessage({
         sender: 'system',
