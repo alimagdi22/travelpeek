@@ -82,6 +82,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const initQuery = this.sharedService.getSearchQuery();
+    if (initQuery) {
+      this.sharedService.setSelectedItinerary(null);
+    }
+
     this.generateChatId();
 
     // Listen to user profile notify events to refresh history on login/logout
@@ -243,6 +248,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.airlineName = '';
     this.destCity = '';
     this.selectedItinerary = null; // Clear selected itinerary
+    this.sharedService.setSelectedItinerary(null);
     this.passengerList = [];
     this.currentPassengerIndex = 0;
   }
@@ -277,7 +283,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       textarea.style.height = 'auto';
     }
 
-    this.scrollToBottom();
+    if (window.innerWidth <= 991) {
+      this.scrollToMessageTop();
+    } else {
+      this.scrollToBottom();
+    }
     this.isTyping = true;
 
     if (this.isEnteringContactDetails) {
@@ -576,8 +586,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       itineraries: [itinerary],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
-      showBookingPrompt: false,
     });
+
+    if (window.innerWidth <= 991) {
+      this.scrollToMessageTop();
+    } else {
+      this.scrollToBottom();
+    }
   }
 
   getPassengersCountLabel(): string {
@@ -611,6 +626,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         text: `Uploaded passport copy: ${file.name}`,
       });
 
+      if (window.innerWidth <= 991) {
+        this.scrollToMessageTop();
+      } else {
+        this.scrollToBottom();
+      }
+
       // Simulate system processing the passport
       this.isTyping = true;
       setTimeout(() => {
@@ -640,6 +661,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       text: 'Enter Names Manually',
     });
 
+    if (window.innerWidth <= 991) {
+      this.scrollToMessageTop();
+    } else {
+      this.scrollToBottom();
+    }
+
     this.isTyping = true;
     this.isEnteringNamesManually = true; // Switch context to booking flow
 
@@ -649,7 +676,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       const targetPassengerLabel = currentPassenger
         ? this.getPassengerLabel(currentPassenger)
         : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
-      const promptText = `I need a few more details. Could you provide the email, phone number, passport number, passport expiry date, issue country, and current country, birthdate or upload a passport copy of ${targetPassengerLabel}?`;
+      const promptText = `I need a few more details. Could you provide the first name, last name,  birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
 
       this.sharedService.addMessage({
         sender: 'system',
@@ -665,5 +692,36 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }, 50);
+  }
+
+  scrollToMessageTop() {
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.chat-messages-container');
+      if (chatContainer) {
+        const userRows = chatContainer.querySelectorAll('.message-row.user-row');
+        if (userRows && userRows.length > 0) {
+          const lastUserRow = userRows[userRows.length - 1] as HTMLElement;
+          if (lastUserRow) {
+            // 1. Calculate absolute page position relative to sticky header
+            const elementRect = lastUserRow.getBoundingClientRect();
+            const header = document.querySelector('header') || document.querySelector('.header-mobile') || document.querySelector('.main-header');
+            const headerHeight = header ? header.getBoundingClientRect().height : 70;
+            const targetY = window.pageYOffset + elementRect.top - headerHeight - 16;
+
+            // 2. Scroll the entire window
+            window.scrollTo({
+              top: targetY,
+              behavior: 'smooth'
+            });
+
+            // 3. Fallback for inner container scroll
+            chatContainer.scrollTo({
+              top: lastUserRow.offsetTop - 16,
+              behavior: 'smooth'
+            });
+          }
+        }
+      }
+    }, 150);
   }
 }

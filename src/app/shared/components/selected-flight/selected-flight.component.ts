@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostListener, Input } from '@angular/core';
 import { IAirItinerary, IFlight } from 'rp-travel-ui';
 
 @Component({
@@ -94,5 +94,12 @@ export class SelectedFlightComponent {
 
   getCurrencyCode(itinerary: IAirItinerary): string {
     return itinerary?.itinTotalFare?.currencyCode ?? '';
+  }
+
+  screenWidth = window.innerWidth;
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.screenWidth = window.innerWidth;
   }
 }

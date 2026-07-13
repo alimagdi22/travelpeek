@@ -16,7 +16,7 @@
 .selected-flight-header {
   border-bottom: 1px solid #c3c6d74d;
   padding-bottom: 4%;
-  
+
   .header-icon {
     width: 22px;
     height: 20px;
@@ -194,9 +194,12 @@
 @media (max-width: 768px) {
   .detail-row {
     &.d-flex.gap-3 {
-      flex-direction: row !important;
+      flex-direction: row ;
       gap: 8px !important;
     }
+  }
+  .mobile-details{
+    flex-direction: column !important;
   }
 }
 
