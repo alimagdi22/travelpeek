@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { FlightResultService, IAirItinerary, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { Message } from '../../core/models/message.interface';
 @Component({
@@ -199,6 +199,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
     this.resetCheckoutState();
     this.chatID = item.id;
+    this.sharedService.conversationId = item.id;
     this.messages = [];
 
     this.flightResultService.getConversationDetails(item.id);
@@ -264,7 +265,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   startNewChat() {
     this.messages = [];
-    this.generateChatId();
+    this.chatID = '';
+    this.sharedService.conversationId = null;
     this.flightResultService.responseAi = undefined;
     this.flightResultService.bookResponseAi = undefined; // Clear booking response
     this.flightResultService.ResultFound = false;
@@ -282,7 +284,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     ];
   }
 
-  sendMessage(text: string) {
+  async sendMessage(text: string) {
     if (!text.trim()) return;
 
     // Save history
@@ -308,6 +310,42 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.scrollToBottom();
     }
     this.isTyping = true;
+
+    try {
+      let conversationId = this.sharedService.conversationId;
+      if (!conversationId) {
+        // First message: Create conversation first
+        const createRes = await firstValueFrom(this.sharedService.createConversation(text));
+        if (createRes && createRes.success && createRes.data?.conversationId) {
+          const newId: string = createRes.data.conversationId;
+          this.sharedService.conversationId = newId;
+          this.chatID = newId;
+          
+          // Refresh search history list
+          this.flightResultService.getSearchHistory();
+
+          // Save the fixed initial greeting message first
+          try {
+            await firstValueFrom(
+              this.sharedService.saveMessage(newId, 'Assistant', 'Hello! I am your AI travel assistant. Where would you like to travel today?')
+            );
+          } catch (e) {
+            console.error('Error saving greeting:', e);
+          }
+
+          // Save the user's first message
+          try {
+            await firstValueFrom(
+              this.sharedService.saveMessage(newId, 'User', text)
+            );
+          } catch (e) {
+            console.error('Error saving first user message:', e);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error saving conversation/message:', err);
+    }
 
     if (this.isEnteringContactDetails) {
       // ── Contact Details Flow ──
