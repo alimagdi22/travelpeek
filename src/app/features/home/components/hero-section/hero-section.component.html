@@ -2,7 +2,7 @@
   <div class="hero-content text-center">
     <!-- Main Title -->
     <h1 class="hero-title">Where to next?</h1>
-    
+
     <!-- Subtitle -->
     <p class="hero-subtitle">Just tell Peek what you're looking for.</p>
 
@@ -11,16 +11,16 @@
       <div class="search-bar d-flex align-items-center">
         <!-- Sparkle/Stars Icon -->
         <img src="/assets/icons/home/hero-section/stars.svg" class="stars-svg" alt="Sparkle Stars" />
-        
+
         <!-- Input field -->
-        <input 
-          type="text" 
-          class="search-input col" 
-          placeholder="I want a quiet beach with clear water in October..." 
+        <input
+          type="text"
+          class="search-input col"
+          placeholder="I want a quiet beach with clear water in October..."
           [(ngModel)]="searchQuery"
           (keydown.enter)="performSearch()"
         />
-        
+
         <!-- Search Button -->
         <button class="btn-search-action d-flex align-items-center justify-content-center" (click)="performSearch()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

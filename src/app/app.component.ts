@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, NgZone } from '@angular/core';
+import { Component, inject, OnInit, NgZone, HostListener } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
 import { SharedModule } from './shared/shared.module';
 import { EnvironmentService, AuthService, UserProfileService, LOGIN_STATUS } from 'rp-travel-ui';
@@ -17,6 +17,69 @@ declare var google: any;
 export class AppComponent implements OnInit {
   title = 'travelpeek';
   router: Router = inject(Router);
+
+  private dismissKeyboard(): void {
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      activeEl.blur();
+      
+      // Force keyboard dismissal on iOS/Safari by shifting focus to the body
+      const body = document.body;
+      const originalTabIndex = body.getAttribute('tabindex');
+      body.setAttribute('tabindex', '-1');
+      body.focus();
+      if (originalTabIndex !== null) {
+        body.setAttribute('tabindex', originalTabIndex);
+      } else {
+        body.removeAttribute('tabindex');
+      }
+    }
+  }
+
+  private isInteractiveElement(el: HTMLElement): boolean {
+    if (!el) return false;
+    const tagName = el.tagName;
+    
+    // Check standard interactive elements
+    if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A', 'LABEL'].includes(tagName)) {
+      return true;
+    }
+    
+    // Check elements with interactive roles or attributes
+    if (el.getAttribute('role') === 'button' || el.hasAttribute('tabindex')) {
+      return true;
+    }
+    
+    // Check if parent is interactive (e.g. clicked inside a button or link)
+    if (el.parentElement) {
+      return this.isInteractiveElement(el.parentElement);
+    }
+    
+    return false;
+  }
+
+  @HostListener('document:touchstart', ['$event'])
+  @HostListener('document:mousedown', ['$event'])
+  onGlobalClick(event: MouseEvent | TouchEvent): void {
+    const activeEl = document.activeElement as HTMLElement;
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+      const target = event.target as HTMLElement;
+      // If the target is NOT the active input itself AND is NOT an interactive element, blur
+      if (target !== activeEl && !this.isInteractiveElement(target)) {
+        this.dismissKeyboard();
+      }
+    }
+  }
+
+  @HostListener('document:touchmove', ['$event'])
+  onGlobalTouchMove(): void {
+    this.dismissKeyboard();
+  }
+
+  @HostListener('document:keydown.enter', ['$event'])
+  onEnterPress(): void {
+    this.dismissKeyboard();
+  }
   environmentService = inject(EnvironmentService);
   authService = inject(AuthService);
   profileService = inject(UserProfileService);
