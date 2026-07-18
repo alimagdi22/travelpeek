@@ -21,6 +21,7 @@ import { AvailableFlightsComponent } from './components/available-flights/availa
 import { SelectedFlightComponent } from './components/selected-flight/selected-flight.component';
 import { SecurePaymentComponent } from './components/secure-payment/secure-payment.component';
 import { TypewriterDirective } from './directives/typewriter.directive';
+import { ScrollRevealDirective } from './directives/scroll-reveal.directive';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { DatePipe } from '@angular/common';
@@ -52,6 +53,7 @@ const SharedComponents = [
 ];
 const SharedDirectives = [
   TypewriterDirective,
+  ScrollRevealDirective,
 ];
 // const SharedPipes = [];
 

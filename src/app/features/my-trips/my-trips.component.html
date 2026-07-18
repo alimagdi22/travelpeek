@@ -77,7 +77,9 @@
                     ></app-selected-flight>
                   }
 
-                  <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
+                  @if (msg.text) {
+                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
+                  }
 
                   @if (msg.showBookingPrompt) {
                     <div class="booking-prompt-actions d-flex gap-3 flex-wrap">

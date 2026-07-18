@@ -168,7 +168,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   get userDisplayName(): string {
     if (!this.isLoggedIn) return 'Guest';
     const user = this.profileService.user;
-    return user?.userName || user?.email || 'User';
+    console.log(user,'user');
+
+    return (user.firstName + ' ' +user.lastName) || user?.userName || user?.email || 'User';
   }
 
   ngOnDestroy() {
@@ -324,7 +326,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           const newId: string = createRes.data.conversationId;
           this.sharedService.conversationId = newId;
           this.chatID = newId;
-          
+
           // Refresh search history list
           this.flightResultService.getSearchHistory();
 
@@ -562,7 +564,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
               resultFound && airItineraries ? [...airItineraries] : undefined,
           });
 
-          this.scrollToBottom();
+          if (resultFound && airItineraries && airItineraries.length > 0) {
+            this.scrollToLastSystemMessage();
+          } else {
+            this.scrollToBottom();
+          }
         }
       }, 200);
     }
@@ -638,15 +644,20 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       text: userMsgText,
     });
 
-    // 2. Add selected flight and prompt for contact details
-    const promptText = `Please provide contact details, phone and email.`;
-
+    // 2. Add selected flight
     this.sharedService.addMessage({
       sender: 'system',
-      text: promptText,
+      text: '',
       itineraries: [itinerary],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
+    });
+
+    // 3. Prompt for contact details in a separate message
+    const promptText = `Please provide contact details, phone and email.`;
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: promptText,
     });
 
     if (window.innerWidth <= 991) {
@@ -753,6 +764,37 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }, 50);
+  }
+
+  scrollToLastSystemMessage() {
+    setTimeout(() => {
+      const chatContainer = document.querySelector('.chat-messages-container');
+      if (chatContainer) {
+        const systemRows = chatContainer.querySelectorAll('.message-row.system-row');
+        if (systemRows && systemRows.length > 0) {
+          const lastSystemRow = systemRows[systemRows.length - 1] as HTMLElement;
+          if (lastSystemRow) {
+            // Scroll the inner container
+            chatContainer.scrollTo({
+              top: lastSystemRow.offsetTop - 10,
+              behavior: 'smooth'
+            });
+
+            // For mobile layout
+            if (window.innerWidth <= 991) {
+              const elementRect = lastSystemRow.getBoundingClientRect();
+              const header = document.querySelector('header') || document.querySelector('.header-mobile') || document.querySelector('.main-header');
+              const headerHeight = header ? header.getBoundingClientRect().height : 70;
+              const targetY = window.pageYOffset + elementRect.top - headerHeight - 10;
+              window.scrollTo({
+                top: targetY,
+                behavior: 'smooth'
+              });
+            }
+          }
+        }
+      }
+    }, 150);
   }
 
   scrollToMessageTop() {
