@@ -67,7 +67,7 @@
           @if (msg.sender === "system") {
             <div class="system-bubble-wrapper w-100 d-flex flex-column gap-2 align-items-start">
               @if (msg.isFlightSelection) {
-                <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3">
+                <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3" [class.animating]="msg.isAnimating">
                   @if (msg.itineraries && msg.itineraries.length > 0) {
                     <p class="mb-0 system-intro-text">The selected flight is:</p>
 
@@ -77,7 +77,7 @@
                     ></app-selected-flight>
                   }
 
-                  <p class="mb-0 system-intro-text">{{ msg.text }}</p>
+                  <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
 
                   @if (msg.showBookingPrompt) {
                     <div class="booking-prompt-actions d-flex gap-3 flex-wrap">
@@ -115,8 +115,8 @@
                 </div>
               }  @else {
                 @if (msg.text) {
-                  <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100">
-                    <p class="mb-0 system-intro-text">{{ msg.text }}</p>
+                  <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
+                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
                   </div>
                 }
 
@@ -135,7 +135,7 @@
       </ng-container>
 
         <!-- Pulse Typing Indicator for AI Reply -->
-        @if (flightResultService.loading) {
+        @if (flightResultService.loading || isTyping) {
           <div
             class="message-row system-row d-flex flex-column align-items-start"
           >

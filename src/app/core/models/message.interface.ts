@@ -15,6 +15,7 @@ export interface Message {
   paymentImg?: string;
   paymentMethod?: string;
   gateways?: any[];
+  isAnimating?: boolean;
 }
 
 

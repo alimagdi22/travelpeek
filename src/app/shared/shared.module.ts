@@ -20,6 +20,7 @@ import { ResultCardComponent } from './components/result-card/result-card.compon
 import { AvailableFlightsComponent } from './components/available-flights/available-flights.component';
 import { SelectedFlightComponent } from './components/selected-flight/selected-flight.component';
 import { SecurePaymentComponent } from './components/secure-payment/secure-payment.component';
+import { TypewriterDirective } from './directives/typewriter.directive';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { DatePipe } from '@angular/common';
@@ -49,7 +50,9 @@ const SharedComponents = [
   SelectedFlightComponent,
   SecurePaymentComponent,
 ];
-// const SharedDirectives = [];
+const SharedDirectives = [
+  TypewriterDirective,
+];
 // const SharedPipes = [];
 
 @NgModule({
@@ -61,9 +64,11 @@ const SharedComponents = [
     RpTravelUiModule,
     RouterModule,
     DatePipe,
+    ...SharedDirectives,
   ],
   exports: [
     ...SharedComponents,
+    ...SharedDirectives,
     ...AngularMaterialModules,
     TranslateModule,
     RpTravelUiModule,

@@ -137,6 +137,7 @@
 
 .message-row {
   max-width: 85%;
+  animation: slideUpFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   &.user-row {
     align-self: flex-end;
@@ -189,6 +190,13 @@
   border-radius: 16px 16px 16px 4px;
   box-shadow: 0 4px 15px rgba(11, 26, 48, 0.02);
   border: 1px solid rgba(0, 74, 198, 0.02);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+
+  &.animating {
+    border-color: rgba(0, 74, 198, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 74, 198, 0.06);
+    animation: bubbleGlowPulse 2.5s infinite ease-in-out;
+  }
 
   .system-intro-text {
     font-family: vars.$font-family-base;
@@ -518,5 +526,47 @@
 @media (max-width:900px){
   .system-bubble-wrapper{
     margin-bottom: 13%;
+  }
+}
+
+/* ── Custom Animations ── */
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bubbleGlowPulse {
+  0%, 100% {
+    background-color: #eff4ff;
+  }
+  50% {
+    background-color: #f4f8ff;
+  }
+}
+
+/* ── Typewriter Animation Styles ── */
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 15px;
+  background-color: vars.$color-primary;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-radius: 1px;
+  animation: typewriterBlink 0.75s infinite;
+}
+
+@keyframes typewriterBlink {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
   }
 }

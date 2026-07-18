@@ -109,6 +109,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.sharedService.message$.subscribe((msg) => {
         if (msg) {
+          if (msg.sender === 'system') {
+            msg.isAnimating = true;
+          }
           this.messages.push(msg);
           this.scrollToBottom();
         }
@@ -280,6 +283,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         sender: 'system',
         text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
         timestamp: new Date(),
+        isAnimating: true,
       },
     ];
   }
