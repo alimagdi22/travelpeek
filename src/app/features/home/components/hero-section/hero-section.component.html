@@ -1,40 +1,101 @@
 <section class="hero-section">
-  <div class="hero-content text-center">
-    <!-- Main Title -->
-    <h1 class="hero-title">Where to next?</h1>
+  <div class="container hero-container-v3">
+    <div class="row align-items-center justify-content-between">
 
-    <!-- Subtitle -->
-    <p class="hero-subtitle">Just tell Peek what you're looking for.</p>
+      <!-- Left Column: Search & Text -->
+      <div class="col-lg-6 hero-left-column">
+        <h1 class="hero-title">
+          The smarter <br />
+          <span class="highlight-text">way to fly.</span>
+        </h1>
 
-    <!-- Search Input Bar -->
-    <div class="search-container mx-auto">
-      <div class="search-bar d-flex align-items-center">
-        <!-- Sparkle/Stars Icon -->
-        <img src="/assets/icons/home/hero-section/stars.svg" class="stars-svg" alt="Sparkle Stars" />
+        <p class="hero-subtitle">
+          Skip the forms. Just describe your trip and we'll find the best flights instantly.
+        </p>
 
-        <!-- Input field -->
-        <input
-          type="text"
-          class="search-input col"
-          placeholder="I want a quiet beach with clear water in October..."
-          [(ngModel)]="searchQuery"
-          (keydown.enter)="performSearch()"
-        />
-
-        <!-- Search Button -->
-        <button class="btn-search-action d-flex align-items-center justify-content-center" (click)="performSearch()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Search Input Bar -->
+        <div class="search-bar d-flex align-items-center">
+          <svg class="search-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-        </button>
-      </div>
-    </div>
 
-    <!-- Recommendation Pills -->
-    <div class="recommendations-container d-flex flex-wrap justify-content-center gap-3">
-      <button class="rec-pill" (click)="performSearch('Surfing in Portugal')">"Surfing in Portugal"</button>
-      <button class="rec-pill" (click)="performSearch('Family cabins in Norway')">"Family cabins in Norway"</button>
-      <button class="rec-pill" (click)="performSearch('Tuscany wine tour')">"Tuscany wine tour"</button>
+          <input
+            type="text"
+            class="search-input col"
+            placeholder="Cheapest flights to Istanbul this weekend"
+            [(ngModel)]="searchQuery"
+            (keydown.enter)="performSearch()"
+          />
+
+          <button class="btn-search-action d-flex align-items-center justify-content-center" (click)="performSearch()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Recommendation Pills -->
+        <div class="recommendations-container d-flex flex-wrap gap-2 mt-4">
+          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">Istanbul weekend</button>
+          <button class="rec-pill" (click)="performSearch('London round-trip')">London round-trip</button>
+          <button class="rec-pill" (click)="performSearch('Bangkok April')">Bangkok April</button>
+          <button class="rec-pill" (click)="performSearch('Business class deals')">Business class deals</button>
+          <button class="rec-pill" (click)="performSearch('Nearby airports')">Nearby airports</button>
+        </div>
+      </div>
+
+      <!-- Right Column: Stacked Cards -->
+      <div class="col-lg-5 hero-right-column d-flex align-items-center justify-content-center mt-5 mt-lg-0">
+        <div class="stacked-cards-wrapper">
+          @if(homePageService.isLoading){
+            @for (card of cards; track card.code; let idx = $index) {
+              <div
+                [class]="'stacked-card ' + getCardClass(idx)"
+                (click)="performSearch(card.city)"
+                style="cursor: pointer;"
+              >
+                <div class="card-glow"></div>
+                <div class="card-inner d-flex justify-content-between align-items-stretch h-100 w-100">
+                  <div class="card-left-info d-flex flex-column justify-content-between h-100">
+                    <div class="d-flex flex-column">
+                      <span class="card-country text-uppercase">{{ card.country }}</span>
+                      <span class="card-city mt-1">{{ card.city }}</span>
+                    </div>
+                    <span class="card-price">from {{ card.price }}</span>
+                  </div>
+                  <div class="card-right-code text-uppercase d-flex align-items-center justify-content-end">
+                    {{ card.code }}
+                  </div>
+                </div>
+              </div>
+            }
+          }@else{
+            @for (card of homePageService.mostSearchedFlights.slice(0, 3) ; track card.searchCriteria?.searchId || idx; let idx = $index) {
+              <div
+                [class]="'stacked-card ' + getCardClass(idx)"
+                (click)="onCardClick(card)"
+                style="cursor: pointer;"
+              >
+                <div class="card-glow"></div>
+                <div class="card-inner d-flex justify-content-between align-items-stretch h-100 w-100">
+                  <div class="card-left-info d-flex flex-column justify-content-between h-100">
+                    <div class="d-flex flex-column">
+                      <span class="card-country text-uppercase">{{ getCountryName(card) }}</span>
+                      <span class="card-city mt-1">{{ getCityName(card) }}</span>
+                    </div>
+                    <span class="card-price">from  {{ getCardPrice(card) }} {{ getCardCurrency(card) }}</span>
+                  </div>
+                  <div class="card-right-code text-uppercase d-flex align-items-center justify-content-end">
+                    {{ getAirportCode(card) }}
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
