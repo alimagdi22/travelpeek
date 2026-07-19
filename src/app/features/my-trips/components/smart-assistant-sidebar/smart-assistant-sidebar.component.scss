@@ -1,0 +1,297 @@
+@use "../../../../../styles/variables" as vars;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ── Desktop Collapsible Right Sidebar (Smart Assistant) ── */
+
+.sidebar-right {
+  width: 320px;
+  height: 100%;
+  color: #0b1a30;
+  transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: vars.$font-family-base;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-left: 1px solid #eaeaea;
+  background-color: #ffffff;
+
+  &.collapsed {
+    width: 60px;
+    .sidebar-header {
+      justify-content: center !important;
+    }
+  }
+
+  .btn-sidebar-toggle {
+    color: #6c757d;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &:hover {
+      background-color: #eff4ff;
+      color: #0b1a30;
+    }
+    svg {
+      transition: transform 0.3s ease;
+    }
+  }
+
+  /* Expanded State Elements */
+  .panel-title {
+    font-family: vars.$font-family-display;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0b1a30;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  .header-icon-box {
+    width: 32px;
+    height: 32px;
+    background-color: #eff4ff;
+    color: vars.$color-primary;
+    flex-shrink: 0;
+  }
+
+  .sidebar-content {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(11, 26, 48, 0.1);
+      border-radius: 3px;
+    }
+  }
+
+  /* Section Styling */
+  .section-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-header {
+    .section-icon {
+      font-size: 16px;
+    }
+
+    .section-title {
+      font-family: vars.$font-family-display;
+      font-size: 14px;
+      font-weight: 700;
+      color: #475569;
+    }
+  }
+
+  /* Smart Filters */
+  .badge-filter {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &.filter-default {
+      background-color: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      &:hover {
+        background-color: #e2e8f0;
+        color: #1e293b;
+      }
+    }
+
+    &.filter-active {
+      background-color: #eff4ff;
+      color: vars.$color-primary;
+      border: 1px solid rgba(0, 74, 198, 0.15);
+      font-weight: 700;
+      &:hover {
+        background-color: #e0ecff;
+      }
+    }
+  }
+
+  /* AI Recommendation */
+  .ai-recommendation-box {
+    background-color: #eff4ff;
+    border: 1px solid rgba(0, 74, 198, 0.08);
+    
+    .recommendation-text {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1e3a8a;
+      strong {
+        color: vars.$color-primary;
+      }
+    }
+  }
+
+  /* Flight Insights Chart */
+  .insights-chart-box {
+    .h-70px {
+      height: 70px;
+    }
+    
+    .chart-bars {
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 4px;
+    }
+
+    .bar {
+      flex: 1;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease, background-color 0.2s ease;
+
+      &.bar-normal {
+        background-color: #e2e8f0;
+        &:hover {
+          background-color: #cbd5e1;
+        }
+      }
+
+      &.bar-primary {
+        background-color: vars.$color-primary;
+        &:hover {
+          background-color: #1d4ed8;
+        }
+      }
+    }
+
+    .chart-caption {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+  }
+
+  /* Compare Flights Table */
+  .comparison-table-wrapper {
+    border-color: #e2e8f0 !important;
+  }
+
+  .comparison-table {
+    font-size: 11px;
+    
+    th, td {
+      padding: 8px 12px;
+      vertical-align: middle;
+      border-color: #f1f5f9;
+    }
+
+    thead th {
+      background-color: #f8fafc;
+      color: #1e293b;
+      font-weight: 700;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    tbody tr {
+      &:hover {
+        background-color: #f8fafc;
+      }
+    }
+
+    .metric-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+  }
+
+  /* Fare Alerts */
+  .btn-track-prices {
+    background-color: #0f172a;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+
+    &:hover {
+      background-color: #1e293b;
+      transform: translateY(-0.5px);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  /* Travel Assistant */
+  .travel-checklist {
+    font-size: 12px;
+    
+    li {
+      margin-bottom: 6px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .check-icon {
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    .check-text {
+      color: #475569;
+      line-height: 1.4;
+    }
+  }
+
+  /* Airline Details */
+  .airline-details-box {
+    border-color: #e2e8f0 !important;
+    background-color: #f8fafc;
+  }
+
+  .airline-logo-placeholder {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+    background-color: #1e3a8a;
+  }
+
+  .airline-name {
+    font-size: 13px;
+    color: #1e293b;
+  }
+
+  .airline-rating {
+    font-size: 10px;
+    color: #94a3b8;
+  }
+
+  /* Collapsed State Icons */
+  .sidebar-content-collapsed {
+    .collapsed-icon-btn {
+      width: 36px;
+      height: 36px;
+      background-color: transparent;
+      color: #64748b;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: #f1f5f9;
+        color: vars.$color-primary;
+        transform: scale(1.05);
+      }
+    }
+  }
+}
