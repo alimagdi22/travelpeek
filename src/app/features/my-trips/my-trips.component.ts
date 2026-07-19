@@ -42,7 +42,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   currentPassengerIndex: number = 0;
 
   initializePassengerList() {
-    const criteria = this.flightResultService.responseAi?.searchCriteria;
+    const criteria = this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria;
     this.passengerList = [];
     this.currentPassengerIndex = 0;
     if (!criteria) return;
@@ -271,7 +271,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   startNewChat() {
     this.messages = [];
     this.chatID = '';
-    this.sharedService.conversationId = null;
+    this.flightResultService.response = undefined;
     this.flightResultService.responseAi = undefined;
     this.flightResultService.bookResponseAi = undefined; // Clear booking response
     this.flightResultService.ResultFound = false;
@@ -476,7 +476,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
                 // Initialize selectedFlight for flightCheckoutService
                 this.flightCheckoutService.selectedFlight = {
-                  searchCriteria: this.flightResultService.responseAi?.searchCriteria!,
+                  searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
                   airItineraryDTO: this.selectedItinerary!
                 } as any;
 
@@ -529,11 +529,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           this.isTyping = false;
 
           let replyText = '';
+          const response = this.flightResultService.response;
           const responseAi = this.flightResultService.responseAi;
 
           if (responseAi && responseAi.output) {
             replyText = responseAi.output;
-          } else if (!this.flightResultService.ResultFound || !responseAi) {
+          } else if (!this.flightResultService.ResultFound || (!response && !responseAi)) {
             const rawError = this.flightResultService.normalError;
             let errorMessage =
               'No flights found matching your query. Please try again.';
@@ -554,6 +555,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
           const resultFound = this.flightResultService.ResultFound;
           const airItineraries =
+            this.flightResultService.response?.airItineraries ||
             this.flightResultService.responseAi?.airItineraries ||
             this.flightResultService.responseAi?.itineraries;
 
@@ -668,7 +670,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   getPassengersCountLabel(): string {
-    const criteria = this.flightResultService.responseAi?.searchCriteria;
+    const criteria = this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria;
     if (!criteria) return '';
     const parts: string[] = [];
     if (criteria.adultNum > 0) {
@@ -826,5 +828,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         }
       }
     }, 150);
+  }
+
+  getItinerariesToShow(msg: any, isLast: boolean): any[] {
+    if (isLast && this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
+      return this.flightResultService.orgnizedResponce.map(group => group[0]);
+    }
+    return msg.itineraries || [];
   }
 }

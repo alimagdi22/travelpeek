@@ -101,11 +101,12 @@ export class AvailableFlightsComponent {
   }
 
   selectFlight(itinerary: IAirItinerary) {
-    console.log(this.flightResultService.responseAi);
+    const response = this.flightResultService.response;
+    console.log(response);
 
     console.log(itinerary, 'itenaries');
-    if (this.flightResultService.responseAi) {
-      this.flightCheckoutService.getSelectedFlightData(this.flightResultService.responseAi?.searchCriteria.searchId,itinerary.sequenceNum,itinerary.pKey,true,itinerary.pcc)
+    if (response) {
+      this.flightCheckoutService.getSelectedFlightData(response.searchCriteria.searchId,itinerary.sequenceNum,itinerary.pKey,true,itinerary.pcc)
     }
     this.sharedService.setSelectedItinerary(itinerary);
   }
@@ -128,7 +129,8 @@ export class AvailableFlightsComponent {
     this.changePenalties = [];
     this.adminCharges = [];
 
-    const searchId = this.flightResultService.responseAi?.searchCriteria?.searchId || '';
+    const response = this.flightResultService.response;
+    const searchId = response?.searchCriteria?.searchId || '';
     const sequenceNum = itinerary.sequenceNum;
     const pKey = itinerary.pKey;
     const pcc = itinerary.pcc || '';

@@ -50,7 +50,7 @@
 
         <ng-container *ngIf="!flightResultService.conversationsLoading && !flightResultService.conversationError">
           <div
-            *ngFor="let msg of messages"
+            *ngFor="let msg of messages; let isLastMsg = last"
           class="message-row d-flex flex-column"
           [class.user-row]="msg.sender === 'user'"
           [class.system-row]="msg.sender === 'system'"
@@ -126,7 +126,7 @@
                 @if (msg.itineraries && msg.itineraries.length > 0) {
                   <div class="system-bubble p-1 rounded-4 w-100">
                     <app-available-flights
-                      [itineraries]="msg.itineraries.slice(0, 5)"
+                      [itineraries]="getItinerariesToShow(msg, isLastMsg).slice(0, 5)"
                     ></app-available-flights>
                   </div>
                 }

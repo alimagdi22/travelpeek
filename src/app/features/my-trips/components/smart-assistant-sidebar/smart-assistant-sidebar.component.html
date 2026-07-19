@@ -11,7 +11,7 @@
       </div>
       <span class="panel-title mb-0">Smart Assistant</span>
     </div>
-    
+
     <button class="btn-sidebar-toggle border-0 bg-transparent p-1 ms-auto" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Smart Assistant' : 'Collapse Smart Assistant'">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="isSidebarCollapsed ? 'none' : 'rotate(180deg)'">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -22,32 +22,151 @@
 
   <!-- Sidebar Content Section -->
   <div class="sidebar-content flex-grow-1 overflow-y-auto p-4 d-flex flex-column gap-4" *ngIf="!isSidebarCollapsed">
-    <!-- 🔍 Smart Filters -->
-    <div class="section-card">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">🔍</span>
-        <h3 class="section-title mb-0">Smart Filters</h3>
-      </div>
-      <div class="badge-container d-flex flex-wrap gap-2">
-        <span class="badge-filter filter-default">Non-stop only</span>
-        <span class="badge-filter filter-default">Morning Dep.</span>
-        <span class="badge-filter filter-active">Best Value</span>
-      </div>
-    </div>
 
-    <!-- ⭐ AI Recommendation -->
-    <div class="section-card">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">⭐</span>
-        <h3 class="section-title mb-0">AI Recommendation</h3>
-      </div>
-      <div class="ai-recommendation-box p-3 rounded-3">
-        <p class="recommendation-text mb-0">
-          Based on your history, <strong>Option 5</strong> offers the best balance of travel time and comfort for a 3-day trip.
-        </p>
-      </div>
-    </div>
+    <!-- IF FILTERS ARE LOADED (ACTIVE FLIGHT SEARCH RESULTS) -->
+    <ng-container *ngIf="!flightResultService.loading && flightResultService.ResultFound && hasFlightResults && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
 
+      <!-- 🛑 Stops Filter -->
+      <div class="section-card" formGroupName="stopsForm">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">🛑</span>
+          <h3 class="section-title mb-0">Stops</h3>
+        </div>
+        <div class="badge-container d-flex flex-wrap gap-2">
+          @for (stop of stopsFilter; track stop.title) {
+            <button
+              type="button"
+              class="badge-filter border-0"
+              [class.filter-active]="flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
+              [class.filter-default]="!flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
+              (click)="toggleStopControl(stop.formControlName)"
+            >
+              {{ stop.title }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- 💰 Price Range Slider -->
+      <!-- <div class="section-card">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">💸</span>
+          <h3 class="section-title mb-0">Price Range</h3>
+        </div>
+        <div class="price-slider-container px-2">
+          <mat-slider
+            [min]="flightResultService.minPriceValueForSlider - 1"
+            [max]="flightResultService.maxPriceValueForSlider + 1"
+            class="w-100"
+          >
+            <input matSliderStartThumb formControlName="minpriceSlider" />
+            <input matSliderEndThumb formControlName="maxpriceSlider" />
+          </mat-slider>
+          <div class="d-flex justify-content-between text-xs text-muted mt-1" style="font-size: 11px;">
+            <span>Min: {{ (flightResultService.filterForm.get('minpriceSlider')?.value ?? 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+            <span>Max: {{ (flightResultService.filterForm.get('maxpriceSlider')?.value ?? 0) | currency:'EGP':'symbol':'1.0-0' }}</span>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- 🛡️ Refundability -->
+      <!-- <div class="section-card" formGroupName="flexibleTickets">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">🛡️</span>
+          <h3 class="section-title mb-0">Refundability</h3>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <mat-checkbox color="primary" formControlName="refund">Refundable</mat-checkbox>
+          <mat-checkbox color="primary" formControlName="nonRefund">Non-Refundable</mat-checkbox>
+        </div>
+      </div> -->
+
+      <!-- ✈️ Airlines -->
+      <!-- <div class="section-card" formGroupName="airline">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">✈️</span>
+          <h3 class="section-title mb-0">Airlines</h3>
+        </div>
+        <div class="d-flex flex-column gap-2 max-h-150px overflow-y-auto" formArrayName="airlines" style="max-height: 150px; overflow-y: auto;">
+          @for (airline of flightResultService.airlinesA; track airline; let i = $index) {
+            <mat-checkbox color="primary" [formControlName]="i">{{ airline }}</mat-checkbox>
+          }
+        </div>
+      </div>
+ -->
+      <!-- 🕒 Schedules -->
+      <!-- <div class="section-card">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">🕒</span>
+          <h3 class="section-title mb-0">Schedules</h3>
+        </div>
+        <div class="schedule-tabs d-flex flex-wrap gap-1 border-bottom pb-2 mb-3">
+          <button type="button" class="btn-schedule-tab text-xxs py-1 px-2 border rounded" [class.btn-active]="activeScheduleIndex === 0" (click)="setScheduleTab(0)">Out Dep</button>
+          <button type="button" class="btn-schedule-tab text-xxs py-1 px-2 border rounded" [class.btn-active]="activeScheduleIndex === 1" (click)="setScheduleTab(1)">Out Arr</button>
+          @if (isRoundTrip()) {
+            <button type="button" class="btn-schedule-tab text-xxs py-1 px-2 border rounded" [class.btn-active]="activeScheduleIndex === 2" (click)="setScheduleTab(2)">Ret Dep</button>
+            <button type="button" class="btn-schedule-tab text-xxs py-1 px-2 border rounded" [class.btn-active]="activeScheduleIndex === 3" (click)="setScheduleTab(3)">Ret Arr</button>
+          }
+        </div>
+        <div class="schedule-grid d-grid gap-2" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          @for (opt of scheduleOptions; track opt.title) {
+            <button type="button" class="btn btn-schedule-opt d-flex align-items-center justify-content-center gap-1 py-2 px-1 rounded border-0"
+                    [class.btn-active]="isOptionActive(opt)"
+                    (click)="toggleScheduleOption(opt)">
+              <span>{{ opt.icon }}</span>
+              <span style="font-size: 11px; font-weight: 600;">{{ opt.title }}</span>
+            </button>
+          }
+        </div>
+      </div> -->
+
+      <!-- ⭐ AI Recommendation (Contextual) -->
+      <div class="section-card" *ngIf="flightResultService.response?.airItineraries?.length">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">⭐</span>
+          <h3 class="section-title mb-0">AI Recommendation</h3>
+        </div>
+        <div class="ai-recommendation-box p-3 rounded-3">
+          @if(flightResultService.response){
+            <p class="recommendation-text mb-0">
+              {{flightResultService.response.recommendation.ai.summary}}
+            </p>
+          }
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- IF NO SEARCH ACTIVE (WELCOME SCREEN) -->
+    <ng-container *ngIf="flightResultService.loading || !flightResultService.ResultFound || !hasFlightResults">
+      <!-- 🔍 Smart Filters (Static Mock) -->
+      <div class="section-card">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">🔍</span>
+          <h3 class="section-title mb-0">Smart Filters</h3>
+        </div>
+        <div class="badge-container d-flex flex-wrap gap-2">
+          <span class="badge-filter filter-default">Non-stop only</span>
+          <span class="badge-filter filter-default">Morning Dep.</span>
+          <span class="badge-filter filter-active">Best Value</span>
+        </div>
+      </div>
+
+      <!-- ⭐ AI Recommendation (Static Mock) -->
+      <div class="section-card">
+        <div class="section-header d-flex align-items-center gap-2 mb-3">
+          <span class="section-icon">⭐</span>
+          <h3 class="section-title mb-0">AI Recommendation</h3>
+        </div>
+        <div class="ai-recommendation-box p-3 rounded-3">
+          <p class="recommendation-text mb-0">
+            Search for flights to see real-time AI recommendations and smart filters tailored to your history!
+          </p>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- COMMON SECTIONS (FLIGHT INSIGHTS & COMPARE FLIGHTS & FARE ALERTS & TRAVEL ASSISTANT) -->
     <!-- 📊 Flight Insights -->
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
@@ -77,8 +196,8 @@
           <thead>
             <tr>
               <th>Metric</th>
-              <th>Opt 5</th>
-              <th>Opt 8</th>
+              <th>Opt 1</th>
+              <th>Opt 2</th>
             </tr>
           </thead>
           <tbody>
@@ -129,23 +248,6 @@
         </li>
       </ul>
     </div>
-
-    <!-- 🧳 Airline Details -->
-    <div class="section-card">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">🧳</span>
-        <h3 class="section-title mb-0">Airline Details</h3>
-      </div>
-      <div class="airline-details-box d-flex align-items-center gap-3 p-3 border rounded-3 bg-light-gray">
-        <div class="airline-logo-placeholder rounded-circle d-flex align-items-center justify-content-center text-white bg-dark-blue font-bold">
-          S
-        </div>
-        <div class="airline-info flex-grow-1">
-          <p class="airline-name mb-0 font-bold">Saudia</p>
-          <p class="airline-rating mb-0">4.2/5 Avg Rating</p>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Collapsed State Content -->
@@ -168,9 +270,6 @@
     </button>
     <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Travel Assistant">
       <span>✈</span>
-    </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Airline Details">
-      <span>🧳</span>
     </button>
   </div>
 </div>

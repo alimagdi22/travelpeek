@@ -175,6 +175,61 @@
     }
   }
 
+  /* Schedules Filter */
+  .btn-schedule-tab {
+    background-color: transparent;
+    color: #64748b;
+    border: 1px solid #cbd5e1 !important;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &.btn-active {
+      background-color: vars.$color-primary;
+      color: #ffffff;
+      border-color: vars.$color-primary !important;
+    }
+    
+    &:hover:not(.btn-active) {
+      background-color: #f1f5f9;
+      color: #0b1a30;
+    }
+  }
+
+  .btn-schedule-opt {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0 !important;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &.btn-active {
+      background-color: #eff4ff;
+      border-color: rgba(0, 74, 198, 0.2) !important;
+      color: vars.$color-primary;
+    }
+    
+    &:hover:not(.btn-active) {
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+  }
+
+  /* Custom Scrollbar for Airlines Checkboxes */
+  .max-h-150px {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
+    
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(11, 26, 48, 0.1);
+      border-radius: 2px;
+    }
+  }
+
   /* Compare Flights Table */
   .comparison-table-wrapper {
     border-color: #e2e8f0 !important;
