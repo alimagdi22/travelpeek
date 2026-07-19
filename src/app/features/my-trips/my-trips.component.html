@@ -126,7 +126,9 @@
                 @if (msg.itineraries && msg.itineraries.length > 0) {
                   <div class="system-bubble p-1 rounded-4 w-100">
                     <app-available-flights
-                      [itineraries]="getItinerariesToShow(msg, isLastMsg).slice(0, 5)"
+                      [itineraries]="msg.itineraries"
+                      (stopsTriggered)="openStopsModal($event.itinerary, $event.index)"
+                      (policyTriggered)="openCancelPolicy($event)"
                     ></app-available-flights>
                   </div>
                 }
@@ -292,3 +294,286 @@
   (change)="onFileSelected($event)"
   accept="image/*,application/pdf"
 />
+
+<!-- ── Cancellation & Change Policy Modal Popup ── -->
+@if (showPolicyModal) {
+  <div class="policy-modal-overlay d-flex align-items-center justify-content-center" (click)="closePolicyModal()">
+    <div class="policy-modal-card p-4 rounded-4 shadow-lg border" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="policy-modal-header d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <h5 class="policy-modal-title mb-0 d-flex align-items-center gap-2">
+          <mat-icon style="color: #004ac6;">info</mat-icon>
+          <span>Cancellation & Date Change Policies</span>
+        </h5>
+        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="closePolicyModal()" aria-label="Close modal">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="policy-modal-body">
+        @if (isLoadingPolicy) {
+          <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <mat-spinner [diameter]="40" [strokeWidth]="4"></mat-spinner>
+            <span class="text-muted mt-3" style="font-size: 14px;">Retrieving fare rules...</span>
+          </div>
+        } @else {
+          <!-- Option Summary -->
+          <div class="option-summary mb-3 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Flight Option</span>
+              <strong style="color: #0b1c30; font-size: 14px;">
+                @for (sector of getSectors(selectedItineraryForPolicy!); track $index) {
+                  {{ sector }}{{ !$last ? ' / ' : '' }}
+                }
+              </strong>
+            </div>
+            <div class="text-end">
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Total Price</span>
+              <strong style="color: #004ac6; font-size: 16px;">
+                {{ getTotalPrice(selectedItineraryForPolicy!) | exchange: 'value' | number: "1.0-0" }}
+                <span style="font-size: 12px;">{{ getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}</span>
+              </strong>
+            </div>
+          </div>
+
+          <!-- Cancellation Policy Section -->
+          <div class="policy-section mb-4">
+            <h6 class="section-heading d-flex align-items-center gap-2 mb-3" style="font-weight: 700; color: #0b1c30; font-size: 14px;">
+              <mat-icon style="color: #dc3545; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">cancel</mat-icon>
+              <span>Cancellation & Refund Policy</span>
+            </h6>
+
+            <div class="policy-details-list d-flex flex-column gap-2">
+              @if (cancelPenalties && cancelPenalties.length > 0) {
+                @for (penalty of cancelPenalties; track $index) {
+                  <div class="penalty-row p-3 rounded-3 border d-flex flex-column gap-2 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="sector-badge px-2 py-0.5 rounded text-xs font-semibold bg-light text-secondary" style="font-size: 11px;">
+                        Sector: {{ penalty.sector || 'All Sectors' }}
+                      </span>
+                      <span class="refund-status-pill px-2 py-0.5 rounded text-xs font-bold"
+                            [ngClass]="selectedItineraryForPolicy!.isRefundable ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
+                            style="font-size: 11px;">
+                        {{ selectedItineraryForPolicy!.isRefundable ? 'Refundable' : 'Non-Refundable' }}
+                      </span>
+                    </div>
+
+                    @if (selectedItineraryForPolicy!.isRefundable) {
+                      <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="text-sm text-muted" style="font-size: 13px;">Cancellation Penalty Fee</span>
+                        <strong class="text-dark" style="font-size: 13px;">
+                          {{ penalty.curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
+                          {{ penalty.price | exchange: 'value' }}
+                        </strong>
+                      </div>
+                    } @else {
+                      <span class="text-sm text-danger mt-1" style="font-size: 13px;">This ticket is non-refundable. Cancellation will result in a 100% penalty.</span>
+                    }
+                  </div>
+                }
+              } @else {
+                <div class="penalty-row p-3 rounded-3 border bg-white">
+                  <span class="text-sm text-muted" style="font-size: 13px;">
+                    {{ selectedItineraryForPolicy!.isRefundable ? 'Refundable with standard airline terms.' : 'This ticket is non-refundable.' }}
+                  </span>
+                </div>
+              }
+
+              <!-- Admin Charges -->
+              @if (adminCharges && adminCharges.length > 0) {
+                <div class="admin-charge-row p-3 rounded-3 border bg-light d-flex justify-content-between align-items-center">
+                  <span class="text-sm text-muted d-flex align-items-center gap-1.5" style="font-size: 13px;">
+                    <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px; color: #6c757d;">info_outline</mat-icon>
+                    <span>Agency Admin Fee</span>
+                  </span>
+                  <strong class="text-dark" style="font-size: 13px;">
+                    {{ adminCharges[0].curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
+                    {{ adminCharges[0].price | exchange: 'value' }}
+                  </strong>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Change Policy Section -->
+          <div class="policy-section mb-2">
+            <h6 class="section-heading d-flex align-items-center gap-2 mb-3" style="font-weight: 700; color: #0b1c30; font-size: 14px;">
+              <mat-icon style="color: #ffc107; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">update</mat-icon>
+              <span>Date Change / Reissue Policy</span>
+            </h6>
+
+            <div class="policy-details-list d-flex flex-column gap-2">
+              @if (changePenalties && changePenalties.length > 0) {
+                @for (penalty of changePenalties; track $index) {
+                  <div class="penalty-row p-3 rounded-3 border d-flex flex-column gap-2 bg-white">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="sector-badge px-2 py-0.5 rounded text-xs font-semibold bg-light text-secondary" style="font-size: 11px;">
+                        Sector: {{ penalty.sector || 'All Sectors' }}
+                      </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <span class="text-sm text-muted" style="font-size: 13px;">Change Penalty Fee</span>
+                      <strong class="text-dark" style="font-size: 13px;">
+                        {{ penalty.curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
+                        {{ penalty.price | exchange: 'value' }}
+                      </strong>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <div class="penalty-row p-3 rounded-3 border bg-white">
+                  <span class="text-sm text-muted" style="font-size: 13px;">Standard airline date change policies apply.</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Disclaimer Note -->
+          <p class="text-muted mt-3 mb-0" style="font-size: 11px; line-height: 16px; font-style: italic; border-top: 1px solid #eee; padding-top: 12px;">
+            * In addition to airline fees, fare difference may apply for date changes. Reissues and refunds are subject to airline approval.
+          </p>
+        }
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- ── Flight Stops Details Modal Popup ── -->
+@if (showStopsModal) {
+  <div class="policy-modal-overlay d-flex align-items-center justify-content-center" (click)="closeStopsModal()">
+    <div class="policy-modal-card p-4 rounded-4 shadow-lg border" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="policy-modal-header d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+        <h5 class="policy-modal-title mb-0 d-flex align-items-center gap-2">
+          <mat-icon style="color: #004ac6;">flight_takeoff</mat-icon>
+          <span>Flight Itinerary & Stops details</span>
+        </h5>
+        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="closeStopsModal()" aria-label="Close modal">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="policy-modal-body">
+        @if (getActiveLeg(); as leg) {
+          <!-- Route Summary -->
+          <div class="option-summary mb-4 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between">
+            <div>
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">
+                {{ selectedStopsIndex === 0 ? 'Outbound Flight' : 'Return Flight' }}
+              </span>
+              <strong style="color: #0b1c30; font-size: 14px;">
+                {{ getDeptCity(leg) }} ({{ getDeptCode(leg) }}) &rarr; {{ getArrCity(leg) }} ({{ getArrCode(leg) }})
+              </strong>
+            </div>
+            <div class="text-end">
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Total Duration</span>
+              <strong style="color: #004ac6; font-size: 14px;">
+                {{ leg.elapsedTime | hourminute: 'en' }}
+              </strong>
+            </div>
+          </div>
+
+          <!-- Vertical Timeline of Segments -->
+          <div class="timeline-container ps-3 relative" style="position: relative;">
+            <div class="timeline-line"></div>
+
+            @for (segment of leg.flightDTO; track segment; let i = $index) {
+              <!-- Departure Node -->
+              <div class="timeline-node-item departure-node d-flex gap-3 mb-2">
+                <div class="timeline-bullet bg-primary"></div>
+                <div class="timeline-content">
+                  <div class="d-flex align-items-center gap-2">
+                    <strong class="text-dark" style="font-size: 14px;">
+                      {{ segment.departureDate | date: 'HH:mm' }}
+                    </strong>
+                    <span class="text-dark font-semibold" style="font-size: 14px;">
+                      {{ segment.departureTerminalAirport.cityName }} ({{ segment.departureTerminalAirport.airportCode }})
+                    </span>
+                  </div>
+                  <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
+                    {{ segment.departureTerminalAirport.airportName }}
+                    @if (segment.departureTerminalAirport.terminal) {
+                      &bull; Terminal {{ segment.departureTerminalAirport.terminal }}
+                    }
+                    &bull; {{ segment.departureDate | date: 'EEEE, dd MMM' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Flight Connection Details (Flight duration, airline, code, cabin) -->
+              <div class="timeline-flight-details my-3 ms-4 p-3 rounded-3 border bg-white d-flex align-items-start gap-3">
+                <img [src]="segment.flightAirline.airlineLogo || '/assets/icons/airline-default.svg'"
+                     [alt]="segment.flightAirline.airlineName"
+                     class="airline-logo-modal rounded border p-1"
+                     style="width: 42px; height: 38px; object-fit: contain; background: #fff;" />
+
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-dark" style="font-size: 13px;">{{ segment.flightAirline.airlineName }}</strong>
+                    <span class="text-muted" style="font-size: 12px;">
+                      {{ segment.flightAirline.airlineCode }}{{ segment.flightInfo.flightNumber }}
+                    </span>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mt-1" style="font-size: 12px;">
+                    <span class="text-secondary">
+                      Cabin Class: {{ segment.flightInfo.cabinClass }}
+                    </span>
+                    <span class="text-secondary font-medium">
+                      Duration: {{ formatTransitTime(segment.durationPerLeg) }}
+                    </span>
+                  </div>
+
+                  @if (segment.operatedAirline && segment.operatedAirline.airlineName !== segment.flightAirline.airlineName) {
+                    <div class="text-xs text-muted mt-1" style="font-size: 11px;">
+                      Operated by: {{ segment.operatedAirline.airlineName }}
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Arrival Node -->
+              <div class="timeline-node-item arrival-node d-flex gap-3 mb-2">
+                <div class="timeline-bullet bg-secondary"></div>
+                <div class="timeline-content">
+                  <div class="d-flex align-items-center gap-2">
+                    <strong class="text-dark" style="font-size: 14px;">
+                      {{ segment.arrivalDate | date: 'HH:mm' }}
+                    </strong>
+                    <span class="text-dark font-semibold" style="font-size: 14px;">
+                      {{ segment.arrivalTerminalAirport.cityName }} ({{ segment.arrivalTerminalAirport.airportCode }})
+                    </span>
+                  </div>
+                  <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
+                    {{ segment.arrivalTerminalAirport.airportName }}
+                    @if (segment.arrivalTerminalAirport.terminal) {
+                      &bull; Terminal {{ segment.arrivalTerminalAirport.terminal }}
+                    }
+                    &bull; {{ segment.arrivalDate | date: 'EEEE, dd MMM' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Layover indicator between segments -->
+              @if (i !== leg.flightDTO.length - 1) {
+                <div class="timeline-layover my-4 ms-4 p-3 rounded-3 border-start border-warning-subtle bg-warning-subtle d-flex align-items-center gap-2.5" style="border-left-width: 4px !important;">
+                  <mat-icon style="color: #d88e00; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">schedule</mat-icon>
+                  <span class="text-sm font-semibold" style="color: #664d03; font-size: 13px;">
+                    Layover: {{ formatTransitTime(segment.transitTime) }} in {{ segment.arrivalTerminalAirport.cityName }}
+                  </span>
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
+
+    </div>
+  </div>
+}

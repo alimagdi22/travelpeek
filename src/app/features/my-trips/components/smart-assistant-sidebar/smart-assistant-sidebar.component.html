@@ -195,22 +195,29 @@
         <table class="table comparison-table mb-0">
           <thead>
             <tr>
-              <th>Metric</th>
-              <th>Opt 1</th>
-              <th>Opt 2</th>
+              <th>Option</th>
+              <th>Duration</th>
+              <th>Price</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="metric-label">Duration</td>
-              <td>7h 45m</td>
-              <td class="text-success">6h 10m</td>
-            </tr>
-            <tr>
-              <td class="metric-label">Price</td>
-              <td class="text-success font-semibold">18.2k</td>
-              <td>19.8k</td>
-            </tr>
+            @if (getComparisonFlights().length > 0) {
+              @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
+                <tr>
+                  <td class="metric-label">Opt {{ i + 1 }}</td>
+                  <td>{{ formatDuration(flight.totalDuration) }}</td>
+                  <td class="font-semibold text-primary">
+                    {{ flight.itinTotalFare.amount | currency: (flight.itinTotalFare.currencyCode || 'EGP'): 'symbol': '1.0-0' }}
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="3" class="text-center text-muted py-3" style="font-size: 12px;">
+                  No flights to compare yet.
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>

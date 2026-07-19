@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { FlightResultService, IAirItinerary, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
+import { Component, inject, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -27,6 +27,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
   private subscription = new Subscription();
+  private filterFormSub: Subscription | null = null;
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
   isEnteringContactDetails = false;
@@ -130,6 +131,21 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.sharedService.selectQuery$.subscribe((query) => {
         if (query) {
           this.onHistorySelect(query);
+        }
+      })
+    );
+
+    // Listen to filter updates to update the active flight message itineraries
+    this.subscription.add(
+      this.flightResultService.notify.subscribe(() => {
+        if (this.messages.length > 0) {
+          const lastMsg = this.messages[this.messages.length - 1];
+          if (lastMsg.sender === 'system' && lastMsg.itineraries) {
+            lastMsg.itineraries = this.getFilteredItineraries();
+          }
+        }
+        if (this.flightResultService.filterForm) {
+          this.subscribeToFilterChanges();
         }
       })
     );
@@ -270,13 +286,18 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   startNewChat() {
     this.messages = [];
-    this.chatID = '';
+    this.generateChatId();
     this.flightResultService.response = undefined;
     this.flightResultService.responseAi = undefined;
     this.flightResultService.bookResponseAi = undefined; // Clear booking response
     this.flightResultService.ResultFound = false;
     this.flightResultService.normalError = '';
     this.resetCheckoutState();
+    if (this.filterFormSub) {
+      this.filterFormSub.unsubscribe();
+      this.filterFormSub = null;
+    }
+    this.initializeChat();
   }
 
   initializeChat() {
@@ -554,16 +575,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           }
 
           const resultFound = this.flightResultService.ResultFound;
-          const airItineraries =
-            this.flightResultService.response?.airItineraries ||
-            this.flightResultService.responseAi?.airItineraries ||
-            this.flightResultService.responseAi?.itineraries;
+          const airItineraries = this.getFilteredItineraries();
 
           this.sharedService.addMessage({
             sender: 'system',
             text: replyText,
             itineraries:
-              resultFound && airItineraries ? [...airItineraries] : undefined,
+              resultFound && airItineraries.length > 0 ? airItineraries : undefined,
           });
 
           if (resultFound && airItineraries && airItineraries.length > 0) {
@@ -830,10 +848,170 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     }, 150);
   }
 
-  getItinerariesToShow(msg: any, isLast: boolean): any[] {
-    if (isLast && this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
-      return this.flightResultService.orgnizedResponce.map(group => group[0]);
+  getFilteredItineraries(): any[] {
+    if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
+      return this.flightResultService.orgnizedResponce.map(group => group[0]).slice(0, 5);
     }
-    return msg.itineraries || [];
+    return [];
+  }
+
+  // ── Modal State Variables ──
+  private destroyRef = inject(DestroyRef);
+  private policySubscription: Subscription | null = null;
+
+  showPolicyModal = false;
+  isLoadingPolicy = false;
+  selectedItineraryForPolicy: IAirItinerary | null = null;
+  cancelPenalties: any[] = [];
+  changePenalties: any[] = [];
+  adminCharges: any[] = [];
+
+  showStopsModal = false;
+  selectedItineraryForStops: IAirItinerary | null = null;
+  selectedStopsIndex = 0;
+
+  // ── Modal Helper Methods ──
+  openCancelPolicy(itinerary: IAirItinerary) {
+    this.selectedItineraryForPolicy = itinerary;
+    this.showPolicyModal = true;
+    this.isLoadingPolicy = true;
+    this.cancelPenalties = [];
+    this.changePenalties = [];
+    this.adminCharges = [];
+
+    const response = this.flightResultService.response || this.flightResultService.responseAi;
+    const searchId = response?.searchCriteria?.searchId || '';
+    const sequenceNum = itinerary.sequenceNum;
+    const pKey = itinerary.pKey;
+    const pcc = itinerary.pcc || '';
+
+    if (this.policySubscription) {
+      this.policySubscription.unsubscribe();
+    }
+
+    this.policySubscription = this.flightResultService.brandedFareNotifier.subscribe({
+      next: () => {
+        this.isLoadingPolicy = false;
+        this.extractFareRules();
+      },
+      error: (err) => {
+        this.isLoadingPolicy = false;
+        this.extractFareRules();
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.policySubscription) {
+        this.policySubscription.unsubscribe();
+      }
+    });
+
+    this.flightResultService.getBrandedFares(searchId, sequenceNum, pKey, pcc);
+  }
+
+  extractFareRules() {
+    const itinerary = this.selectedItineraryForPolicy;
+    if (!itinerary) return;
+
+    const brand = this.flightResultService.currentSelectedBrands?.[0];
+    const fareBreakdown = brand?.passengerFareBreakDowns?.[0] || itinerary?.passengerFareBreakDownDTOs?.[0];
+
+    if (fareBreakdown) {
+      this.cancelPenalties = fareBreakdown.cancelPenaltyDTOs || [];
+      this.changePenalties = fareBreakdown.changePenaltyDTOs || [];
+    }
+
+    if (brand?.adminCharges) {
+      this.adminCharges = brand.adminCharges;
+    }
+  }
+
+  closePolicyModal() {
+    this.showPolicyModal = false;
+    if (this.policySubscription) {
+      this.policySubscription.unsubscribe();
+      this.policySubscription = null;
+    }
+  }
+
+  getSectors(itinerary: IAirItinerary): string[] {
+    const sectors: string[] = [];
+    itinerary?.allJourney?.flights?.forEach((flight, index) => {
+      const departureAirportCode = flight.flightDTO[0].departureTerminalAirport.airportCode;
+      const arrivalAirportCode = flight.flightDTO[flight.flightDTO.length - 1].arrivalTerminalAirport.airportCode;
+      sectors[index] = departureAirportCode + '-' + arrivalAirportCode;
+    });
+    return sectors;
+  }
+
+  getTotalPrice(itinerary: IAirItinerary): number {
+    return itinerary?.itinTotalFare?.amount ?? 0;
+  }
+
+  getCurrencyCode(itinerary: IAirItinerary): string {
+    return itinerary?.itinTotalFare?.currencyCode ?? '';
+  }
+
+  openStopsModal(itinerary: IAirItinerary, legIndex: number) {
+    this.selectedItineraryForStops = itinerary;
+    this.selectedStopsIndex = legIndex;
+    this.showStopsModal = true;
+  }
+
+  closeStopsModal() {
+    this.showStopsModal = false;
+  }
+
+  getActiveLeg(): IFlight | null {
+    if (!this.selectedItineraryForStops) return null;
+    const flights = this.selectedItineraryForStops.allJourney?.flights;
+    return flights && flights.length > this.selectedStopsIndex ? flights[this.selectedStopsIndex] : null;
+  }
+
+  getDeptCity(flight: IFlight): string {
+    return flight?.flightDTO?.[0]?.departureTerminalAirport?.cityName ?? '';
+  }
+
+  getDeptCode(flight: IFlight): string {
+    return flight?.flightDTO?.[0]?.departureTerminalAirport?.airportCode ?? '';
+  }
+
+  getArrCity(flight: IFlight): string {
+    const segs = flight?.flightDTO;
+    return segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalTerminalAirport?.cityName ?? '') : '';
+  }
+
+  getArrCode(flight: IFlight): string {
+    const segs = flight?.flightDTO;
+    return segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalTerminalAirport?.airportCode ?? '') : '';
+  }
+
+  formatTransitTime(time: string | number): string {
+    if (time === null || time === undefined) return '';
+    if (typeof time === 'number') {
+      const hours = Math.floor(time / 60);
+      const mins = time % 60;
+      return `${hours}h ${mins}m`;
+    }
+    return time.toString();
+  }
+
+  subscribeToFilterChanges() {
+    if (this.filterFormSub) {
+      this.filterFormSub.unsubscribe();
+    }
+    if (!this.flightResultService.filterForm) return;
+
+    this.filterFormSub = this.flightResultService.filterForm.valueChanges.subscribe(() => {
+      setTimeout(() => {
+        if (this.messages.length > 0) {
+          const lastMsg = this.messages[this.messages.length - 1];
+          if (lastMsg.sender === 'system' && lastMsg.itineraries) {
+            lastMsg.itineraries = this.getFilteredItineraries();
+          }
+        }
+      }, 50);
+    });
+    this.subscription.add(this.filterFormSub);
   }
 }
