@@ -27,7 +27,17 @@ export class SmartAssistantSidebarComponent implements OnInit {
   // 0: Outbound Depart, 1: Outbound Arrive, 2: Return Depart, 3: Return Arrive
   activeScheduleIndex: number = 0; 
   
+  isMobileDrawerOpen: boolean = false;
+
   ngOnInit(): void {}
+
+  toggleMobileDrawer() {
+    this.isMobileDrawerOpen = !this.isMobileDrawerOpen;
+  }
+
+  closeMobileDrawer() {
+    this.isMobileDrawerOpen = false;
+  }
 
   toggleSidebar() {
     this.isSidebarCollapsed = !this.isSidebarCollapsed;
@@ -60,6 +70,9 @@ export class SmartAssistantSidebarComponent implements OnInit {
         control.get('endTime')?.setValue(option.endTime);
       }
     }
+    if (this.isMobileDrawerOpen) {
+      this.closeMobileDrawer();
+    }
   }
 
   isOptionActive(option: any): boolean {
@@ -85,9 +98,14 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
   get hasFlightResults(): boolean {
     return !!(
-      this.flightResultService.response?.airItineraries?.length ||
-      this.flightResultService.responseAi?.airItineraries?.length ||
-      this.flightResultService.responseAi?.itineraries?.length
+      this.flightResultService.ResultFound &&
+      !this.flightResultService.loading &&
+      (
+        this.flightResultService.response?.airItineraries?.length ||
+        this.flightResultService.responseAi?.airItineraries?.length ||
+        this.flightResultService.responseAi?.itineraries?.length ||
+        (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+      )
     );
   }
 
@@ -96,6 +114,9 @@ export class SmartAssistantSidebarComponent implements OnInit {
     const control = this.flightResultService.filterForm.get('stopsForm')?.get(controlName);
     if (control) {
       control.setValue(!control.value);
+    }
+    if (this.isMobileDrawerOpen) {
+      this.closeMobileDrawer();
     }
   }
 
