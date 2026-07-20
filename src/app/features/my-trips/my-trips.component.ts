@@ -855,6 +855,19 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     return [];
   }
 
+  get hasFlightResults(): boolean {
+    return !!(
+      this.flightResultService.ResultFound &&
+      !this.flightResultService.loading &&
+      (
+        this.flightResultService.response?.airItineraries?.length ||
+        this.flightResultService.responseAi?.airItineraries?.length ||
+        this.flightResultService.responseAi?.itineraries?.length ||
+        (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+      )
+    );
+  }
+
   // ── Modal State Variables ──
   private destroyRef = inject(DestroyRef);
   private policySubscription: Subscription | null = null;
