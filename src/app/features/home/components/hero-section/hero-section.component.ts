@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { SharedService } from '../../../../shared/shared.service';
 import { HomePageService } from 'rp-travel-ui';
@@ -13,6 +14,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   router = inject(Router);
   sharedService = inject(SharedService);
   homePageService = inject(HomePageService);
+  platformId = inject(PLATFORM_ID);
+  isBrowser = isPlatformBrowser(this.platformId);
   searchQuery: string = '';
 
   cards = [
@@ -32,7 +35,9 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.startCardRotation();
+    if (this.isBrowser) {
+      this.startCardRotation();
+    }
     this.homePageService.getMostSearchedFlights();
   }
 

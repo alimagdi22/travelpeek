@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, NgZone, HostListener } from '@angular/core';
+import { Component, inject, OnInit, NgZone, HostListener, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, Router } from '@angular/router';
 import { SharedModule } from './shared/shared.module';
 import { EnvironmentService, AuthService, UserProfileService, LOGIN_STATUS } from 'rp-travel-ui';
 import { envRP } from './core/enviroments/roundpixel.env';
 import { firebaseConfig } from './core/constants/firebase-key';
 import { jwtDecode } from 'jwt-decode';
+import { SeoService } from './core/services/seo.service';
 
 declare var google: any;
 
@@ -17,8 +19,12 @@ declare var google: any;
 export class AppComponent implements OnInit {
   title = 'travelpeek';
   router: Router = inject(Router);
+  platformId = inject(PLATFORM_ID);
+  seoService = inject(SeoService);
+  isBrowser = isPlatformBrowser(this.platformId);
 
   private dismissKeyboard(): void {
+    if (!this.isBrowser) return;
     const activeEl = document.activeElement as HTMLElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
       activeEl.blur();
@@ -61,6 +67,7 @@ export class AppComponent implements OnInit {
   @HostListener('document:touchstart', ['$event'])
   @HostListener('document:mousedown', ['$event'])
   onGlobalClick(event: MouseEvent | TouchEvent): void {
+    if (!this.isBrowser) return;
     const activeEl = document.activeElement as HTMLElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
       const target = event.target as HTMLElement;
@@ -73,11 +80,13 @@ export class AppComponent implements OnInit {
 
   @HostListener('document:touchmove', ['$event'])
   onGlobalTouchMove(): void {
+    if (!this.isBrowser) return;
     this.dismissKeyboard();
   }
 
   @HostListener('document:keydown.enter', ['$event'])
   onEnterPress(): void {
+    if (!this.isBrowser) return;
     this.dismissKeyboard();
   }
   environmentService = inject(EnvironmentService);
@@ -87,16 +96,21 @@ export class AppComponent implements OnInit {
   isMyTrips = false;
 
   ngOnInit(): void {
+    this.seoService.initRouteSeoListener();
     this.environmentService.envConfiguration(envRP);
+
     this.router.events.subscribe(() => {
-    this.isMyTrips = this.router.url.includes('my-trips');
+      this.isMyTrips = this.router.url.includes('my-trips');
     });
 
-    // Initialize Google One Tap if user is not logged in
-    if (!localStorage.getItem('token')) {
-      this.initializeGoogleOneTap();
+    if (this.isBrowser) {
+      // Initialize Google One Tap if user is not logged in
+      if (!localStorage.getItem('token')) {
+        this.initializeGoogleOneTap();
+      }
     }
   }
+
 
   private initializeGoogleOneTap() {
     const checkGoogleLoaded = setInterval(() => {

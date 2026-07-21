@@ -1,4 +1,5 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   currencyModel,
@@ -20,6 +21,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   homePageService = inject(HomePageService);
   flightResult = inject(FlightResultService);
   router = inject(Router);
+  platformId = inject(PLATFORM_ID);
+  isBrowser = isPlatformBrowser(this.platformId);
   subscription = new Subscription();
   profileService = inject(UserProfileService);
   sharedService = inject(SharedService);
@@ -55,14 +58,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private updateBodyOverflow() {
-    if (typeof document !== 'undefined') {
+    if (this.isBrowser && typeof document !== 'undefined') {
       const lockScroll = this.isMobileMenuOpen || this.isCurrencyPopupOpen;
       document.body.style.overflow = lockScroll ? 'hidden' : '';
     }
   }
 
   ngOnInit(): void {
-    const storedCurrency = sessionStorage.getItem('curr');
+    const storedCurrency = this.isBrowser ? sessionStorage.getItem('curr') : null;
     this.homePageService.getCurrency(storedCurrency || 'EGP');
     this.homePageService.getPointOfSale();
     if (storedCurrency) {
@@ -84,7 +87,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         status === 0 ? (this.successLogin = true) : (this.successLogin = false);
       }),
     );
-    if (localStorage.getItem('token')) {
+    if (this.isBrowser && localStorage.getItem('token')) {
       this.profileService.getUserProfile();
       this.flightResult.getSearchHistory();
     }
@@ -116,13 +119,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
   updateCurrency(currency: currencyModel) {
     this.homePageService.selectedCurrency = currency;
     let currency_ = currency.Currency_Code.replaceAll('"', ' ');
-    sessionStorage.setItem('curr', currency_);
+    if (this.isBrowser) {
+      sessionStorage.setItem('curr', currency_);
+    }
     this.flightResult.updateCurrencyCode(currency.Currency_Code);
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('tokenHash');
+    if (this.isBrowser) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('tokenHash');
+    }
     this.successLogin = false;
     this.router.navigate(['/login']);
   }
@@ -138,8 +145,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   get isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return this.isBrowser && !!localStorage.getItem('token');
   }
+
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();

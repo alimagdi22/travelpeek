@@ -14,6 +14,7 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { firebaseConfig } from './core/constants/firebase-key';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
@@ -28,6 +29,6 @@ export const appConfig: ApplicationConfig = {
     DatePipe,
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
-    provideAnimationsAsync()
+    provideAnimationsAsync(), provideClientHydration(withEventReplay())
   ],
 };
