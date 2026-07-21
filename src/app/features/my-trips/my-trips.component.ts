@@ -28,6 +28,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   profileService = inject(UserProfileService);
   private subscription = new Subscription();
   private filterFormSub: Subscription | null = null;
+  private systemAnimationQueue: Message[] = [];
+  private isSystemAnimating = false;
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
   isEnteringContactDetails = false;
@@ -111,10 +113,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.sharedService.message$.subscribe((msg) => {
         if (msg) {
           if (msg.sender === 'system') {
-            msg.isAnimating = true;
+            msg.isAnimating = false;
+            this.systemAnimationQueue.push(msg);
+            this.processNextSystemAnimation();
+          } else {
+            this.messages.push(msg);
+            this.scrollToBottom();
           }
-          this.messages.push(msg);
-          this.scrollToBottom();
         }
       }),
     );
@@ -286,6 +291,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   startNewChat() {
     this.messages = [];
+    this.systemAnimationQueue = [];
+    this.isSystemAnimating = false;
     this.generateChatId();
     this.flightResultService.response = undefined;
     this.flightResultService.responseAi = undefined;
@@ -301,18 +308,20 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   initializeChat() {
-    this.messages = [
-      {
-        sender: 'system',
-        text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
-        timestamp: new Date(),
-        isAnimating: true,
-      },
-    ];
+    this.messages = [];
+    this.systemAnimationQueue = [];
+    this.isSystemAnimating = false;
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
+    });
   }
 
   async sendMessage(text: string) {
     if (!text.trim()) return;
+
+    this.systemAnimationQueue = [];
+    this.isSystemAnimating = false;
 
     // Save history
     this.saveSearchHistory(text);
@@ -815,6 +824,33 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         }
       }
     }, 150);
+  }
+
+  private processNextSystemAnimation() {
+    if (this.isSystemAnimating || this.systemAnimationQueue.length === 0) {
+      return;
+    }
+
+    const nextMsg = this.systemAnimationQueue.shift();
+    if (!nextMsg) return;
+
+    this.messages.push(nextMsg);
+
+    if (nextMsg.text && nextMsg.text.trim().length > 0) {
+      this.isSystemAnimating = true;
+      nextMsg.isAnimating = true;
+      this.scrollToLastSystemMessage();
+    } else {
+      nextMsg.isAnimating = false;
+      this.scrollToLastSystemMessage();
+      this.processNextSystemAnimation();
+    }
+  }
+
+  onTypewriterComplete(msg: Message) {
+    msg.isAnimating = false;
+    this.isSystemAnimating = false;
+    this.processNextSystemAnimation();
   }
 
   scrollToMessageTop() {

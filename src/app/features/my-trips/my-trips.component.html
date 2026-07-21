@@ -78,7 +78,7 @@
                   }
 
                   @if (msg.text) {
-                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
+                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
                   }
 
                   @if (msg.showBookingPrompt) {
@@ -118,7 +118,7 @@
               }  @else {
                 @if (msg.text) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
-                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating"></p>
+                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
                   </div>
                 }
 

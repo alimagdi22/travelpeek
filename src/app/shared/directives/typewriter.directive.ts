@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnChanges, SimpleChanges, Renderer2, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, Input, Output, EventEmitter, OnChanges, SimpleChanges, Renderer2, OnDestroy } from '@angular/core';
 
 @Directive({
   selector: '[appTypewriter]'
@@ -7,6 +7,7 @@ export class TypewriterDirective implements OnChanges, OnDestroy {
   @Input('appTypewriter') text: string = '';
   @Input() animate: boolean = false;
   @Input() speedMs: number = 15; // Speed: 15ms per character
+  @Output() typeEnd = new EventEmitter<void>();
 
   private typingTimer: any;
 
@@ -58,6 +59,7 @@ export class TypewriterDirective implements OnChanges, OnDestroy {
         // Typing ended: remove cursor from DOM
         this.renderer.removeChild(this.el.nativeElement, cursor);
         this.typingTimer = null;
+        this.typeEnd.emit();
       }
     };
 
