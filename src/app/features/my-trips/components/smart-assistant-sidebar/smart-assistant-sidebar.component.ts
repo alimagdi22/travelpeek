@@ -25,8 +25,8 @@ export class SmartAssistantSidebarComponent implements OnInit {
   ];
 
   // 0: Outbound Depart, 1: Outbound Arrive, 2: Return Depart, 3: Return Arrive
-  activeScheduleIndex: number = 0; 
-  
+  activeScheduleIndex: number = 0;
+
   isMobileDrawerOpen: boolean = false;
 
   ngOnInit(): void {}
@@ -52,14 +52,14 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
     const isReturn = this.activeScheduleIndex >= 2;
     const isArrival = this.activeScheduleIndex % 2 === 1;
-    
+
     let path = '';
     if (!isReturn) {
       path = isArrival ? 'goingFlightScheduleArrival' : 'goingFlightScheduleDepart';
     } else {
       path = isArrival ? 'returnFlightScheduleArrival' : 'returnFlightScheduleDepart';
     }
-    
+
     const control = this.flightResultService.filterForm.get(path);
     if (control) {
       if (control.get('startTime')?.value === option.startTime && control.get('endTime')?.value === option.endTime) {
@@ -80,14 +80,14 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
     const isReturn = this.activeScheduleIndex >= 2;
     const isArrival = this.activeScheduleIndex % 2 === 1;
-    
+
     let path = '';
     if (!isReturn) {
       path = isArrival ? 'goingFlightScheduleArrival' : 'goingFlightScheduleDepart';
     } else {
       path = isArrival ? 'returnFlightScheduleArrival' : 'returnFlightScheduleDepart';
     }
-    
+
     const control = this.flightResultService.filterForm.get(path);
     return control?.get('startTime')?.value === option.startTime && control?.get('endTime')?.value === option.endTime;
   }
@@ -122,6 +122,12 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
   getComparisonFlights(): any[] {
     if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
+      console.log(
+        this.flightResultService.orgnizedResponce
+          .map((group) => group[0])
+          .slice(0, 5),
+      );
+
       return this.flightResultService.orgnizedResponce.map(group => group[0]).slice(0, 5);
     }
     return [];

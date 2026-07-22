@@ -143,7 +143,7 @@
   .ai-recommendation-box {
     background-color: #eff4ff;
     border: 1px solid rgba(0, 74, 198, 0.08);
-    
+
     .recommendation-text {
       font-size: 13px;
       line-height: 1.6;
@@ -159,7 +159,7 @@
     .h-70px {
       height: 70px;
     }
-    
+
     .chart-bars {
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 4px;
@@ -201,13 +201,13 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    
+
     &.btn-active {
       background-color: vars.$color-primary;
       color: #ffffff;
       border-color: vars.$color-primary !important;
     }
-    
+
     &:hover:not(.btn-active) {
       background-color: #f1f5f9;
       color: #0b1a30;
@@ -220,13 +220,13 @@
     color: #475569;
     cursor: pointer;
     transition: all 0.2s ease;
-    
+
     &.btn-active {
       background-color: #eff4ff;
       border-color: rgba(0, 74, 198, 0.2) !important;
       color: vars.$color-primary;
     }
-    
+
     &:hover:not(.btn-active) {
       background-color: #f1f5f9;
       color: #1e293b;
@@ -237,7 +237,7 @@
   .max-h-150px {
     scrollbar-width: thin;
     scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
-    
+
     &::-webkit-scrollbar {
       width: 4px;
     }
@@ -254,7 +254,7 @@
 
   .comparison-table {
     font-size: 11px;
-    
+
     th, td {
       padding: 8px 12px;
       vertical-align: middle;
@@ -294,7 +294,7 @@
       background-color: #1e293b;
       transform: translateY(-0.5px);
     }
-    
+
     &:active {
       transform: translateY(0);
     }
@@ -303,7 +303,7 @@
   /* Travel Assistant */
   .travel-checklist {
     font-size: 12px;
-    
+
     li {
       margin-bottom: 6px;
       &:last-child {
@@ -368,12 +368,16 @@
   }
 }
 
+.airline-logo{
+  width :25%
+}
+
 /* ── Mobile Floating Action Button (FAB) & Bottom Sheet Overlay ── */
 .mobile-assistant-fab-wrapper {
   position: fixed;
-  bottom: 85px;
+  bottom: 22%;
   right: 20px;
-  z-index: 99999;
+  z-index: 1049;
   animation: fabPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 
   .mobile-fab-btn {

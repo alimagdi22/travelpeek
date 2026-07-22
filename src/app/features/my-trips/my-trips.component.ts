@@ -144,9 +144,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.flightResultService.notify.subscribe(() => {
         if (this.messages.length > 0) {
-          const lastMsg = this.messages[this.messages.length - 1];
-          if (lastMsg.sender === 'system' && lastMsg.itineraries) {
-            lastMsg.itineraries = this.getFilteredItineraries();
+          const flightMsg = [...this.messages].reverse().find(m => m.sender === 'system' && m.itineraries);
+          if (flightMsg) {
+            flightMsg.itineraries = this.getFilteredItineraries();
           }
         }
         if (this.flightResultService.filterForm) {
@@ -196,6 +196,19 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.resetFlightServiceState();
+  }
+
+  resetFlightServiceState() {
+    if (this.flightResultService) {
+      this.flightResultService.response = undefined;
+      this.flightResultService.responseAi = undefined;
+      this.flightResultService.bookResponseAi = undefined;
+      this.flightResultService.ResultFound = false;
+      this.flightResultService.normalError = '';
+      this.flightResultService.orgnizedResponce = [];
+    }
+    this.resetCheckoutState();
   }
 
   loadSearchHistory() {
@@ -294,12 +307,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
     this.generateChatId();
-    this.flightResultService.response = undefined;
-    this.flightResultService.responseAi = undefined;
-    this.flightResultService.bookResponseAi = undefined; // Clear booking response
-    this.flightResultService.ResultFound = false;
-    this.flightResultService.normalError = '';
-    this.resetCheckoutState();
+    this.resetFlightServiceState();
     if (this.filterFormSub) {
       this.filterFormSub.unsubscribe();
       this.filterFormSub = null;
@@ -311,6 +319,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     this.messages = [];
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
+    this.resetFlightServiceState();
     this.sharedService.addMessage({
       sender: 'system',
       text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
@@ -548,6 +557,10 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       }, 200);
     } else {
       // ── Normal Flight Search Flow ──
+      this.flightResultService.response = undefined;
+      this.flightResultService.responseAi = undefined;
+      this.flightResultService.ResultFound = false;
+
       this.flightResultService.getDataFromAiUrl({
         chat: text,
         chatID: this.chatID,
@@ -584,16 +597,30 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           }
 
           const resultFound = this.flightResultService.ResultFound;
-          const airItineraries = this.getFilteredItineraries();
+          const hasNewItineraries = !!(
+            response?.airItineraries?.length ||
+            responseAi?.airItineraries?.length ||
+            responseAi?.itineraries?.length
+          );
+          const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
+
+          if (hasNewItineraries && airItineraries.length > 0) {
+            // Remove itineraries from older messages so flight cards are not duplicated across multiple chat bubbles
+            this.messages.forEach(m => {
+              if (m.sender === 'system') {
+                m.itineraries = undefined;
+              }
+            });
+          }
 
           this.sharedService.addMessage({
             sender: 'system',
             text: replyText,
             itineraries:
-              resultFound && airItineraries.length > 0 ? airItineraries : undefined,
+              hasNewItineraries && airItineraries.length > 0 ? airItineraries : undefined,
           });
 
-          if (resultFound && airItineraries && airItineraries.length > 0) {
+          if (hasNewItineraries && airItineraries && airItineraries.length > 0) {
             this.scrollToLastSystemMessage();
           } else {
             this.scrollToBottom();
@@ -792,6 +819,16 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
+      if (window.innerWidth <= 991) {
+        const targetY = Math.max(
+          document.body.scrollHeight,
+          document.documentElement.scrollHeight
+        );
+        window.scrollTo({
+          top: targetY,
+          behavior: 'smooth'
+        });
+      }
     }, 50);
   }
 
@@ -892,7 +929,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   get hasFlightResults(): boolean {
+    const hasMsgWithItineraries = this.messages.some(m => m.sender === 'system' && m.itineraries && m.itineraries.length > 0);
     return !!(
+      hasMsgWithItineraries &&
       this.flightResultService.ResultFound &&
       !this.flightResultService.loading &&
       (

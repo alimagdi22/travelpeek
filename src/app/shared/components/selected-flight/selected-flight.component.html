@@ -2,7 +2,6 @@
   <!-- ── Header ── -->
   <div class="selected-flight-header d-flex align-items-center gap-2 mb-2 justify-content-between">
     @if(screenWidth > 768){
-
       <div class="d-flex align-items-center gap-2">
         <img
           src="/assets/icons/mytrips/available-flights.svg"
@@ -19,7 +18,7 @@
         class="airline-pill d-flex align-items-center gap-1 px-3 py-1 rounded-pill"
       >
         <img
-          src="/assets/icons/mytrips/airline.svg"
+          [src]="itinerary.allJourney.flights[0].flightAirline.airlineLogo"
           alt="Airline Logo"
           class="airline-icon"
         />
@@ -45,7 +44,7 @@
           class="airline-pill d-flex align-items-center gap-1 px-3 py-1 rounded-pill"
         >
           <img
-            src="/assets/icons/mytrips/airline.svg"
+            [src]="itinerary.allJourney.flights[0].flightAirline.airlineLogo"
             alt="Airline Logo"
             class="airline-icon"
           />

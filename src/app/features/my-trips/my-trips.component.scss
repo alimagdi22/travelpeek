@@ -60,19 +60,24 @@
     &.has-sidebar {
       max-width: 100%;
     }
-    padding: 0 16px 30% 16px;
+    padding: 0 16px;
     height: 100%;
     justify-content: space-between;
     position: relative;
   }
 }
 
-.bottom-section{
-  @media(max-width:991px){
+.bottom-section {
+  @media (max-width: 991px) {
     position: fixed;
     bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
     background-color: #f8f9ff;
-    z-index: 10;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 20px rgba(11, 26, 48, 0.05);
   }
 }
 
@@ -133,6 +138,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(11, 26, 48, 0.1) transparent;
+  padding-bottom: 2.5rem;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -145,7 +151,7 @@
   @media (max-width: 991px) {
     flex-grow: 0;
     height: 100%;
-    padding: 2% !important;
+    padding: 16px 16px calc(180px + env(safe-area-inset-bottom, 0px)) 16px !important;
   }
 }
 
@@ -537,11 +543,7 @@
   }
 }
 
-@media (max-width:900px){
-  .system-bubble-wrapper{
-    margin-bottom: 13%;
-  }
-}
+
 
 /* ── Custom Animations ── */
 @keyframes slideUpFadeIn {

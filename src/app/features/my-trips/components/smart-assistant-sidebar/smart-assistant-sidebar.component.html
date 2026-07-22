@@ -66,7 +66,7 @@
 @if (isMobileDrawerOpen) {
   <div class="mobile-drawer-overlay d-lg-none" (click)="closeMobileDrawer()">
     <div class="mobile-drawer-card p-4 rounded-top-4 shadow-lg border-top d-flex flex-column" (click)="$event.stopPropagation()">
-      
+
       <!-- Top Drag Handle & Header -->
       <div class="drawer-drag-handle mx-auto mb-3"></div>
       <div class="drawer-header d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
@@ -205,7 +205,12 @@
           @if (getComparisonFlights().length > 0) {
             @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
               <tr>
-                <td class="metric-label">Opt {{ i + 1 }}</td>
+                <td class="metric-label">
+                  <img [src]="flight.allJourney.flights[0].flightAirline.airlineLogo" class="airline-logo" alt="airlineLogo" >
+                  <span class="ms-2">
+                    {{flight.allJourney.flights[0].flightAirline.airlineCode}}
+                  </span>
+                </td>
                 <td>{{ formatDuration(flight.totalDuration) }}</td>
                 <td class="font-semibold text-primary">
                   {{ flight.itinTotalFare.amount | currency: (flight.itinTotalFare.currencyCode || 'EGP'): 'symbol': '1.0-0' }}
