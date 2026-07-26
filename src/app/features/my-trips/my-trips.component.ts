@@ -114,9 +114,30 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         if (msg) {
           if (msg.sender === 'system') {
             msg.isAnimating = false;
+            // Prevent duplicate consecutive system messages
+            const lastMsg = this.messages[this.messages.length - 1];
+            if (
+              lastMsg &&
+              lastMsg.sender === 'system' &&
+              lastMsg.text &&
+              msg.text &&
+              lastMsg.text.trim() === msg.text.trim()
+            ) {
+              return;
+            }
             this.systemAnimationQueue.push(msg);
             this.processNextSystemAnimation();
           } else {
+            const lastMsg = this.messages[this.messages.length - 1];
+            if (
+              lastMsg &&
+              lastMsg.sender === 'user' &&
+              lastMsg.text &&
+              msg.text &&
+              lastMsg.text.trim() === msg.text.trim()
+            ) {
+              return;
+            }
             this.messages.push(msg);
             this.scrollToBottom();
           }
@@ -251,11 +272,26 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         const response = this.flightResultService.conversationResponse;
 
         if (!error && response && response.success && response.data && response.data.items) {
-          this.messages = response.data.items.map((msgItem: any) => ({
-            sender: msgItem.role === 'User' ? 'user' : 'system',
+          const rawMessages: Message[] = response.data.items.map((msgItem: any) => ({
+            sender: (msgItem.role === 'User' ? 'user' : 'system') as 'user' | 'system',
             text: msgItem.content,
             timestamp: new Date(msgItem.createdAt)
           }));
+          const deduplicated: Message[] = [];
+          for (const msg of rawMessages) {
+            const prev = deduplicated[deduplicated.length - 1];
+            if (
+              prev &&
+              prev.sender === msg.sender &&
+              prev.text &&
+              msg.text &&
+              prev.text.trim() === msg.text.trim()
+            ) {
+              continue;
+            }
+            deduplicated.push(msg);
+          }
+          this.messages = deduplicated;
           this.scrollToBottom();
         }
       }
@@ -575,9 +611,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           const response = this.flightResultService.response;
           const responseAi = this.flightResultService.responseAi;
 
-          if (responseAi && responseAi.output) {
-            replyText = responseAi.output;
-          } else if (!this.flightResultService.ResultFound || (!response && !responseAi)) {
+          const hasNewItineraries = !!(
+            response?.airItineraries?.length ||
+            responseAi?.airItineraries?.length ||
+            responseAi?.itineraries?.length ||
+            (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+          );
+          const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
+
+          if (!hasNewItineraries || airItineraries.length === 0) {
             const rawError = this.flightResultService.normalError;
             let errorMessage =
               'No flights found matching your query. Please try again.';
@@ -592,17 +634,15 @@ export class MyTripsComponent implements OnInit, OnDestroy {
               }
             }
             replyText = errorMessage;
+          } else if (responseAi && responseAi.output) {
+            replyText = responseAi.output;
           } else {
-            replyText = `Found flights matching your search: "${text}".`;
+            const flight = response?.searchCriteria?.flights?.[0] || responseAi?.searchCriteria?.flights?.[0];
+            const deptFrom = flight?.departingFrom || '';
+            const arrTo = flight?.arrivingTo || '';
+            const deptDate = flight?.departingOnDate ? flight.departingOnDate.split('T')[0] : '';
+            replyText = `Found flights matching your search: from "${deptFrom}" to "${arrTo}" on "${deptDate}".`;
           }
-
-          const resultFound = this.flightResultService.ResultFound;
-          const hasNewItineraries = !!(
-            response?.airItineraries?.length ||
-            responseAi?.airItineraries?.length ||
-            responseAi?.itineraries?.length
-          );
-          const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
 
           if (hasNewItineraries && airItineraries.length > 0) {
             // Remove itineraries from older messages so flight cards are not duplicated across multiple chat bubbles
@@ -659,6 +699,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   handleFlightSelection(itinerary: IAirItinerary) {
+    if (this.flightCheckoutService) {
+      this.flightCheckoutService.paymentError = false;
+      this.flightCheckoutService.selectedFlightError = false;
+      this.flightCheckoutService.payLaterSuccess = null;
+    }
     this.initializePassengerList();
     const passengerLabel = this.getPassengersCountLabel();
     this.selectedItinerary = itinerary;
@@ -923,7 +968,13 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   getFilteredItineraries(): any[] {
     if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
-      return this.flightResultService.orgnizedResponce.map(group => group[0]).slice(0, 5);
+      return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
+    }
+    const res = this.flightResultService.response;
+    const resAi = this.flightResultService.responseAi;
+    const direct = res?.airItineraries || resAi?.airItineraries || resAi?.itineraries;
+    if (direct && direct.length > 0) {
+      return direct.slice(0, 5);
     }
     return [];
   }

@@ -28,6 +28,10 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit() {
     this.autoSelectDefaultGateway();
 
+    // Reset error states when payment card opens
+    this.flightCheckoutService.paymentError = false;
+    this.flightCheckoutService.selectedFlightError = false;
+
     this.paymentLinkFailureSubscription = this.flightCheckoutService.paymentLinkFailure.subscribe(() => {
       this.flightResultService.loading = false;
       this.sharedService.addMessage({

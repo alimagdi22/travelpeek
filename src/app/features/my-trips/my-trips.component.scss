@@ -40,7 +40,7 @@
   transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.has-sidebar {
-    max-width: 80%;
+    max-width: 90%;
   }
 
   @media (max-width: 1399px) {
