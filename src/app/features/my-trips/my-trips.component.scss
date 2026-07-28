@@ -326,6 +326,23 @@
   &:active {
     transform: translateY(0);
   }
+
+  &.filter-pill-active {
+    background-color: vars.$color-primary;
+    color: #ffffff;
+    border-color: vars.$color-primary;
+    box-shadow: 0 4px 12px rgba(0, 74, 198, 0.25);
+
+    &:hover {
+      background-color: #003999;
+      color: #ffffff;
+    }
+  }
+
+  .pill-icon {
+    font-size: 13px;
+    margin-right: 4px;
+  }
 }
 
 /* Chat Input Bar */

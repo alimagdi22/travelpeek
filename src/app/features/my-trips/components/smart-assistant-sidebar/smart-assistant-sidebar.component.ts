@@ -109,7 +109,7 @@ export class SmartAssistantSidebarComponent implements OnInit {
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||
         this.flightResultService.responseAi?.itineraries?.length ||
-        (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+        this.flightResultService.orgnizedResponce !== undefined
       )
     );
   }

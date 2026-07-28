@@ -292,6 +292,10 @@
       @if (!isLast) {
         <hr class="option-divider my-2" />
       }
+    } @empty {
+      <div class="text-center py-4 text-muted font-medium" style="font-size: 14px;">
+        No flights match your selected filters. Please adjust your active filter pills.
+      </div>
     }
   </div>
 </div>

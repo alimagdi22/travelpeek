@@ -123,7 +123,7 @@
                 }
 
                 <!-- Flight Results Cards -->
-                @if (msg.itineraries && msg.itineraries.length > 0) {
+                @if (msg.itineraries !== undefined && msg.itineraries !== null) {
                   <div class="system-bubble p-1 rounded-4 w-100">
                     <app-available-flights
                       [itineraries]="msg.itineraries"
@@ -158,36 +158,64 @@
         }
       </div>
 
-      <!-- Suggestion Action Pills Row (Slider / Swiper in Mobile) -->
+       <!-- Filter & Suggestion Action Pills Row (Visible ONLY when active search results exist) -->
        <div class="bottom-section">
          <div
-           *ngIf="messages.length > 0 && suggestions.length > 0"
+           *ngIf="hasFlightResults"
            class="suggestions-slider-wrapper position-relative w-100 mb-3 mt-3"
          >
            <div
              class="suggestions-row-v2 d-flex flex-wrap justify-content-center gap-2 px-4"
              #suggestionsSlider
            >
+             <!-- 1. Direct Flights Only Filter Pill -->
              <button
-               *ngFor="let sug of suggestions"
+               type="button"
                class="suggestion-btn-v2 suggestion-slider-item"
-               (click)="selectSuggestion(sug)"
+               [class.filter-pill-active]="isDirectFlightsOnlyActive()"
+               (click)="toggleDirectFlightsOnly()"
              >
-               {{ sug }}
+               <span class="pill-icon">🛑</span> Fly non-stop only
              </button>
-           </div>
 
-           <!-- Floating Slider Navigation Arrows (Mobile only) -->
-           <!-- <button class="suggestions-arrow-btn prev d-md-none" (click)="scrollSuggestions(suggestionsSlider, 'left')" aria-label="Previous suggestions">
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-               <polyline points="15 18 9 12 15 6"/>
-             </svg>
-           </button>
-           <button class="suggestions-arrow-btn next d-md-none" (click)="scrollSuggestions(suggestionsSlider, 'right')" aria-label="Next suggestions">
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-               <polyline points="9 18 15 12 9 6"/>
-             </svg>
-           </button> -->
+             <!-- 2. Refundable Flights Only Filter Pill -->
+             <button
+               type="button"
+               class="suggestion-btn-v2 suggestion-slider-item"
+               [class.filter-pill-active]="isRefundableOnlyActive()"
+               (click)="toggleRefundableOnly()"
+             >
+               <span class="pill-icon">🔄</span> Keep safe with refundable
+             </button>
+
+             <!-- 3. Top Airline Filter Pill -->
+             <button
+               type="button"
+               class="suggestion-btn-v2 suggestion-slider-item"
+               [class.filter-pill-active]="isTopAirlineActive()"
+               (click)="toggleTopAirline()"
+             >
+               <span class="pill-icon">✈️</span> Fly {{ getTopAirlineName() }} only
+             </button>
+
+             <!-- 4. Travel Insurance Pill -->
+             <!-- <button
+               type="button"
+               class="suggestion-btn-v2 suggestion-slider-item"
+               (click)="selectSuggestion('Add travel insurance')"
+             >
+               <span class="pill-icon">🛡️</span> Protect trip with insurance
+             </button> -->
+
+             <!-- 5. Visa Requirements Pill -->
+             <!-- <button
+               type="button"
+               class="suggestion-btn-v2 suggestion-slider-item"
+               (click)="selectSuggestion('Check visa requirements')"
+             >
+               <span class="pill-icon">📋</span> Check visa requirements
+             </button> -->
+           </div>
          </div>
 
          <!-- Chat Input Controls Container -->

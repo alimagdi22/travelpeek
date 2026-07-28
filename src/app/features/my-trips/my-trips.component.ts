@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -1069,7 +1070,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   getFilteredItineraries(): any[] {
-    if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
+    if (this.flightResultService.orgnizedResponce !== undefined && this.flightResultService.orgnizedResponce !== null) {
       return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
     }
     const res = this.flightResultService.response;
@@ -1082,7 +1083,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   get hasFlightResults(): boolean {
-    const hasMsgWithItineraries = this.messages.some(m => m.sender === 'system' && m.itineraries && m.itineraries.length > 0);
+    const hasMsgWithItineraries = this.messages.some(m => m.sender === 'system' && m.itineraries !== undefined && m.itineraries !== null);
     return !!(
       hasMsgWithItineraries &&
       this.flightResultService.ResultFound &&
@@ -1091,7 +1092,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||
         this.flightResultService.responseAi?.itineraries?.length ||
-        (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+        this.flightResultService.orgnizedResponce !== undefined
       )
     );
   }
@@ -1241,6 +1242,92 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     return time.toString();
   }
 
+  // ── Filter Pills Helper Methods ──
+  toggleDirectFlightsOnly() {
+    if (!this.flightResultService.filterForm) return;
+    const control = this.flightResultService.filterForm.get('stopsForm')?.get('noStops');
+    if (control) {
+      control.setValue(!control.value);
+    }
+  }
+
+  isDirectFlightsOnlyActive(): boolean {
+    return !!this.flightResultService.filterForm?.get('stopsForm')?.get('noStops')?.value;
+  }
+
+  toggleRefundableOnly() {
+    if (!this.flightResultService.filterForm) return;
+    const control = this.flightResultService.filterForm.get('flexibleTickets')?.get('refund');
+    if (control) {
+      control.setValue(!control.value);
+    }
+  }
+
+  isRefundableOnlyActive(): boolean {
+    return !!this.flightResultService.filterForm?.get('flexibleTickets')?.get('refund')?.value;
+  }
+
+  getTopAirlineIndex(): number {
+    const airlines: any[] = this.flightResultService.airlinesA || [];
+    if (airlines.length === 0) return -1;
+    const egyptIdx = airlines.findIndex((a: any) => {
+      if (typeof a === 'string') {
+        const lower = a.toLowerCase();
+        return lower === 'ms' || lower.includes('egypt');
+      }
+      if (typeof a === 'object' && a !== null) {
+        const code = (a.airlineCode || '').toLowerCase();
+        const name = (a.airlineName || '').toLowerCase();
+        return code === 'ms' || name.includes('egypt');
+      }
+      return false;
+    });
+    if (egyptIdx !== -1) return egyptIdx;
+    return 0;
+  }
+
+  getTopAirlineName(): string {
+    const airlines: any[] = this.flightResultService.airlinesA || [];
+    if (airlines.length === 0) return 'EgyptAir';
+    const idx = this.getTopAirlineIndex();
+    const target = idx !== -1 ? airlines[idx] : airlines[0];
+    if (!target) return 'EgyptAir';
+    if (typeof target === 'string') {
+      return target === 'MS' ? 'EgyptAir' : target;
+    }
+    if (typeof target === 'object' && target !== null) {
+      return (target as any).airlineName || (target as any).airlineCode || 'EgyptAir';
+    }
+    return 'EgyptAir';
+  }
+
+  toggleTopAirline() {
+    if (!this.flightResultService.filterForm) return;
+    const airlines = this.flightResultService.airlinesA;
+    if (!airlines || airlines.length === 0) return;
+
+    const idx = this.getTopAirlineIndex();
+    if (idx === -1) return;
+
+    const formArray = this.flightResultService.filterForm.get('airline')?.get('airlines') as FormArray;
+    if (formArray && formArray.at(idx)) {
+      const currentVal = formArray.at(idx).value;
+      formArray.at(idx).setValue(!currentVal);
+    }
+  }
+
+  isTopAirlineActive(): boolean {
+    if (!this.flightResultService.filterForm) return false;
+    const airlines = this.flightResultService.airlinesA;
+    if (!airlines || airlines.length === 0) return false;
+
+    const idx = this.getTopAirlineIndex();
+    if (idx === -1) return false;
+
+    const formArray = this.flightResultService.filterForm.get('airline')?.get('airlines') as FormArray;
+    return !!(formArray && formArray.at(idx)?.value);
+  }
+
   subscribeToFilterChanges() {
     if (this.filterFormSub) {
       this.filterFormSub.unsubscribe();
@@ -1249,12 +1336,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
     this.filterFormSub = this.flightResultService.filterForm.valueChanges.subscribe(() => {
       setTimeout(() => {
-        if (this.messages.length > 0) {
-          const lastMsg = this.messages[this.messages.length - 1];
-          if (lastMsg.sender === 'system' && lastMsg.itineraries) {
-            lastMsg.itineraries = this.getFilteredItineraries();
+        const filtered = this.getFilteredItineraries();
+        this.messages.forEach(msg => {
+          if (msg.sender === 'system' && msg.itineraries !== undefined) {
+            msg.itineraries = filtered;
           }
-        }
+        });
       }, 50);
     });
     this.subscription.add(this.filterFormSub);
