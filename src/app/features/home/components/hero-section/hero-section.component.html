@@ -23,7 +23,7 @@
           <input
             type="text"
             class="search-input col"
-            placeholder="Cheapest flights to Istanbul this weekend"
+            [placeholder]="placeholderText"
             [(ngModel)]="searchQuery"
             (keydown.enter)="performSearch()"
           />
@@ -37,11 +37,11 @@
 
         <!-- Recommendation Pills -->
         <div class="recommendations-container d-flex flex-wrap gap-2 mt-4">
-          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">Istanbul weekend</button>
+          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">To Istanbul weekend</button>
           <button class="rec-pill" (click)="performSearch('London round-trip')">London round-trip</button>
-          <button class="rec-pill" (click)="performSearch('Bangkok April')">Bangkok April</button>
+          <button class="rec-pill" (click)="performSearch('Bangkok April')">Bangkok On April</button>
           <button class="rec-pill" (click)="performSearch('Business class deals')">Business class deals</button>
-          <button class="rec-pill" (click)="performSearch('Nearby airports')">Nearby airports</button>
+          <button class="rec-pill" (click)="performSearch('To London next week')">To London next week</button>
         </div>
       </div>
 

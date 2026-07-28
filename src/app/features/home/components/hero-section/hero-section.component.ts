@@ -24,8 +24,28 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     { city: 'Istanbul', country: 'Turkey', code: 'IST', price: 'AED 750' }
   ];
 
+  cities: string[] = [
+    'Istanbul',
+    'Dubai',
+    'Cairo',
+    'Paris',
+    'London',
+    'Tokyo',
+    'Rome',
+    'New York',
+    'Bangkok',
+    'Barcelona',
+    'Amsterdam',
+    'Singapore',
+    'Madrid',
+    'Kuala Lumpur'
+  ];
+  currentCityIndex = 0;
+  placeholderText: string = 'Cheapest flights to Istanbul';
+
   activeIndex = 0;
   private intervalId: any;
+  private placeholderIntervalId: any;
 
   get totalCards(): number {
     if (!this.homePageService.isLoading && this.homePageService.mostSearchedFlights?.length) {
@@ -37,6 +57,7 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.isBrowser) {
       this.startCardRotation();
+      this.startPlaceholderRotation();
     }
     this.homePageService.getMostSearchedFlights();
   }
@@ -45,6 +66,16 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
+    if (this.placeholderIntervalId) {
+      clearInterval(this.placeholderIntervalId);
+    }
+  }
+
+  startPlaceholderRotation() {
+    this.placeholderIntervalId = setInterval(() => {
+      this.currentCityIndex = (this.currentCityIndex + 1) % this.cities.length;
+      this.placeholderText = `Cheapest flights to ${this.cities[this.currentCityIndex]}`;
+    }, 1000);
   }
 
   startCardRotation() {

@@ -204,7 +204,7 @@
         <tbody>
           @if (getComparisonFlights().length > 0) {
             @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
-              <tr>
+              <tr class="clickable-row" (click)="openStopsModal(flight)" title="Click to view itinerary & stops details">
                 <td class="metric-label">
                   <img [src]="flight.allJourney.flights[0].flightAirline.airlineLogo" class="airline-logo" alt="airlineLogo" >
                   <span class="ms-2">
@@ -262,3 +262,12 @@
     </ul>
   </div>
 </ng-template>
+
+<!-- ── Flight Stops Details Modal Popup ── -->
+<app-flight-stops-modal
+  [isOpen]="showStopsModal"
+  [leg]="selectedLeg"
+  [selectedStopsIndex]="0"
+  (closeModal)="closeStopsModal()"
+></app-flight-stops-modal>
+

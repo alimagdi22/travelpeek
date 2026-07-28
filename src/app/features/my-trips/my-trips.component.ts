@@ -215,7 +215,94 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     return (user.firstName + ' ' +user.lastName) || user?.userName || user?.email || 'User';
   }
 
+  get userFirstName(): string {
+    if (!this.isLoggedIn) return 'Traveler';
+    const user = this.profileService.user;
+    if (user?.firstName) return user.firstName;
+    if (user?.userName) return user.userName.trim().split(' ')[0];
+    if (user?.email) return user.email.split('@')[0];
+    return 'Traveler';
+  }
+
+  formatAiMessageText(text: string): string {
+    if (!text) return '';
+
+    const displayName = this.userFirstName;
+    let formatted = text;
+
+    // Replace UUIDs (8-4-4-4-12 hex string format, e.g. 019fa84d-674c-78ff-bb0d-457f18f6652f)
+    const uuidRegex = /\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b/g;
+    formatted = formatted.replace(uuidRegex, displayName);
+
+    // Replace current chatID if set and longer than 3 chars
+    if (this.chatID && this.chatID.length > 3) {
+      const chatIDRegex = new RegExp(`\\b${this.chatID}\\b`, 'g');
+      formatted = formatted.replace(chatIDRegex, displayName);
+    }
+
+    return formatted;
+  }
+
+  defaultSearchLoadingMessages: string[] = [
+    'Searching best flight options...',
+    'Analyzing itinerary & live fares...',
+    'Checking real-time availability...',
+    'Crafting your travel response...'
+  ];
+
+  contactLoadingMessages: string[] = [
+    'Processing your contact details...',
+    'Verifying email & phone number...',
+    'Saving contact information...',
+    'Preparing traveler details...'
+  ];
+
+  passengerLoadingMessages: string[] = [
+    'Processing passenger information...',
+    'Verifying passport & traveler details...',
+    'Updating booking records...',
+    'Preparing reservation details...'
+  ];
+
+  passportScanLoadingMessages: string[] = [
+    'Scanning passport document...',
+    'Extracting traveler details via OCR...',
+    'Verifying passport information...'
+  ];
+
+  paymentLoadingMessages: string[] = [
+    'Connecting to secure payment gateway...',
+    'Preparing checkout details...',
+    'Verifying payment options...'
+  ];
+
+  activeLoadingMessages: string[] = [];
+  currentLoadingMessageIndex: number = 0;
+  private loadingMessageInterval: any = null;
+
+  get currentLoadingMessage(): string {
+    const list = this.activeLoadingMessages.length > 0 ? this.activeLoadingMessages : this.defaultSearchLoadingMessages;
+    return list[this.currentLoadingMessageIndex] || 'AI Assistant is thinking...';
+  }
+
+  startLoadingMessageCycle(messages?: string[]) {
+    this.activeLoadingMessages = messages && messages.length > 0 ? messages : this.defaultSearchLoadingMessages;
+    this.currentLoadingMessageIndex = 0;
+    this.stopLoadingMessageCycle();
+    this.loadingMessageInterval = setInterval(() => {
+      this.currentLoadingMessageIndex = (this.currentLoadingMessageIndex + 1) % this.activeLoadingMessages.length;
+    }, 2200);
+  }
+
+  stopLoadingMessageCycle() {
+    if (this.loadingMessageInterval) {
+      clearInterval(this.loadingMessageInterval);
+      this.loadingMessageInterval = null;
+    }
+  }
+
   ngOnDestroy() {
+    this.stopLoadingMessageCycle();
     this.subscription.unsubscribe();
     this.resetFlightServiceState();
   }
@@ -274,7 +361,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         if (!error && response && response.success && response.data && response.data.items) {
           const rawMessages: Message[] = response.data.items.map((msgItem: any) => ({
             sender: (msgItem.role === 'User' ? 'user' : 'system') as 'user' | 'system',
-            text: msgItem.content,
+            text: msgItem.role === 'User' ? msgItem.content : this.formatAiMessageText(msgItem.content),
             timestamp: new Date(msgItem.createdAt)
           }));
           const deduplicated: Message[] = [];
@@ -429,6 +516,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     }
 
     if (this.isEnteringContactDetails) {
+      this.startLoadingMessageCycle(this.contactLoadingMessages);
       // ── Contact Details Flow ──
       this.flightResultService.getContactDetails({
         chat: text,
@@ -439,6 +527,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         if (!this.flightResultService.loading) {
           clearInterval(checkInterval);
           this.isTyping = false;
+          this.stopLoadingMessageCycle();
 
           const response = this.flightResultService.ContactResponseAi;
 
@@ -484,6 +573,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         }
       }, 200);
     } else if (this.isEnteringNamesManually || (this.selectedItinerary && this.currentPassengerIndex < this.passengerList.length)) {
+      this.startLoadingMessageCycle(this.passengerLoadingMessages);
       if (!this.isEnteringNamesManually) {
         this.isEnteringNamesManually = true;
       }
@@ -545,6 +635,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                   text: 'Please wait while providing payment methods.'
                 });
                 this.flightResultService.loading = true;
+                this.startLoadingMessageCycle(this.paymentLoadingMessages);
                 this.scrollToBottom();
 
                 const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
@@ -558,6 +649,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                 this.flightCheckoutServiceApi.addPaymentGateways(currency, 'EG', this.selectedItinerary!).subscribe({
                   next: (gateways) => {
                     this.flightResultService.loading = false;
+                    this.stopLoadingMessageCycle();
                     this.sharedService.addMessage({
                       sender: 'system',
                       text: '',
@@ -571,6 +663,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
                   },
                   error: (err) => {
                     this.flightResultService.loading = false;
+                    this.stopLoadingMessageCycle();
                     console.error('Error adding payment gateways:', err);
                     this.sharedService.addMessage({
                       sender: 'system',
@@ -606,6 +699,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
         if (!this.flightResultService.loading) {
           clearInterval(checkInterval);
           this.isTyping = false;
+          this.stopLoadingMessageCycle();
 
           let replyText = '';
           const response = this.flightResultService.response;
@@ -619,7 +713,11 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           );
           const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
 
-          if (!hasNewItineraries || airItineraries.length === 0) {
+          const aiOutput = responseAi?.output || (responseAi as any)?.text || (responseAi as any)?.message || response?.output || (response as any)?.text || (response as any)?.message;
+
+          if (aiOutput) {
+            replyText = aiOutput;
+          } else if (!hasNewItineraries || airItineraries.length === 0) {
             const rawError = this.flightResultService.normalError;
             let errorMessage =
               'No flights found matching your query. Please try again.';
@@ -634,8 +732,6 @@ export class MyTripsComponent implements OnInit, OnDestroy {
               }
             }
             replyText = errorMessage;
-          } else if (responseAi && responseAi.output) {
-            replyText = responseAi.output;
           } else {
             const flight = response?.searchCriteria?.flights?.[0] || responseAi?.searchCriteria?.flights?.[0];
             const deptFrom = flight?.departingFrom || '';
@@ -652,6 +748,8 @@ export class MyTripsComponent implements OnInit, OnDestroy {
               }
             });
           }
+
+          replyText = this.formatAiMessageText(replyText);
 
           this.sharedService.addMessage({
             sender: 'system',
@@ -807,8 +905,10 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
       // Simulate system processing the passport
       this.isTyping = true;
+      this.startLoadingMessageCycle(this.passportScanLoadingMessages);
       setTimeout(() => {
         this.isTyping = false;
+        this.stopLoadingMessageCycle();
         this.sharedService.addMessage({
           sender: 'system',
           text: `Thank you for uploading the passport copy (${file.name}). I have successfully received it and processed the details.`,
@@ -841,10 +941,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     }
 
     this.isTyping = true;
+    this.startLoadingMessageCycle(this.passengerLoadingMessages);
     this.isEnteringNamesManually = true; // Switch context to booking flow
 
     setTimeout(() => {
       this.isTyping = false;
+      this.stopLoadingMessageCycle();
       const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
       const targetPassengerLabel = currentPassenger
         ? this.getPassengerLabel(currentPassenger)
@@ -1091,9 +1193,9 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     return itinerary?.itinTotalFare?.currencyCode ?? '';
   }
 
-  openStopsModal(itinerary: IAirItinerary, legIndex: number) {
+  openStopsModal(itinerary: any, legIndex: number = 0) {
     this.selectedItineraryForStops = itinerary;
-    this.selectedStopsIndex = legIndex;
+    this.selectedStopsIndex = legIndex || 0;
     this.showStopsModal = true;
   }
 
@@ -1103,8 +1205,12 @@ export class MyTripsComponent implements OnInit, OnDestroy {
 
   getActiveLeg(): IFlight | null {
     if (!this.selectedItineraryForStops) return null;
-    const flights = this.selectedItineraryForStops.allJourney?.flights;
-    return flights && flights.length > this.selectedStopsIndex ? flights[this.selectedStopsIndex] : null;
+    const itin = this.selectedItineraryForStops as any;
+    if (itin.flightDTO) {
+      return itin as IFlight;
+    }
+    const flights = itin.allJourney?.flights || itin.flights;
+    return flights && flights.length > this.selectedStopsIndex ? flights[this.selectedStopsIndex] : (flights?.[0] || itin);
   }
 
   getDeptCity(flight: IFlight): string {

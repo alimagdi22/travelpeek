@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { FlightResultService } from 'rp-travel-ui';
+import { Component, OnInit, inject, Output, EventEmitter } from '@angular/core';
+import { FlightResultService, IAirItinerary, IFlight } from 'rp-travel-ui';
 
 @Component({
   selector: 'app-smart-assistant-sidebar',
@@ -10,6 +10,11 @@ import { FlightResultService } from 'rp-travel-ui';
 export class SmartAssistantSidebarComponent implements OnInit {
   isSidebarCollapsed: boolean = false;
   flightResultService = inject(FlightResultService);
+
+  @Output() stopsTriggered = new EventEmitter<any>();
+
+  showStopsModal = false;
+  selectedLeg: IFlight | null = null;
 
   stopsFilter = [
     { title: 'Non-Stop', formControlName: 'noStops' },
@@ -122,13 +127,13 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
   getComparisonFlights(): any[] {
     if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
-      console.log(
-        this.flightResultService.orgnizedResponce
-          .map((group) => group[0])
-          .slice(0, 5),
-      );
-
-      return this.flightResultService.orgnizedResponce.map(group => group[0]).slice(0, 5);
+      return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
+    }
+    const res = this.flightResultService.response;
+    const resAi = this.flightResultService.responseAi;
+    const direct = res?.airItineraries || resAi?.airItineraries || resAi?.itineraries;
+    if (direct && direct.length > 0) {
+      return direct.slice(0, 5);
     }
     return [];
   }
@@ -139,4 +144,17 @@ export class SmartAssistantSidebarComponent implements OnInit {
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   }
+
+  openStopsModal(flight: any) {
+    if (!flight) return;
+    this.selectedLeg = flight;
+    this.showStopsModal = true;
+    this.stopsTriggered.emit(flight);
+  }
+
+  closeStopsModal() {
+    this.showStopsModal = false;
+    this.selectedLeg = null;
+  }
 }
+

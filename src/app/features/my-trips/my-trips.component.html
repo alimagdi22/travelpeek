@@ -144,11 +144,15 @@
             class="message-row system-row d-flex flex-column align-items-start"
           >
             <div
-              class="system-typing-bubble p-3 px-4 rounded-4 d-flex align-items-center gap-1"
+              class="system-typing-bubble p-3 px-4 rounded-4 d-flex align-items-center gap-2"
             >
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
-              <div class="typing-dot"></div>
+              <mat-icon class="loading-spark-icon me-1">auto_awesome</mat-icon>
+              <span class="typing-text font-medium">{{ currentLoadingMessage }}</span>
+              <div class="d-flex align-items-center gap-1 ms-1">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
             </div>
           </div>
         }
@@ -284,7 +288,7 @@
 
   <!-- Smart Assistant Right Sidebar Component -->
   @if (hasFlightResults) {
-    <app-smart-assistant-sidebar></app-smart-assistant-sidebar>
+    <app-smart-assistant-sidebar (stopsTriggered)="openStopsModal($event, 0)"></app-smart-assistant-sidebar>
   }
 </div>
 
@@ -445,137 +449,10 @@
 }
 
 <!-- ── Flight Stops Details Modal Popup ── -->
-@if (showStopsModal) {
-  <div class="policy-modal-overlay d-flex align-items-center justify-content-center" (click)="closeStopsModal()">
-    <div class="policy-modal-card p-4 rounded-4 shadow-lg border" (click)="$event.stopPropagation()">
+<app-flight-stops-modal
+  [isOpen]="showStopsModal"
+  [leg]="getActiveLeg()"
+  [selectedStopsIndex]="selectedStopsIndex"
+  (closeModal)="closeStopsModal()"
+></app-flight-stops-modal>
 
-      <!-- Modal Header -->
-      <div class="policy-modal-header d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
-        <h5 class="policy-modal-title mb-0 d-flex align-items-center gap-2">
-          <mat-icon style="color: #004ac6;">flight_takeoff</mat-icon>
-          <span>Flight Itinerary & Stops details</span>
-        </h5>
-        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="closeStopsModal()" aria-label="Close modal">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="policy-modal-body">
-        @if (getActiveLeg(); as leg) {
-          <!-- Route Summary -->
-          <div class="option-summary mb-4 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between">
-            <div>
-              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">
-                {{ selectedStopsIndex === 0 ? 'Outbound Flight' : 'Return Flight' }}
-              </span>
-              <strong style="color: #0b1c30; font-size: 14px;">
-                {{ getDeptCity(leg) }} ({{ getDeptCode(leg) }}) &rarr; {{ getArrCity(leg) }} ({{ getArrCode(leg) }})
-              </strong>
-            </div>
-            <div class="text-end">
-              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Total Duration</span>
-              <strong style="color: #004ac6; font-size: 14px;">
-                {{ leg.elapsedTime | hourminute: 'en' }}
-              </strong>
-            </div>
-          </div>
-
-          <!-- Vertical Timeline of Segments -->
-          <div class="timeline-container ps-3 relative" style="position: relative;">
-            <div class="timeline-line"></div>
-
-            @for (segment of leg.flightDTO; track segment; let i = $index) {
-              <!-- Departure Node -->
-              <div class="timeline-node-item departure-node d-flex gap-3 mb-2">
-                <div class="timeline-bullet bg-primary"></div>
-                <div class="timeline-content">
-                  <div class="d-flex align-items-center gap-2">
-                    <strong class="text-dark" style="font-size: 14px;">
-                      {{ segment.departureDate | date: 'HH:mm' }}
-                    </strong>
-                    <span class="text-dark font-semibold" style="font-size: 14px;">
-                      {{ segment.departureTerminalAirport.cityName }} ({{ segment.departureTerminalAirport.airportCode }})
-                    </span>
-                  </div>
-                  <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
-                    {{ segment.departureTerminalAirport.airportName }}
-                    @if (segment.departureTerminalAirport.terminal) {
-                      &bull; Terminal {{ segment.departureTerminalAirport.terminal }}
-                    }
-                    &bull; {{ segment.departureDate | date: 'EEEE, dd MMM' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Flight Connection Details (Flight duration, airline, code, cabin) -->
-              <div class="timeline-flight-details my-3 ms-4 p-3 rounded-3 border bg-white d-flex align-items-start gap-3">
-                <img [src]="segment.flightAirline.airlineLogo || '/assets/icons/airline-default.svg'"
-                     [alt]="segment.flightAirline.airlineName"
-                     class="airline-logo-modal rounded border p-1"
-                     style="width: 42px; height: 38px; object-fit: contain; background: #fff;" />
-
-                <div class="flex-grow-1">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <strong class="text-dark" style="font-size: 13px;">{{ segment.flightAirline.airlineName }}</strong>
-                    <span class="text-muted" style="font-size: 12px;">
-                      {{ segment.flightAirline.airlineCode }}{{ segment.flightInfo.flightNumber }}
-                    </span>
-                  </div>
-
-                  <div class="d-flex justify-content-between align-items-center mt-1" style="font-size: 12px;">
-                    <span class="text-secondary">
-                      Cabin Class: {{ segment.flightInfo.cabinClass }}
-                    </span>
-                    <span class="text-secondary font-medium">
-                      Duration: {{ formatTransitTime(segment.durationPerLeg) }}
-                    </span>
-                  </div>
-
-                  @if (segment.operatedAirline && segment.operatedAirline.airlineName !== segment.flightAirline.airlineName) {
-                    <div class="text-xs text-muted mt-1" style="font-size: 11px;">
-                      Operated by: {{ segment.operatedAirline.airlineName }}
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <!-- Arrival Node -->
-              <div class="timeline-node-item arrival-node d-flex gap-3 mb-2">
-                <div class="timeline-bullet bg-secondary"></div>
-                <div class="timeline-content">
-                  <div class="d-flex align-items-center gap-2">
-                    <strong class="text-dark" style="font-size: 14px;">
-                      {{ segment.arrivalDate | date: 'HH:mm' }}
-                    </strong>
-                    <span class="text-dark font-semibold" style="font-size: 14px;">
-                      {{ segment.arrivalTerminalAirport.cityName }} ({{ segment.arrivalTerminalAirport.airportCode }})
-                    </span>
-                  </div>
-                  <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
-                    {{ segment.arrivalTerminalAirport.airportName }}
-                    @if (segment.arrivalTerminalAirport.terminal) {
-                      &bull; Terminal {{ segment.arrivalTerminalAirport.terminal }}
-                    }
-                    &bull; {{ segment.arrivalDate | date: 'EEEE, dd MMM' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Layover indicator between segments -->
-              @if (i !== leg.flightDTO.length - 1) {
-                <div class="timeline-layover my-4 ms-4 p-3 rounded-3 border-start border-warning-subtle bg-warning-subtle d-flex align-items-center gap-2.5" style="border-left-width: 4px !important;">
-                  <mat-icon style="color: #d88e00; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">schedule</mat-icon>
-                  <span class="text-sm font-semibold" style="color: #664d03; font-size: 13px;">
-                    Layover: {{ formatTransitTime(segment.transitTime) }} in {{ segment.arrivalTerminalAirport.cityName }}
-                  </span>
-                </div>
-              }
-            }
-          </div>
-        }
-      </div>
-
-    </div>
-  </div>
-}

@@ -230,8 +230,26 @@
 /* Typing indicator */
 .system-typing-bubble {
   background-color: #eff4ff;
+  border: 1px solid rgba(0, 74, 198, 0.1);
   border-radius: 16px 16px 16px 4px;
-  box-shadow: 0 4px 15px rgba(11, 26, 48, 0.02);
+  box-shadow: 0 4px 15px rgba(11, 26, 48, 0.04);
+  color: #0b1c30;
+
+  .loading-spark-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    color: vars.$color-primary;
+    animation: sparkPulse 1.5s infinite ease-in-out;
+  }
+
+  .typing-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0b1c30;
+    animation: fadeInText 0.3s ease-in-out;
+  }
 
   .typing-dot {
     width: 6px;
@@ -247,6 +265,28 @@
     &:nth-child(3) {
       animation-delay: 0.4s;
     }
+  }
+}
+
+@keyframes sparkPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -327,8 +367,7 @@
   }
 
   .send-btn-v2 {
-    width: 38px;
-    height: 38px;
+    padding: 8px;
     background-color: vars.$color-primary;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -597,7 +636,7 @@
   background-color: rgba(11, 28, 48, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  z-index: 2000; /* Ensure it is above the chat input and headers */
+  z-index: 2000000; /* Ensure it is above mobile assistant drawer (z-index: 1000000) */
   animation: fadeIn 0.25s ease-out;
 }
 
