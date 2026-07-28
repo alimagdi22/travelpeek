@@ -9,13 +9,32 @@
   background-color: #ffffff;
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(11, 26, 48, 0.02);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(11, 26, 48, 0.02);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.45s ease;
+  border: 1px solid rgba(11, 26, 48, 0.04);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+
+  .feature-icon-wrapper-v2, .feature-title-v2, .feature-description-v2 {
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(11, 26, 48, 0.06);
-    border-color: rgba(37, 99, 235, 0.08);
+    transform: translateY(-8px) rotateX(4deg) rotateY(-2deg) scale(1.015);
+    box-shadow: 0 20px 40px -10px rgba(11, 26, 48, 0.12), 0 8px 16px -4px rgba(37, 99, 235, 0.1);
+    border-color: rgba(37, 99, 235, 0.15);
+
+    .feature-icon-wrapper-v2 {
+      transform: translateZ(25px) scale(1.1);
+      background-color: rgba(37, 99, 235, 0.14);
+    }
+
+    .feature-title-v2 {
+      transform: translateZ(20px);
+    }
+
+    .feature-description-v2 {
+      transform: translateZ(12px);
+    }
   }
 }
 
