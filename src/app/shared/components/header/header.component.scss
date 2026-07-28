@@ -17,6 +17,21 @@
   font-size: 14px;
 }
 .brand {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  img {
+    height: 55px;
+    width: auto;
+    object-fit: contain;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
   .logo-text {
     font-family: vars.$font-family-display;
     font-size: 24px;
