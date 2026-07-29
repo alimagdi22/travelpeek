@@ -271,8 +271,8 @@ textarea{
   .typing-text {
     font-size: 13px;
     font-weight: 500;
-    color: #0b1c30;
-    animation: fadeInText 0.3s ease-in-out;
+    color: #4b5563;
+    animation: fadeInText 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .typing-dot {

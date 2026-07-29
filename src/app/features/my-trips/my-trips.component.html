@@ -145,15 +145,17 @@
       </ng-container>
 
         <!-- Pulse Typing Indicator for AI Reply -->
-        @if (flightResultService.loading || isTyping) {
+        @if (isChatLoading) {
           <div
             class="message-row system-row d-flex flex-column align-items-start"
           >
             <div
               class="system-typing-bubble p-3 px-4 rounded-4 d-flex align-items-center gap-2"
             >
-              <mat-icon class="loading-spark-icon me-1">auto_awesome</mat-icon>
-              <span class="typing-text font-medium">{{ currentLoadingMessage }}</span>
+              @if (showSlowLoadingMessage) {
+                <mat-icon class="loading-spark-icon me-1">auto_awesome</mat-icon>
+                <span class="typing-text font-medium me-1">{{ slowLoadingMessage }}</span>
+              }
               <div class="d-flex align-items-center gap-1 ms-1">
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>

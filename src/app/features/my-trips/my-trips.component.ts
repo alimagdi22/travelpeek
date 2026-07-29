@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, DoCheck, DestroyRef } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
@@ -11,7 +11,7 @@ import { Message } from '../../core/models/message.interface';
   templateUrl: './my-trips.component.html',
   styleUrl: './my-trips.component.scss',
 })
-export class MyTripsComponent implements OnInit, OnDestroy {
+export class MyTripsComponent implements OnInit, OnDestroy, DoCheck {
   readonly isMyTrips: boolean = true;
   messages: Message[] = [];
   newMessage: string = '';
@@ -296,6 +296,69 @@ export class MyTripsComponent implements OnInit, OnDestroy {
     }, 2200);
   }
 
+  humanLoadingMessages: string[] = [
+    "Thinking...",
+    "Gathering information for you...",
+    "Crafting a response...",
+    "Just a moment, putting this together...",
+    "Almost ready..."
+  ];
+
+  showSlowLoadingMessage: boolean = false;
+  slowLoadingMessage: string = '';
+  private slowLoadingTimer: any = null;
+  private slowLoadingInterval: any = null;
+  private currentSlowMessageIndex: number = 0;
+  private isCurrentlyLoading: boolean = false;
+
+  get isChatLoading(): boolean {
+    return !!(this.flightResultService?.loading || this.isTyping);
+  }
+
+  ngDoCheck(): void {
+    const loading = this.isChatLoading;
+    if (loading && !this.isCurrentlyLoading) {
+      this.isCurrentlyLoading = true;
+      this.startHumanLoadingCycle();
+    } else if (!loading && this.isCurrentlyLoading) {
+      this.isCurrentlyLoading = false;
+      this.clearHumanLoadingCycle();
+    }
+  }
+
+  private startHumanLoadingCycle(): void {
+    this.clearHumanLoadingCycle();
+    this.showSlowLoadingMessage = false;
+    this.currentSlowMessageIndex = 0;
+
+    this.slowLoadingTimer = setTimeout(() => {
+      if (this.isChatLoading) {
+        this.slowLoadingMessage = this.humanLoadingMessages[0];
+        this.showSlowLoadingMessage = true;
+
+        this.slowLoadingInterval = setInterval(() => {
+          if (this.isChatLoading) {
+            this.currentSlowMessageIndex = (this.currentSlowMessageIndex + 1) % this.humanLoadingMessages.length;
+            this.slowLoadingMessage = this.humanLoadingMessages[this.currentSlowMessageIndex];
+          }
+        }, 4000);
+      }
+    }, 5000);
+  }
+
+  private clearHumanLoadingCycle(): void {
+    if (this.slowLoadingTimer) {
+      clearTimeout(this.slowLoadingTimer);
+      this.slowLoadingTimer = null;
+    }
+    if (this.slowLoadingInterval) {
+      clearInterval(this.slowLoadingInterval);
+      this.slowLoadingInterval = null;
+    }
+    this.showSlowLoadingMessage = false;
+    this.slowLoadingMessage = '';
+  }
+
   stopLoadingMessageCycle() {
     if (this.loadingMessageInterval) {
       clearInterval(this.loadingMessageInterval);
@@ -304,6 +367,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearHumanLoadingCycle();
     this.stopLoadingMessageCycle();
     this.subscription.unsubscribe();
     this.resetFlightServiceState();
@@ -691,6 +755,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
       this.flightResultService.response = undefined;
       this.flightResultService.responseAi = undefined;
       this.flightResultService.ResultFound = false;
+      this.flightResultService.orgnizedResponce = [];
 
       this.flightResultService.getDataFromAiUrl({
         chat: text,
@@ -710,8 +775,7 @@ export class MyTripsComponent implements OnInit, OnDestroy {
           const hasNewItineraries = !!(
             response?.airItineraries?.length ||
             responseAi?.airItineraries?.length ||
-            responseAi?.itineraries?.length ||
-            (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0)
+            responseAi?.itineraries?.length
           );
           const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
 
