@@ -1,10 +1,8 @@
-@if (!isMyTrips) {
+@if(!isMyTrips){
   <app-header></app-header>
 }
-<router-outlet />
-@if(!isMyTrips){
-  <app-footer></app-footer>
-}
+<router-outlet></router-outlet>
+<app-footer></app-footer>
 
 @if (authService.isLoading) {
   <div class="global-overlay-loader d-flex flex-column align-items-center justify-content-center">

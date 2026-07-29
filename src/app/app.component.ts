@@ -1,6 +1,7 @@
-import { Component, inject, OnInit, NgZone, HostListener, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit, NgZone, HostListener, PLATFORM_ID, afterNextRender } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { RouterOutlet, Router } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { SharedModule } from './shared/shared.module';
 import { EnvironmentService, AuthService, UserProfileService, LOGIN_STATUS } from 'rp-travel-ui';
 import { envRP } from './core/enviroments/roundpixel.env';
@@ -15,6 +16,9 @@ declare var google: any;
   imports: [RouterOutlet, SharedModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
+  host: {
+    'ngSkipHydration': ''
+  }
 })
 export class AppComponent implements OnInit {
   title = 'travelpeek';
@@ -22,6 +26,19 @@ export class AppComponent implements OnInit {
   platformId = inject(PLATFORM_ID);
   seoService = inject(SeoService);
   isBrowser = isPlatformBrowser(this.platformId);
+  environmentService = inject(EnvironmentService);
+  authService = inject(AuthService);
+  profileService = inject(UserProfileService);
+  ngZone = inject(NgZone);
+  isMyTrips = false;
+
+  constructor() {
+    afterNextRender(() => {
+      if (!localStorage.getItem('token')) {
+        this.initializeGoogleOneTap();
+      }
+    });
+  }
 
   private dismissKeyboard(): void {
     if (!this.isBrowser) return;
@@ -89,45 +106,48 @@ export class AppComponent implements OnInit {
     if (!this.isBrowser) return;
     this.dismissKeyboard();
   }
-  environmentService = inject(EnvironmentService);
-  authService = inject(AuthService);
-  profileService = inject(UserProfileService);
-  ngZone = inject(NgZone);
-  isMyTrips = false;
 
   ngOnInit(): void {
     this.seoService.initRouteSeoListener();
     this.environmentService.envConfiguration(envRP);
 
     this.isMyTrips = this.router.url.includes('my-trips');
-    this.router.events.subscribe(() => {
-      this.isMyTrips = this.router.url.includes('my-trips');
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd)
+    ).subscribe((e: NavigationEnd) => {
+      console.log('hello');
+
+      this.isMyTrips = e.urlAfterRedirects.includes('my-trips');
+      console.log('hello',this.isMyTrips);
     });
 
     if (this.isBrowser) {
-      // Initialize Google One Tap if user is not logged in
-      if (!localStorage.getItem('token')) {
+      const token = localStorage.getItem('token');
+      if (!token || token === 'null' || token === 'undefined') {
         this.initializeGoogleOneTap();
       }
     }
   }
 
-
   private initializeGoogleOneTap() {
-    const checkGoogleLoaded = setInterval(() => {
-      if (
-        typeof google !== 'undefined' &&
-        google.accounts &&
-        google.accounts.id
-      ) {
-        clearInterval(checkGoogleLoaded);
+    if (typeof window === 'undefined') return;
 
+    let prompted = false;
+    const loadScriptAndPrompt = () => {
+      if (prompted) return;
+      if (typeof google === 'undefined' || !google?.accounts?.id) {
+        return;
+      }
+      prompted = true;
+
+      try {
         google.accounts.id.initialize({
           client_id: firebaseConfig.googleClientId,
           callback: (response: any) =>
             this.handleGoogleOneTapResponse(response),
           auto_select: false,
           cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: false,
         });
 
         google.accounts.id.prompt((notification: any) => {
@@ -145,8 +165,33 @@ export class AppComponent implements OnInit {
             );
           }
         });
+      } catch (err) {
+        console.error('Error initializing Google One Tap:', err);
       }
-    }, 100);
+    };
+
+    if (typeof google !== 'undefined' && google?.accounts?.id) {
+      loadScriptAndPrompt();
+    } else {
+      let script = document.querySelector('script[src*="accounts.google.com/gsi/client"]') as HTMLScriptElement;
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+      }
+      script.onload = () => {
+        loadScriptAndPrompt();
+      };
+      const checkGoogleLoaded = setInterval(() => {
+        if (typeof google !== 'undefined' && google?.accounts?.id) {
+          clearInterval(checkGoogleLoaded);
+          loadScriptAndPrompt();
+        }
+      }, 200);
+      setTimeout(() => clearInterval(checkGoogleLoaded), 5000);
+    }
   }
 
   private handleGoogleOneTapResponse(response: any) {
