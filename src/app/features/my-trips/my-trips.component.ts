@@ -12,6 +12,7 @@ import { Message } from '../../core/models/message.interface';
   styleUrl: './my-trips.component.scss',
 })
 export class MyTripsComponent implements OnInit, OnDestroy {
+  readonly isMyTrips: boolean = true;
   messages: Message[] = [];
   newMessage: string = '';
   isTyping: boolean = false;

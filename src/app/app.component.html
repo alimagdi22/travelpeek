@@ -1,4 +1,6 @@
-<app-header></app-header>
+@if (!isMyTrips) {
+  <app-header></app-header>
+}
 <router-outlet />
 @if(!isMyTrips){
   <app-footer></app-footer>

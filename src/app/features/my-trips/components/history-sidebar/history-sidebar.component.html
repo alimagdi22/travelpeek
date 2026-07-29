@@ -1,11 +1,14 @@
 <!-- ── Desktop Sidebar (Collapsible Style) ── -->
 <div class="sidebar-v2 d-none d-lg-flex flex-column border-end" [class.collapsed]="isSidebarCollapsed">
   <!-- Top Row: Collapsed toggle, or Title + Toggle -->
-  <div class="sidebar-header d-flex align-items-center justify-content-between p-3 border-bottom">
-    <span class="panel-title mb-0" *ngIf="!isSidebarCollapsed">
+  <div class="sidebar-header d-flex align-items-center justify-content-between border-bottom">
+    <!-- <span class="panel-title mb-0" *ngIf="!isSidebarCollapsed">
       TravelPeek
-    </span>
-    <button class="btn-sidebar-toggle border-0 bg-transparent p-1 ms-auto" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'">
+    </span> -->
+    @if(!isSidebarCollapsed){
+      <img src="assets/images/logo.png" alt="travelpeek" routerLink="/">
+    }
+    <button class="btn-sidebar-toggle border-0 bg-transparent p-1" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Open sidebar' : 'Close sidebar'">
       <!-- ChatGPT Style Layout Icon -->
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="isSidebarCollapsed ? 'rotate(180deg)' : 'none'">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>

@@ -1,4 +1,4 @@
-<div class="my-trips-page-wrapper d-flex">
+<div class="my-trips-page-wrapper d-flex h-100 w-100 overflow-hidden">
   <!-- TravelPeek History Sidebar Component -->
   <app-history-sidebar
     [searchHistory]="searchHistory"
@@ -12,8 +12,14 @@
     (closeMobileDrawer)="toggleMobileHistory(false)"
   ></app-history-sidebar>
 
-  <!-- Main Chat Window Wrapper -->
-  <div class="chat-main-wrapper flex-grow-1 d-flex align-items-center justify-content-center position-relative">
+  <!-- Main Section Container (Header + Content Row) -->
+  <div class="my-trips-main-section flex-grow-1 d-flex flex-column h-100 overflow-hidden position-relative">
+    <app-header></app-header>
+
+    <!-- Main Content Row (Chat + Smart Assistant Sidebar) -->
+    <div class="my-trips-content-row flex-grow-1 d-flex flex-row h-100 overflow-hidden position-relative">
+      <!-- Main Chat Window Wrapper -->
+      <div class="chat-main-wrapper flex-grow-1 d-flex align-items-center justify-content-center position-relative overflow-y-auto">
 
     <div class="container chat-container-v2" [class.has-sidebar]="hasFlightResults">
 
@@ -260,12 +266,11 @@
                <!-- Input Textarea (Responsive to full text on mobile) -->
                <textarea
                  class="chat-input-field-v2 flex-grow-1 border-0 bg-transparent px-3 py-1 align-self-center"
-                 placeholder="Type traveler names or ask about baggage..."
+                 placeholder="Describe your dream trip... I'll help you plan it."
                  [(ngModel)]="newMessage"
                  (keydown)="onInputKeydown($event)"
                  (input)="adjustTextareaHeight($event.target)"
                  rows="1"
-                 style="resize: none; max-height: 120px; height: auto;"
                ></textarea>
 
                <!-- Attachment Paperclip -->
@@ -318,6 +323,8 @@
   @if (hasFlightResults) {
     <app-smart-assistant-sidebar (stopsTriggered)="openStopsModal($event, 0)"></app-smart-assistant-sidebar>
   }
+  </div>
+</div>
 </div>
 
 

@@ -108,6 +108,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.router.url.startsWith('/my-trips');
   }
 
+  get isMyTrips(): boolean {
+    return this.router.url.includes('my-trips');
+  }
+
   get isExploreActive(): boolean {
     return (
       this.router.url === '/' ||

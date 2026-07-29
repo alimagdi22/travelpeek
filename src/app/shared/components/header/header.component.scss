@@ -5,6 +5,8 @@
   background-color: #ffffff;
   border-bottom: 1px solid #f0f0f0;
   height: 64px;
+  flex-shrink: 0;
+  width: 100%;
   font-family: vars.$font-family-base;
   user-select: none;
 
@@ -22,7 +24,7 @@
   align-items: center;
 
   img {
-    height: 55px;
+    height: 40px;
     width: auto;
     object-fit: contain;
     transition: opacity 0.2s ease;

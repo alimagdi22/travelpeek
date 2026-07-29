@@ -2,7 +2,7 @@
   <div class="container-fluid px-4">
     <div class="row align-items-center justify-content-between">
       <!-- Brand Logo -->
-      <div class="col-auto">
+      <div class="col-auto" [class.d-lg-none]="isMyTrips">
         <div class="brand" (click)="navigateHome()">
           <img src="assets/images/logo.png" alt="TravelPeek Logo">
         </div>
@@ -10,7 +10,7 @@
 
       <!-- Navigation Menu (Desktop) -->
       <div class="col d-none d-lg-block">
-        <nav class="nav-menu d-flex align-items-center gap-4 ms-5">
+        <nav class="nav-menu d-flex align-items-center gap-4" [class.ms-5]="!isMyTrips">
           <a routerLink="/" [class.active]="isExploreActive" class="nav-item">Explore</a>
           <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="nav-item">My Trips</a>
           <a routerLink="/support" [class.active]="isSupportActive" class="nav-item">Support</a>

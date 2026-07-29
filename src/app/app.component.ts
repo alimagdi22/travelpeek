@@ -28,7 +28,7 @@ export class AppComponent implements OnInit {
     const activeEl = document.activeElement as HTMLElement;
     if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
       activeEl.blur();
-      
+
       // Force keyboard dismissal on iOS/Safari by shifting focus to the body
       const body = document.body;
       const originalTabIndex = body.getAttribute('tabindex');
@@ -45,22 +45,22 @@ export class AppComponent implements OnInit {
   private isInteractiveElement(el: HTMLElement): boolean {
     if (!el) return false;
     const tagName = el.tagName;
-    
+
     // Check standard interactive elements
     if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A', 'LABEL'].includes(tagName)) {
       return true;
     }
-    
+
     // Check elements with interactive roles or attributes
     if (el.getAttribute('role') === 'button' || el.hasAttribute('tabindex')) {
       return true;
     }
-    
+
     // Check if parent is interactive (e.g. clicked inside a button or link)
     if (el.parentElement) {
       return this.isInteractiveElement(el.parentElement);
     }
-    
+
     return false;
   }
 
@@ -99,6 +99,7 @@ export class AppComponent implements OnInit {
     this.seoService.initRouteSeoListener();
     this.environmentService.envConfiguration(envRP);
 
+    this.isMyTrips = this.router.url.includes('my-trips');
     this.router.events.subscribe(() => {
       this.isMyTrips = this.router.url.includes('my-trips');
     });
