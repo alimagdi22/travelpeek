@@ -23,6 +23,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   router = inject(Router);
   platformId = inject(PLATFORM_ID);
   isBrowser = isPlatformBrowser(this.platformId);
+
+  // @HostBinding('style.display')
+  // get hostDisplay(): string {
+  //   return this.isMyTrips ? 'none' : 'block';
+  // }
   subscription = new Subscription();
   profileService = inject(UserProfileService);
   sharedService = inject(SharedService);

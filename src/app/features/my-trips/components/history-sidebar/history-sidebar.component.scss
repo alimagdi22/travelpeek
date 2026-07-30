@@ -13,9 +13,13 @@
   border-right: 1px solid #eaeaea;
 
   .sidebar-header {
-    height: 64px;
-    box-sizing: border-box;
+    height: 41%;
+    // box-sizing: border-box;
     padding: 5px 5px 5px 0;
+
+    &.collapsed{
+      height: 9.3%;
+    }
   }
 
   &.collapsed {
