@@ -98,10 +98,11 @@
 
   img {
     margin-inline-start: 5px;
-    object-fit: cover;
+    object-fit: fill;
     object-position: center;
     height: 25px;
     width: 40px;
+    max-width: 45px;
   }
 
   p {
