@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, ElementRef, inject, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
-import { IFlight } from 'rp-travel-ui';
+import { FlightCheckoutService, FlightResultService, IFlight } from 'rp-travel-ui';
+import { SharedService } from '../../../../shared/shared.service';
 
 @Component({
   selector: 'app-flight-stops-modal',
@@ -9,16 +10,26 @@ import { IFlight } from 'rp-travel-ui';
 })
 export class FlightStopsModalComponent implements OnChanges, OnDestroy {
   @Input() isOpen: boolean = false;
-  @Input() leg: IFlight | null = null;
+  @Input() leg: any = null;
   @Input() selectedStopsIndex: number = 0;
   @Output() closeModal = new EventEmitter<void>();
+  @Output() flightSelected = new EventEmitter<any>();
 
   private el = inject(ElementRef);
+  private flightResultService = inject(FlightResultService);
+  private flightCheckoutService = inject(FlightCheckoutService);
+  private sharedService = inject(SharedService);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']) {
       if (this.isOpen) {
-        document.body.appendChild(this.el.nativeElement);
+        if (this.el.nativeElement.parentNode !== document.body) {
+          document.body.appendChild(this.el.nativeElement);
+        }
+      } else {
+        if (this.el.nativeElement.parentNode === document.body) {
+          document.body.removeChild(this.el.nativeElement);
+        }
       }
     }
   }
@@ -54,6 +65,33 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
     this.closeModal.emit();
   }
 
+  get priceAmount(): number | null {
+    const anyLeg = this.leg as any;
+    return anyLeg?.itinTotalFare?.amount ?? null;
+  }
+
+  get currencyCode(): string {
+    const anyLeg = this.leg as any;
+    return anyLeg?.itinTotalFare?.currencyCode ?? 'EGP';
+  }
+
+  onSelectFlight() {
+    if (!this.leg) return;
+    const itinerary = this.leg as any;
+    const response = this.flightResultService.response;
+    if (response) {
+      this.flightCheckoutService.getSelectedFlightData(
+        response.searchCriteria.searchId,
+        itinerary.sequenceNum,
+        itinerary.pKey,
+        true,
+        itinerary.pcc
+      );
+    }
+    this.sharedService.setSelectedItinerary(itinerary);
+  }
+
+
   getDeptCity(flight: IFlight | null): string {
     return flight?.flightDTO?.[0]?.departureTerminalAirport?.cityName ?? '';
   }
@@ -82,3 +120,4 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
     return time.toString();
   }
 }
+

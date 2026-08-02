@@ -25,6 +25,12 @@ export class SelectedFlightComponent {
     return outbound?.flightDTO?.[0]?.flightAirline?.airlineName ?? '';
   }
 
+  getAirlineLogo(itinerary: IAirItinerary): string {
+    const outbound = this.getOutboundFlight(itinerary);
+    return outbound?.flightDTO?.[0]?.flightAirline?.airlineLogo || '/assets/icons/airline-default.svg';
+  }
+
+
   getDeptCity(flight: IFlight): string {
     return flight?.flightDTO?.[0]?.departureTerminalAirport?.cityName ?? '';
   }

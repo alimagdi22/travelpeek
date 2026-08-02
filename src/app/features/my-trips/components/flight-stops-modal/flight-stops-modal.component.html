@@ -129,6 +129,22 @@
         }
       </div>
 
+      <!-- Modal Footer -->
+      <div class="policy-modal-footer d-flex align-items-center justify-content-between pt-3 mt-2 border-top">
+        <div class="modal-price-info">
+          @if (priceAmount) {
+            <span class="text-xs text-muted d-block" style="font-size: 11px; text-transform: uppercase;">Total Price</span>
+            <strong style="color: #004ac6; font-size: 18px; font-weight: 700;">
+              {{ priceAmount | currency: (currencyCode || 'EGP'): 'symbol': '1.0-0' }}
+            </strong>
+          }
+        </div>
+        <button class="btn btn-select-flight d-flex align-items-center gap-2 px-4 py-2" (click)="onSelectFlight()">
+          <mat-icon style="font-size: 18px; width: 18px; height: 18px; line-height: 18px;">check_circle</mat-icon>
+          <span>Select Flight</span>
+        </button>
+      </div>
+
     </div>
   </div>
 }

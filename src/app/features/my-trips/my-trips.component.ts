@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, DoCheck, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
@@ -11,7 +11,10 @@ import { Message } from '../../core/models/message.interface';
   templateUrl: './my-trips.component.html',
   styleUrl: './my-trips.component.scss',
 })
-export class MyTripsComponent implements OnInit, OnDestroy, DoCheck {
+export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, DoCheck {
+  @ViewChild('suggestionsSlider') suggestionsSliderRef?: ElementRef<HTMLElement>;
+  private swiperInitialized = false;
+
   readonly isMyTrips: boolean = true;
   messages: Message[] = [];
   newMessage: string = '';
@@ -86,6 +89,43 @@ export class MyTripsComponent implements OnInit, OnDestroy, DoCheck {
     return `${typeCapitalized} ${passenger.index}`;
   }
 
+  ngAfterViewChecked() {
+    if (!this.swiperInitialized && this.suggestionsSliderRef?.nativeElement) {
+      this.initSuggestionsSwiper();
+      this.swiperInitialized = true;
+    }
+  }
+
+  private initSuggestionsSwiper() {
+    const el = this.suggestionsSliderRef?.nativeElement;
+    if (!el) return;
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+
+    el.addEventListener('mousedown', (e: MouseEvent) => {
+      isDown = true;
+      el.classList.add('is-dragging');
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+    });
+    el.addEventListener('mouseleave', () => {
+      isDown = false;
+      el.classList.remove('is-dragging');
+    });
+    el.addEventListener('mouseup', () => {
+      isDown = false;
+      el.classList.remove('is-dragging');
+    });
+    el.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (x - startX) * 1.5;
+      el.scrollLeft = scrollLeft - walk;
+    });
+  }
+
   ngOnInit() {
     const initQuery = this.sharedService.getSearchQuery();
     if (initQuery) {
@@ -105,6 +145,7 @@ export class MyTripsComponent implements OnInit, OnDestroy, DoCheck {
     this.subscription.add(
       this.sharedService.selectedItinerary$.subscribe((itinerary) => {
         if (itinerary) {
+          this.showStopsModal = false;
           this.handleFlightSelection(itinerary);
         }
       }),

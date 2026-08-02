@@ -147,8 +147,6 @@ export class SmartAssistantSidebarComponent implements OnInit {
 
   openStopsModal(flight: any) {
     if (!flight) return;
-    this.selectedLeg = flight;
-    this.showStopsModal = true;
     this.stopsTriggered.emit(flight);
   }
 

@@ -173,7 +173,7 @@
            class="suggestions-slider-wrapper position-relative w-100 mb-3 mt-3"
          >
            <div
-             class="suggestions-row-v2 d-flex flex-wrap justify-content-center gap-2 px-4"
+             class="suggestions-row-v2"
              #suggestionsSlider
            >
              <!-- 1. Direct Flights Only Filter Pill -->
@@ -499,7 +499,7 @@
 <!-- ── Flight Stops Details Modal Popup ── -->
 <app-flight-stops-modal
   [isOpen]="showStopsModal"
-  [leg]="getActiveLeg()"
+  [leg]="selectedItineraryForStops"
   [selectedStopsIndex]="selectedStopsIndex"
   (closeModal)="closeStopsModal()"
 ></app-flight-stops-modal>
