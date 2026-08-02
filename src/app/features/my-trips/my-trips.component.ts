@@ -1393,6 +1393,40 @@ export class MyTripsComponent implements OnInit, OnDestroy, DoCheck {
     return !!(formArray && formArray.at(idx)?.value);
   }
 
+  // ── Depart Schedule Filter Helper Methods ──
+  departScheduleOptions = [
+    { title: 'Morning', icon: '🌅', startTime: '00:00', endTime: '05:59' },
+    { title: 'Noon', icon: '☀️', startTime: '06:00', endTime: '11:59' },
+    { title: 'Afternoon', icon: '🌇', startTime: '12:00', endTime: '17:59' },
+    { title: 'Night', icon: '🌙', startTime: '18:00', endTime: '23:59' },
+  ];
+
+  toggleDepartSchedule(startTime: string, endTime: string) {
+    if (!this.flightResultService.filterForm) return;
+    const control = this.flightResultService.filterForm.get('goingFlightScheduleDepart');
+    if (control) {
+      if (
+        control.get('startTime')?.value === startTime &&
+        control.get('endTime')?.value === endTime
+      ) {
+        control.get('startTime')?.setValue('');
+        control.get('endTime')?.setValue('');
+      } else {
+        control.get('startTime')?.setValue(startTime);
+        control.get('endTime')?.setValue(endTime);
+      }
+    }
+  }
+
+  isDepartScheduleActive(startTime: string, endTime: string): boolean {
+    if (!this.flightResultService.filterForm) return false;
+    const control = this.flightResultService.filterForm.get('goingFlightScheduleDepart');
+    return (
+      control?.get('startTime')?.value === startTime &&
+      control?.get('endTime')?.value === endTime
+    );
+  }
+
   subscribeToFilterChanges() {
     if (this.filterFormSub) {
       this.filterFormSub.unsubscribe();

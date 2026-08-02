@@ -206,7 +206,18 @@
                <span class="pill-icon">✈️</span> Fly {{ getTopAirlineName() }} only
              </button>
 
-             <!-- 4. Travel Insurance Pill -->
+             <!-- 4. Depart Schedule Filter Pills -->
+             <button
+               *ngFor="let option of departScheduleOptions"
+               type="button"
+               class="suggestion-btn-v2 suggestion-slider-item"
+               [class.filter-pill-active]="isDepartScheduleActive(option.startTime, option.endTime)"
+               (click)="toggleDepartSchedule(option.startTime, option.endTime)"
+             >
+               <span class="pill-icon">{{ option.icon }}</span> {{ option.title }} depart
+             </button>
+
+             <!-- 5. Travel Insurance Pill -->
              <!-- <button
                type="button"
                class="suggestion-btn-v2 suggestion-slider-item"
