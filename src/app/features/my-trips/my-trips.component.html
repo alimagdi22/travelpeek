@@ -125,6 +125,16 @@
                 @if (msg.text) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
                     <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
+                    @if (msg.showContactForm) {
+                      <app-contact-form (formSubmitted)="onContactFormSubmitted($event)"></app-contact-form>
+                    }
+                    @if (msg.showPassengerForm) {
+                      <app-passenger-form
+                        [passengerLabel]="msg.passengerLabel || 'Adult 1'"
+                        [passengerType]="msg.passengerType || 'adult'"
+                        (formSubmitted)="onPassengerFormSubmitted($event)"
+                      ></app-passenger-form>
+                    }
                   </div>
                 }
 

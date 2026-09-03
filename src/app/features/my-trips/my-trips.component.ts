@@ -5,6 +5,7 @@ import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { Message } from '../../core/models/message.interface';
+import { PassengerFormData } from './components/passenger-form/passenger-form.component';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -654,6 +655,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
               this.isEnteringContactDetails = false;
 
+              this.sharedService.addMessage({
+                sender: 'system',
+                text: 'Perfect! I now have all the required contact details.',
+              });
+
               // Prompt for first passenger
               const firstPassenger = this.passengerList[0];
               const targetPassengerLabel = firstPassenger
@@ -731,6 +737,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
                 this.sharedService.addMessage({
                   sender: 'system',
                   text: transitionMessage,
+                  showPassengerForm: true,
+                  passengerLabel: nextLabel,
+                  passengerType: nextPassenger.type
                 });
               } else {
                 // Last passenger completed! Log the value
@@ -959,11 +968,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       passengerCountLabel: passengerLabel,
     });
 
-    // 3. Prompt for contact details in a separate message
+    // 3. Prompt for contact details in a separate message with inline form
     const promptText = `Please provide contact details, phone and email.`;
     this.sharedService.addMessage({
       sender: 'system',
       text: promptText,
+      showContactForm: true,
     });
 
     if (window.innerWidth <= 991) {
@@ -1063,8 +1073,20 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sharedService.addMessage({
         sender: 'system',
         text: promptText,
+        showPassengerForm: true,
+        passengerLabel: targetPassengerLabel,
+        passengerType: currentPassenger ? currentPassenger.type : 'adult'
       });
     }, 1200);
+  }
+
+  onContactFormSubmitted(data: { email: string; phone: string }) {
+    const text = `my email is ${data.email} and my phone is ${data.phone}`;
+    this.sendMessage(text);
+  }
+
+  onPassengerFormSubmitted(data: PassengerFormData) {
+    this.sendMessage(data.formattedChatMessage);
   }
 
   scrollToBottom() {

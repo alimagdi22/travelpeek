@@ -1,0 +1,100 @@
+.inline-passenger-card {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  .card-header-v2 {
+    border-bottom: 1px solid rgba(11, 26, 48, 0.08) !important;
+
+    .header-icon-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background-color: #eff4ff;
+    }
+
+    .text-dark-title {
+      font-size: 15px;
+      color: #0b1a30;
+    }
+  }
+
+  .form-label {
+    font-size: 12px;
+    letter-spacing: 0.2px;
+    color: #475569;
+  }
+
+  .gender-segmented-group {
+    background-color: #ffffff;
+    border: 1px solid transparent !important;
+    border-radius: 14px !important;
+    gap: 4px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .gender-pill-option {
+      color: #64748b;
+      transition: all 0.2s ease;
+      background-color: transparent;
+
+      &:hover {
+        color: #0b1a30;
+      }
+
+      &.active {
+        background-color: #004ac6;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 74, 198, 0.2);
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  .input-group-custom {
+    height: 48px;
+    border-radius: 14px !important;
+    background-color: #ffffff !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease;
+
+    &:focus-within {
+      border-color: #004ac6 !important;
+      box-shadow: 0 0 0 3px rgba(0, 74, 198, 0.12) !important;
+    }
+
+    &.border-danger {
+      border-color: #dc2626 !important;
+    }
+
+    input {
+      color: #0b1a30;
+
+      &::placeholder {
+        color: #94a3b8;
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+
+  .text-xs {
+    font-size: 12px;
+  }
+
+  .text-sm {
+    font-size: 14px;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+}

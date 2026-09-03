@@ -16,6 +16,10 @@ export interface Message {
   paymentMethod?: string;
   gateways?: any[];
   isAnimating?: boolean;
+  showContactForm?: boolean;
+  showPassengerForm?: boolean;
+  passengerLabel?: string;
+  passengerType?: 'adult' | 'child' | 'infant';
 }
 
 
