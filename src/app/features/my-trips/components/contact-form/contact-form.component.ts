@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CountryISO, SearchCountryField } from 'ngx-intl-tel-input-gg';
 
@@ -8,12 +8,12 @@ import { CountryISO, SearchCountryField } from 'ngx-intl-tel-input-gg';
   templateUrl: './contact-form.component.html',
   styleUrls: ['./contact-form.component.scss']
 })
-export class ContactFormComponent implements OnInit, OnDestroy {
+export class ContactFormComponent implements OnInit {
   @Output() formSubmitted = new EventEmitter<{ email: string; phone: string }>();
 
   contactForm!: FormGroup;
+  isConfirming = false;
   hasSubmitted = false;
-  private debounceTimer: any = null;
 
   CountryISO = CountryISO;
   SearchCountryField = SearchCountryField;
@@ -32,16 +32,6 @@ export class ContactFormComponent implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
       phone: ['', [Validators.required, this.phoneValidator]]
     });
-
-    this.contactForm.valueChanges.subscribe(() => {
-      this.checkAndSubmitWithDebounce();
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
   }
 
   phoneValidator(control: any) {
@@ -65,36 +55,45 @@ export class ContactFormComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  checkAndSubmitWithDebounce(): void {
+  onNextClick(): void {
+    this.contactForm.markAllAsTouched();
+    if (this.contactForm.valid) {
+      this.isConfirming = true;
+    }
+  }
+
+  onEditClick(): void {
+    this.isConfirming = false;
+  }
+
+  onFinalSubmit(): void {
     if (this.hasSubmitted) return;
 
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = null;
-    }
-
     if (this.contactForm.valid) {
-      // Wait 1 second (1000ms) after user stops typing to give time to finish (e.g. .com instead of .co)
-      this.debounceTimer = setTimeout(() => {
-        if (this.contactForm.valid && !this.hasSubmitted) {
-          const { email, phone } = this.contactForm.value;
-          let phoneStr = '';
-          if (typeof phone === 'object' && phone !== null) {
-            phoneStr = phone.e164Number || phone.internationalNumber || phone.number || '';
-          } else if (typeof phone === 'string') {
-            phoneStr = phone;
-          }
+      const { email, phone } = this.contactForm.value;
+      let phoneStr = '';
+      if (typeof phone === 'object' && phone !== null) {
+        phoneStr = phone.e164Number || phone.internationalNumber || phone.number || '';
+      } else if (typeof phone === 'string') {
+        phoneStr = phone;
+      }
 
-          if (email && phoneStr) {
-            this.hasSubmitted = true;
-            this.formSubmitted.emit({
-              email: email.trim(),
-              phone: phoneStr.trim()
-            });
-          }
-        }
-      }, 1000);
+      if (email && phoneStr) {
+        this.hasSubmitted = true;
+        this.formSubmitted.emit({
+          email: email.trim(),
+          phone: phoneStr.trim()
+        });
+      }
     }
+  }
+
+  get formattedPhoneString(): string {
+    const phone = this.contactForm.get('phone')?.value;
+    if (typeof phone === 'object' && phone !== null) {
+      return phone.e164Number || phone.internationalNumber || phone.number || '';
+    }
+    return String(phone || '');
   }
 
   get isEmailInvalid(): boolean {

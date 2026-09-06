@@ -11,8 +11,9 @@
     </div>
   </div>
 
-  <form [formGroup]="contactForm" class="d-flex flex-column gap-3">
-    <!-- Phone Input with ngx-intl-tel-input -->
+  <!-- Form Edit Mode -->
+  <form *ngIf="!isConfirming" [formGroup]="contactForm" class="d-flex flex-column gap-3">
+    <!-- Phone Input -->
     <div class="form-group d-flex flex-column gap-1">
       <label class="form-label text-xs text-secondary font-semibold mb-1">Phone Number <span class="text-danger">*</span></label>
       <ngx-intl-tel-input
@@ -26,8 +27,6 @@
         [searchCountryField]="[SearchCountryField.All]"
         [selectedCountryISO]="CountryISO.Egypt"
         formControlName="phone"
-        (input)="checkAndSubmitWithDebounce()"
-        (countryChange)="checkAndSubmitWithDebounce()"
       >
       </ngx-intl-tel-input>
       <span *ngIf="isPhoneInvalid" class="text-xs text-danger mt-1 font-medium">Please enter a valid phone number.</span>
@@ -46,10 +45,54 @@
           class="border-0 bg-transparent flex-grow-1 outline-none text-sm text-dark font-medium"
           placeholder="e.g. user@example.com"
           formControlName="email"
-          (input)="checkAndSubmitWithDebounce()"
         />
       </div>
       <span *ngIf="isEmailInvalid" class="text-xs text-danger mt-1 font-medium">Please enter a valid email address.</span>
     </div>
+
+    <!-- Next Button -->
+    <div class="pt-2 d-flex justify-content-end">
+      <button type="button" class="btn btn-primary-custom px-4 py-2 text-sm font-semibold rounded-3 d-flex align-items-center gap-2" (click)="onNextClick()">
+        Next
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </div>
   </form>
+
+  <!-- Confirmation / Review Mode -->
+  <div *ngIf="isConfirming" class="confirmation-review-card d-flex flex-column gap-3">
+    <div class="review-details-box p-3 rounded-3 bg-white border">
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-xs text-secondary font-medium">Phone Number:</span>
+          <span class="text-sm font-semibold text-dark">{{ formattedPhoneString }}</span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="text-xs text-secondary font-medium">Email Address:</span>
+          <span class="text-sm font-semibold text-dark">{{ contactForm.get('email')?.value }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-notice p-3 rounded-3 bg-warning-subtle text-warning-emphasis border border-warning-subtle d-flex align-items-start gap-2">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 flex-shrink-0">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+        <line x1="12" y1="9" x2="12" y2="13"></line>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+      <span class="text-xs font-medium">Please make sure your details are correct. Once submitted, contact information cannot be modified.</span>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between gap-2 pt-1">
+      <button type="button" class="btn btn-outline-secondary px-3 py-2 text-xs font-semibold rounded-3" (click)="onEditClick()">
+        Edit Details
+      </button>
+      <button type="button" class="btn btn-primary-custom px-4 py-2 text-xs font-semibold rounded-3 d-flex align-items-center gap-1" (click)="onFinalSubmit()" [disabled]="hasSubmitted">
+        Confirm & Continue
+      </button>
+    </div>
+  </div>
 </div>

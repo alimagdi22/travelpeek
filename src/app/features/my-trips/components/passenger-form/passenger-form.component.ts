@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as countries from 'world-countries';
 
@@ -19,14 +19,14 @@ export interface PassengerFormData {
   templateUrl: './passenger-form.component.html',
   styleUrls: ['./passenger-form.component.scss']
 })
-export class PassengerFormComponent implements OnInit, OnDestroy {
+export class PassengerFormComponent implements OnInit {
   @Input() passengerLabel: string = 'Adult 1';
   @Input() passengerType: 'adult' | 'child' | 'infant' = 'adult';
   @Output() formSubmitted = new EventEmitter<PassengerFormData>();
 
   passengerForm!: FormGroup;
+  isConfirming = false;
   hasSubmitted = false;
-  private debounceTimer: any = null;
 
   countryList: string[] = [];
   filteredCountries: string[] = [];
@@ -50,16 +50,6 @@ export class PassengerFormComponent implements OnInit, OnDestroy {
       passportExpiry: ['', Validators.required],
       issueCountry: ['', [Validators.required, this.countryValidator.bind(this)]]
     });
-
-    this.passengerForm.valueChanges.subscribe(() => {
-      this.checkAndSubmitWithDebounce();
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
   }
 
   initCountryList(): void {
@@ -124,46 +114,53 @@ export class PassengerFormComponent implements OnInit, OnDestroy {
     return val;
   }
 
-  checkAndSubmitWithDebounce(): void {
+  onNextClick(): void {
+    this.passengerForm.markAllAsTouched();
+    if (this.passengerForm.valid) {
+      this.isConfirming = true;
+    }
+  }
+
+  onEditClick(): void {
+    this.isConfirming = false;
+  }
+
+  onFinalSubmit(): void {
     if (this.hasSubmitted) return;
 
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = null;
-    }
-
     if (this.passengerForm.valid) {
-      // Wait 1 second (1000ms) after user stops typing to give time to finish
-      this.debounceTimer = setTimeout(() => {
-        if (this.passengerForm.valid && !this.hasSubmitted) {
-          const { gender, firstName, lastName, birthDate, passportNumber, passportExpiry, issueCountry } = this.passengerForm.value;
+      const { gender, firstName, lastName, birthDate, passportNumber, passportExpiry, issueCountry } = this.passengerForm.value;
 
-          const formattedGender = (gender === 'Mr' || gender === 'male' || gender === 'Male') ? 'male' : 'female';
-          const formattedBirthday = this.formatDateValue(birthDate);
-          const formattedExpiry = this.formatDateValue(passportExpiry);
-          const countryStr = String(issueCountry).trim();
+      const formattedGender = (gender === 'Mr' || gender === 'male' || gender === 'Male') ? 'male' : 'female';
+      const formattedBirthday = this.formatDateValue(birthDate);
+      const formattedExpiry = this.formatDateValue(passportExpiry);
+      const countryStr = String(issueCountry).trim();
 
-          if (firstName && lastName && formattedBirthday && passportNumber && formattedExpiry && countryStr) {
-            this.hasSubmitted = true;
+      if (firstName && lastName && formattedBirthday && passportNumber && formattedExpiry && countryStr) {
+        this.hasSubmitted = true;
 
-            // Formatted chat message string required by prompt:
-            // "my first name is ali my last name is magdi , my gender is male , my birthday is 1/9/1998 , my passport number is 1238486 , passport expiry is 1/8/2027 , issue country is egypt"
-            const formattedChatMessage = `my first name is ${firstName.trim()} my last name is ${lastName.trim()} , my gender is ${formattedGender} , my birthday is ${formattedBirthday} , my passport number is ${passportNumber.trim()} , passport expiry is ${formattedExpiry} , issue country is ${countryStr.toLowerCase()}`;
+        const formattedChatMessage = `my first name is ${firstName.trim()} my last name is ${lastName.trim()} , my gender is ${formattedGender} , my birthday is ${formattedBirthday} , my passport number is ${passportNumber.trim()} , passport expiry is ${formattedExpiry} , issue country is ${countryStr.toLowerCase()}`;
 
-            this.formSubmitted.emit({
-              gender: formattedGender,
-              firstName: firstName.trim(),
-              lastName: lastName.trim(),
-              birthday: formattedBirthday,
-              passportNumber: passportNumber.trim(),
-              passportExpiry: formattedExpiry,
-              issueCountry: countryStr,
-              formattedChatMessage
-            });
-          }
-        }
-      }, 1000);
+        this.formSubmitted.emit({
+          gender: formattedGender,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          birthday: formattedBirthday,
+          passportNumber: passportNumber.trim(),
+          passportExpiry: formattedExpiry,
+          issueCountry: countryStr,
+          formattedChatMessage
+        });
+      }
     }
+  }
+
+  get formattedBirthdayDisplay(): string {
+    return this.formatDateValue(this.passengerForm.get('birthDate')?.value);
+  }
+
+  get formattedExpiryDisplay(): string {
+    return this.formatDateValue(this.passengerForm.get('passportExpiry')?.value);
   }
 
   isFieldInvalid(fieldName: string): boolean {

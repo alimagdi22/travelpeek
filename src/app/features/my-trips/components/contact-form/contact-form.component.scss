@@ -264,4 +264,34 @@
   .text-sm {
     font-size: 14px;
   }
+
+  .btn-primary-custom {
+    background-color: #004ac6;
+    color: #ffffff;
+    border: none;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #003bb0;
+      box-shadow: 0 4px 12px rgba(0, 74, 198, 0.2);
+    }
+
+    &:disabled {
+      background-color: #cbd5e1;
+      cursor: not-allowed;
+    }
+  }
+
+  .confirmation-review-card {
+    .review-details-box {
+      background-color: #ffffff;
+      border-color: #e2e8f0 !important;
+    }
+
+    .alert-notice {
+      background-color: #fffbeb;
+      border-color: #fde68a !important;
+      color: #92400e;
+    }
+  }
 }
