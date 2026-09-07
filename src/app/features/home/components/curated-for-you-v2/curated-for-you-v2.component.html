@@ -13,7 +13,7 @@
     <!-- Cards Grid / Slider -->
     <div class="slider-wrapper position-relative">
       <div class="row g-4 slider-container" #slider>
-        <div *ngFor="let dest of destinations" class="col-xl-3 col-lg-6 col-md-6 col-sm-12 slider-item">
+        <div *ngFor="let dest of destinations" class="col-xl-3 col-lg-6 col-md-6 col-sm-12 slider-item" (click)="navigateToMytrips(dest)">
           <div class="destination-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
             <img [src]="dest.image" [alt]="dest.name" class="card-bg-v2" />

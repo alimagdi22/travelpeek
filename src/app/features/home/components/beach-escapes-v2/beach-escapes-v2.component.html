@@ -13,7 +13,7 @@
     <!-- Cards Grid / Slider -->
     <div class="slider-wrapper position-relative">
       <div class="row g-4 slider-container" #slider>
-        <div *ngFor="let escape of escapes" class="col-lg-6 col-md-12 slider-item">
+        <div *ngFor="let escape of escapes" class="col-lg-6 col-md-12 slider-item" (click)="navigateToMytrips(escape)">
           <div class="escape-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
             <img [src]="escape.image" [alt]="escape.name" class="card-bg-v2" />

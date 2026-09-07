@@ -9,7 +9,7 @@
     <!-- Cards Grid / Slider -->
     <div class="slider-wrapper position-relative">
       <div class="row g-4 slider-container" #slider>
-        <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12 slider-item">
+        <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12 slider-item"  (click)="navigateToMytrips(gem)">
           <div class="gem-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
             <img [src]="gem.image" [alt]="gem.name" class="card-bg-v2" />

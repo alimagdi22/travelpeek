@@ -1,18 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { SharedService } from '../../../../shared/shared.service';
 
 @Component({
   selector: 'app-curated-for-you-v2',
   standalone: false,
   templateUrl: './curated-for-you-v2.component.html',
-  styleUrl: './curated-for-you-v2.component.scss'
+  styleUrl: './curated-for-you-v2.component.scss',
 })
 export class CuratedForYouV2Component {
+  router = inject(Router);
+  sharedService = inject(SharedService);
+  searchQuery: string = '';
   scrollSlider(element: HTMLElement, direction: string) {
     const card = element.querySelector('.slider-item');
     if (!card) return;
     const cardWidth = card.getBoundingClientRect().width;
     const scrollAmount = cardWidth + 16; // width + gap
-    element.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    element.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth',
+    });
   }
 
   destinations = [
@@ -21,28 +29,35 @@ export class CuratedForYouV2Component {
       country: 'Turkey',
       dates: 'OCT 24-28',
       price: 'AED 620',
-      image: '/assets/images/home/curted/istanbul.png'
+      image: '/assets/images/home/curted/istanbul.png',
     },
     {
       name: 'London',
       country: 'United Kingdom',
       dates: 'NOV 12-16',
       price: 'AED 1,248',
-      image: '/assets/images/home/curted/london.png'
+      image: '/assets/images/home/curted/london.png',
     },
     {
       name: 'Tokyo',
       country: 'Japan',
       dates: 'DEC 5-15',
       price: 'AED 2,350',
-      image: '/assets/images/home/curted/tokyo.png'
+      image: '/assets/images/home/curted/tokyo.png',
     },
     {
       name: 'Bangkok',
       country: 'Thailand',
       dates: 'NOV 20-27',
       price: 'AED 975',
-      image: '/assets/images/home/curted/bangkok.png'
-    }
+      image: '/assets/images/home/curted/bangkok.png',
+    },
   ];
+  navigateToMytrips(query?: any) {
+    let q = query || this.searchQuery;
+    if (!q ) return;
+    q = `i want to travel from Dubai to ${q.name} on ${q.dates}`
+    this.sharedService.setSearchQuery(q.trim());
+    this.router.navigate(['my-trips']);
+  }
 }
