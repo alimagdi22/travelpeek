@@ -7,7 +7,7 @@
     </div>
     <div>
       <h6 class="mb-0 font-bold text-dark-title">Contact Details</h6>
-      <span class="text-xs text-muted">Please provide your contact information to proceed</span>
+      <!-- <span class="text-xs text-muted">Please provide your contact information to proceed</span> -->
     </div>
   </div>
 
@@ -87,11 +87,15 @@
     </div>
 
     <div class="d-flex align-items-center justify-content-between gap-2 pt-1">
-      <button type="button" class="btn btn-outline-secondary px-3 py-2 text-xs font-semibold rounded-3" (click)="onEditClick()">
+      <button type="button" class="btn btn-outline-secondary px-3 py-2 text-xs font-semibold rounded-3" (click)="onEditClick()" [disabled]="hasSubmitted">
         Edit Details
       </button>
       <button type="button" class="btn btn-primary-custom px-4 py-2 text-xs font-semibold rounded-3 d-flex align-items-center gap-1" (click)="onFinalSubmit()" [disabled]="hasSubmitted">
-        Confirm & Continue
+        <span *ngIf="!hasSubmitted">Confirm & Continue</span>
+        <span *ngIf="hasSubmitted" class="d-flex align-items-center gap-1">
+          Submitted
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </span>
       </button>
     </div>
   </div>

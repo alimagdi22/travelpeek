@@ -138,6 +138,7 @@ export class PassengerFormComponent implements OnInit {
 
       if (firstName && lastName && formattedBirthday && passportNumber && formattedExpiry && countryStr) {
         this.hasSubmitted = true;
+        this.passengerForm.disable();
 
         const formattedChatMessage = `my first name is ${firstName.trim()} my last name is ${lastName.trim()} , my gender is ${formattedGender} , my birthday is ${formattedBirthday} , my passport number is ${passportNumber.trim()} , passport expiry is ${formattedExpiry} , issue country is ${countryStr.toLowerCase()}`;
 

@@ -89,7 +89,7 @@
 
                   @if (msg.showBookingPrompt) {
                     <div class="booking-prompt-actions d-flex gap-3 flex-wrap">
-                      <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="fileInput.click()">
+                      <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="fileInput.click()" [disabled]="msg.actionsDisabled">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                           <polyline points="14 2 14 8 20 8"></polyline>
@@ -98,7 +98,7 @@
                         </svg>
                         Upload Passport
                       </button>
-                      <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="enterNamesManually()">
+                      <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="enterNamesManually()" [disabled]="msg.actionsDisabled">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                           <circle cx="12" cy="7" r="4"></circle>
@@ -122,9 +122,11 @@
                   ></app-secure-payment>
                 </div>
               }  @else {
-                @if (msg.text) {
+                @if (msg.text || msg.showContactForm || msg.showPassengerForm) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
-                    <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
+                    @if (msg.text) {
+                      <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
+                    }
                     @if (msg.showContactForm) {
                       <app-contact-form (formSubmitted)="onContactFormSubmitted($event)"></app-contact-form>
                     }

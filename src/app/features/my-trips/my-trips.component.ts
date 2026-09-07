@@ -734,9 +734,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
                 const transitionMessage = `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`;
 
+                // Text bubble first, then form-only bubble
                 this.sharedService.addMessage({
                   sender: 'system',
                   text: transitionMessage,
+                });
+                this.sharedService.addMessage({
+                  sender: 'system',
+                  text: '',
                   showPassengerForm: true,
                   passengerLabel: nextLabel,
                   passengerType: nextPassenger.type
@@ -968,11 +973,15 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       passengerCountLabel: passengerLabel,
     });
 
-    // 3. Prompt for contact details in a separate message with inline form
+    // 3. Prompt for contact details — text bubble first, then form-only bubble
     const promptText = `Please provide contact details, phone and email.`;
     this.sharedService.addMessage({
       sender: 'system',
       text: promptText,
+    });
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: '',
       showContactForm: true,
     });
 
@@ -1045,7 +1054,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
   }
 
+  disableCurrentActionButtons() {
+    this.messages.forEach(m => {
+      m.actionsDisabled = true;
+    });
+  }
+
   enterNamesManually() {
+    this.disableCurrentActionButtons();
     this.sharedService.addMessage({
       sender: 'user',
       text: 'Enter Names Manually',
@@ -1070,9 +1086,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
       const promptText = `I need a few more details. Could you provide the first name, last name, gender, birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
 
+      // Text bubble first, then form-only bubble
       this.sharedService.addMessage({
         sender: 'system',
         text: promptText,
+      });
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: '',
         showPassengerForm: true,
         passengerLabel: targetPassengerLabel,
         passengerType: currentPassenger ? currentPassenger.type : 'adult'
@@ -1081,11 +1102,13 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   onContactFormSubmitted(data: { email: string; phone: string }) {
+    this.disableCurrentActionButtons();
     const text = `my email is ${data.email} and my phone is ${data.phone}`;
     this.sendMessage(text);
   }
 
   onPassengerFormSubmitted(data: PassengerFormData) {
+    this.disableCurrentActionButtons();
     this.sendMessage(data.formattedChatMessage);
   }
 

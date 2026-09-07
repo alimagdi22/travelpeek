@@ -80,6 +80,7 @@ export class ContactFormComponent implements OnInit {
 
       if (email && phoneStr) {
         this.hasSubmitted = true;
+        this.contactForm.disable();
         this.formSubmitted.emit({
           email: email.trim(),
           phone: phoneStr.trim()

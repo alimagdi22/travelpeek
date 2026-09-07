@@ -20,6 +20,7 @@ export interface Message {
   showPassengerForm?: boolean;
   passengerLabel?: string;
   passengerType?: 'adult' | 'child' | 'infant';
+  actionsDisabled?: boolean;
 }
 
 
