@@ -10,9 +10,32 @@
   </div>
 
   <!-- Total Amount Row -->
-  <div class="amount-box d-flex align-items-center justify-content-between p-3 px-4 mb-4">
-    <span class="amount-label text-muted">Total Amount</span>
-    <span class="amount-value">{{ displayAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
+  <div class="amount-box d-flex flex-column gap-2 p-3 px-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between">
+      <span class="amount-label text-muted">Flight fare</span>
+      <span class="amount-line-value">{{ flightFareAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
+    </div>
+
+    @if (extrasAmount > 0) {
+      <div class="d-flex align-items-start justify-content-between gap-3">
+        <span class="amount-label text-muted">
+          Extra services
+          @if (selectedExtraServices.length) {
+            <span class="extras-names d-block">
+              @for (service of selectedExtraServices; track service.serviceCode; let last = $last) {
+                {{ service.serviceName }}{{ last ? '' : ', ' }}
+              }
+            </span>
+          }
+        </span>
+        <span class="amount-line-value">{{ extrasAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
+      </div>
+    }
+
+    <div class="amount-total d-flex align-items-center justify-content-between pt-2">
+      <span class="amount-label text-muted">Total Amount</span>
+      <span class="amount-value">{{ displayAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
+    </div>
   </div>
 
   <!-- Select Payment Method Selection -->

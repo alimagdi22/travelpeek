@@ -81,9 +81,32 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
     this.selectedGateway = gate;
   }
 
+  get extrasAmount(): number {
+    return this.flightCheckoutService.serviceFees || 0;
+  }
+
+  get selectedExtraServices() {
+    const selectedCodes = new Set(this.flightCheckoutService.selectedOfflineServices || []);
+    return (this.flightCheckoutService.allOfflineServices || []).filter((service) =>
+      selectedCodes.has(service.serviceCode)
+    );
+  }
+
+  get flightFareAmount(): number {
+    const selectedAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount;
+    if (typeof selectedAmount === 'number') {
+      return Math.max(selectedAmount - this.extrasAmount, 0);
+    }
+    return this.amount;
+  }
+
   get displayAmount(): number {
     const markup = this.selectedGateway ? this.getGatewayAmount(this.selectedGateway) : 0;
-    return this.amount + markup;
+    const selectedAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount;
+    if (typeof selectedAmount === 'number') {
+      return selectedAmount + markup;
+    }
+    return this.amount + this.extrasAmount + markup;
   }
 
   get payLaterSuccess() {
@@ -109,7 +132,12 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const currency = this.currency || 'EGP';
-    const type = 'notPremium';
+    const recommended = this.flightCheckoutService.recommendedOfflineService;
+    const hasRecommended = !!(
+      recommended &&
+      this.flightCheckoutService.selectedOfflineServices?.includes(recommended.serviceCode)
+    );
+    const type = hasRecommended ? 'premium' : 'notPremium';
     const searchIdFull = (this.flightCheckoutService.selectedFlight as any)?.searchCriteria?.searchId || '';
     const pcc = searchIdFull.split('_')[1] || this.itinerary?.pcc || '';
     const brandId = 0;

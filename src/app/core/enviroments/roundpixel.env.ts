@@ -2,7 +2,7 @@ export let envRP = {
   offlineSeats: 'http://41.223.55.14:7025',
   searchflow: 'https://flightsearch.flytoall.com',
   searchflowAi: 'https://automation.round-pixel.net',
-  BookingFlow: 'https://flightflow.flytoall.com',
+  BookingFlow: 'https://flightflow.travasky.com/',
   // BookingFlow: 'https://flightflow.round-pixel.net',
   FareRules: 'https://flightprov.flytoall.com',
   asm: 'https://backofficeapi.round-pixel.net',

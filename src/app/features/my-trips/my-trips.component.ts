@@ -761,11 +761,15 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
                 const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
 
-                // Initialize selectedFlight for flightCheckoutService
-                this.flightCheckoutService.selectedFlight = {
-                  searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
-                  airItineraryDTO: this.selectedItinerary!
-                } as any;
+                if (!this.flightCheckoutService.selectedFlight) {
+                  this.flightCheckoutService.selectedFlight = {
+                    searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
+                    airItineraryDTO: this.selectedItinerary!
+                  } as any;
+                }
+
+                const paymentAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount
+                  ?? ((this.selectedItinerary?.itinTotalFare?.amount || 1240) + (this.flightCheckoutService.serviceFees || 0));
 
                 this.flightCheckoutServiceApi.addPaymentGateways(currency, 'EG', this.selectedItinerary!).subscribe({
                   next: (gateways) => {
@@ -776,7 +780,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
                       text: '',
                       isPayment: true,
                       itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
-                      paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
+                      paymentAmount,
                       paymentCurrency: currency,
                       gateways: gateways // Pass the gateways array to the component
                     });
@@ -1046,7 +1050,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           itineraries: this.selectedItinerary
             ? [this.selectedItinerary]
             : undefined,
-          paymentAmount: this.selectedItinerary?.itinTotalFare?.amount || 1240,
+          paymentAmount: this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount
+            || ((this.selectedItinerary?.itinTotalFare?.amount || 1240) + (this.flightCheckoutService.serviceFees || 0)),
           paymentCurrency:
             this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
         });
@@ -1238,7 +1243,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     return !!(
       hasMsgWithItineraries &&
       this.flightResultService.ResultFound &&
-      !this.flightResultService.loading &&
       (
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||

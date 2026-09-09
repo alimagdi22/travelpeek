@@ -5,11 +5,19 @@
     <div class="d-flex align-items-center gap-2" *ngIf="!isSidebarCollapsed">
       <div class="header-icon-box p-2 rounded-3 bg-primary-light text-primary d-flex align-items-center justify-content-center">
         <!-- Sparkle/Energy Icon -->
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
+        @if(hasSelectedFlight){
+          <img src="/assets/icons/mytrips/personalize.svg" class="personalize" alt="">
+        }@else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+        }
       </div>
-      <span class="panel-title mb-0">Smart Assistant</span>
+      @if(hasSelectedFlight){
+        <span class="panel-title mb-0">Your Journey, Your Way</span>
+      }@else {
+        <span class="panel-title mb-0">Smart Assistant</span>
+      }
     </div>
 
     <button class="btn-sidebar-toggle border-0 bg-transparent p-1 ms-auto" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Smart Assistant' : 'Collapse Smart Assistant'">
@@ -45,20 +53,29 @@
     <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Travel Assistant">
       <span>✈</span>
     </button>
+    @if (hasSelectedFlight) {
+      <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Extra Services">
+        <span>✨</span>
+      </button>
+    }
   </div>
 </div>
 
 <!-- Mobile Floating Lightbulb Action Button (Visible ONLY when flights exist) -->
 <div class="mobile-assistant-fab-wrapper d-lg-none">
   <button type="button" class="mobile-fab-btn shadow-lg" (click)="toggleMobileDrawer()" title="Smart Assistant Filters">
-    <span class="fab-glow-ring"></span>
-    <span class="fab-icon-box">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffd700" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
-        <path d="M9 18h6"></path>
-        <path d="M10 22h4"></path>
-      </svg>
-    </span>
+    @if(hasSelectedFlight){
+      <img src="/assets/icons/mytrips/bag-plus.svg" class="plus-bag" alt="">
+    }@else {
+      <span class="fab-glow-ring"></span>
+      <span class="fab-icon-box">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffd700" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+          <path d="M9 18h6"></path>
+          <path d="M10 22h4"></path>
+        </svg>
+      </span>
+    }
   </button>
 </div>
 
@@ -71,8 +88,13 @@
       <div class="drawer-drag-handle mx-auto mb-3"></div>
       <div class="drawer-header d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
         <div class="d-flex align-items-center gap-2">
-          <span class="fs-4">💡</span>
-          <h4 class="mb-0 fw-bold text-dark fs-5">Smart Assistant & Filters</h4>
+          @if(hasSelectedFlight){
+            <img src="/assets/icons/mytrips/personalize.svg" class="personalize" alt="">
+            <h4 class="mb-0 fw-bold text-dark fs-5">Your Journey, Your Way</h4>
+          }@else {
+            <span class="fs-4">💡</span>
+            <h4 class="mb-0 fw-bold text-dark fs-5">Smart Assistant & Filters</h4>
+          }
         </div>
         <button type="button" class="btn-close-drawer border-0 bg-transparent p-1 fs-5 text-muted" (click)="closeMobileDrawer()">
           ✕
@@ -87,7 +109,7 @@
       <!-- Footer Button -->
       <div class="drawer-footer pt-3 mt-2 border-top">
         <button type="button" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold border-0" (click)="closeMobileDrawer()">
-          Apply & View Results
+          {{ hasSelectedFlight ? 'Done' : 'Apply & View Results' }}
         </button>
       </div>
 
@@ -97,8 +119,205 @@
 
 <!-- Reusable Template for Smart Content Cards -->
 <ng-template #smartContent>
+  <!-- OFFLINE SERVICES (shown after a flight is selected) -->
+  <ng-container *ngIf="hasSelectedFlight">
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-2">
+        <span class="section-icon">✨</span>
+        <h3 class="section-title section-title-mobile mb-0">Enhance Your Travel Experience</h3>
+      </div>
+      <p class="offline-intro mb-0">Add optional extras to your booking. Selected services are added to your payment total.</p>
+    </div>
+
+    @if (isOfflineServicesLoading) {
+      <div class="offline-skeleton-loader d-flex flex-column gap-3">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="offline-skeleton-card">
+            <div class="d-flex align-items-start gap-2">
+              <span class="offline-skeleton-image"></span>
+              <div class="flex-grow-1 d-flex flex-column gap-2">
+                <span class="offline-skeleton-bar title"></span>
+                <span class="offline-skeleton-bar subtitle"></span>
+              </div>
+              <span class="offline-skeleton-bar price"></span>
+            </div>
+            <span class="offline-skeleton-bar line"></span>
+            <span class="offline-skeleton-bar line short"></span>
+            <span class="offline-skeleton-action"></span>
+          </div>
+        }
+        <div class="offline-skeleton-summary"></div>
+      </div>
+    } @else if (!offlineServices.length) {
+      <div class="section-card">
+        <p class="offline-empty mb-0">No extra services are available for this flight.</p>
+      </div>
+    } @else {
+      @for (service of offlineServices; track service.serviceCode) {
+        @if (normalizeServiceType(service) === 'package') {
+          @if (getPackageAlt(service); as altService) {
+            <div class="offline-service-card">
+              <div class="offline-service-header d-flex align-items-start gap-2">
+                @if (getServiceImage(service) || getServiceImage(altService)) {
+                  <img
+                    class="offline-service-image"
+                    [src]="getServiceImage(service) || getServiceImage(altService)"
+                    alt=""
+                    (error)="onServiceImageError(service)"
+                  >
+                }
+                <div class="flex-grow-1">
+                  <h4 class="offline-service-name mb-0">{{ service.parentService || service.serviceName }}</h4>
+                  <p class="offline-service-hint mb-0">Choose one support option</p>
+                </div>
+              </div>
+
+              <div class="package-options d-flex flex-column gap-2 mt-3">
+                <button
+                  type="button"
+                  class="package-option"
+                  [class.selected]="isServiceSelected(service)"
+                  (click)="selectPackageService(service, altService, service)"
+                >
+                  <span class="package-radio" [class.checked]="isServiceSelected(service)"></span>
+                  <span class="flex-grow-1">
+                    <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
+                      <span>{{ service.serviceName }}</span>
+                      <span class="offline-service-price">
+                        {{ service.servicePrice | number: '1.0-0' }} {{ service.currency }}
+                      </span>
+                    </span>
+                    @if (hasHtmlDescription(service.serviceDescription)) {
+                      <span class="package-option-desc" [innerHTML]="service.serviceDescription"></span>
+                    } @else if (service.serviceDescription) {
+                      <span class="package-option-desc">{{ formatPlainDescription(service.serviceDescription) }}</span>
+                    }
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="package-option"
+                  [class.selected]="isServiceSelected(altService)"
+                  (click)="selectPackageService(altService, service, service)"
+                >
+                  <span class="package-radio" [class.checked]="isServiceSelected(altService)"></span>
+                  <span class="flex-grow-1">
+                    <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
+                      <span>{{ altService.serviceName }}</span>
+                      <span class="offline-service-price">
+                        {{ altService.servicePrice | number: '1.0-0' }} {{ altService.currency }}
+                      </span>
+                    </span>
+                    @if (hasHtmlDescription(altService.serviceDescription)) {
+                      <span class="package-option-desc" [innerHTML]="altService.serviceDescription"></span>
+                    } @else if (altService.serviceDescription) {
+                      <span class="package-option-desc">{{ formatPlainDescription(altService.serviceDescription) }}</span>
+                    }
+                  </span>
+                </button>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="offline-service-card" [class.is-selected]="isServiceSelected(service)">
+            <div class="offline-service-header d-flex align-items-start gap-2">
+              @if (getServiceImage(service)) {
+                <img
+                  class="offline-service-image"
+                  [src]="getServiceImage(service)"
+                  [alt]="service.serviceName"
+                  (error)="onServiceImageError(service)"
+                >
+              }
+              <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                  <h4 class="offline-service-name mb-0">
+                    {{ service.serviceName }}
+                    @if (service.recommended) {
+                      <span class="recommended-badge">Recommended</span>
+                    }
+                  </h4>
+                  <span class="offline-service-price text-nowrap">
+                    {{ service.servicePrice | number: '1.0-0' }} {{ service.currency }}
+                  </span>
+                </div>
+                @if (service.perPassenger) {
+                  <p class="offline-service-hint mb-0">Charged per passenger</p>
+                }
+              </div>
+            </div>
+
+            @if (normalizeServiceType(service) !== 'checkbox') {
+              @if (hasHtmlDescription(service.serviceDescription)) {
+                <div class="offline-service-desc mt-2" [innerHTML]="service.serviceDescription"></div>
+              } @else if (service.serviceDescription) {
+                <p class="offline-service-desc mt-2 mb-0">{{ formatPlainDescription(service.serviceDescription) }}</p>
+              }
+            }
+
+            @if (normalizeServiceType(service) === 'checkbox') {
+              <label class="offline-choice-row mt-3">
+                <input
+                  type="checkbox"
+                  [checked]="isServiceSelected(service)"
+                  (change)="toggleCheckboxService(service, $any($event.target).checked)"
+                >
+                <span>{{ formatPlainDescription(service.serviceDescription) || 'Add this service' }}</span>
+              </label>
+            }
+
+            @if (normalizeServiceType(service) === 'yes/no') {
+              <div class="yes-no-options d-flex flex-column gap-2 mt-3">
+                <label class="offline-choice-row" [class.selected]="yesNoValues[service.serviceCode] === 'yes'">
+                  <input
+                    type="radio"
+                    [name]="'yesno-' + service.serviceCode"
+                    value="yes"
+                    [checked]="yesNoValues[service.serviceCode] === 'yes'"
+                    (change)="setYesNoService(service, 'yes')"
+                  >
+                  <span>{{ service.acceptText || 'Yes, add this service' }}</span>
+                </label>
+                <label class="offline-choice-row" [class.selected]="yesNoValues[service.serviceCode] === 'no'">
+                  <input
+                    type="radio"
+                    [name]="'yesno-' + service.serviceCode"
+                    value="no"
+                    [checked]="yesNoValues[service.serviceCode] === 'no'"
+                    (change)="setYesNoService(service, 'no')"
+                  >
+                  <span>{{ service.declineText || 'No, thanks' }}</span>
+                </label>
+              </div>
+            }
+
+            @if (normalizeServiceType(service) === 'addbutton') {
+              <button
+                type="button"
+                class="offline-add-btn mt-3"
+                [class.added]="isServiceSelected(service)"
+                (click)="toggleAddButtonService(service)"
+              >
+                {{ isServiceSelected(service) ? 'Remove' : 'Add' }}
+              </button>
+            }
+          </div>
+        }
+      }
+
+      <div class="offline-selected-summary">
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <span>Selected extras</span>
+          <strong>{{ selectedServicesTotal | number: '1.0-0' }} {{ selectedServicesCurrency }}</strong>
+        </div>
+        <p class="offline-selected-count mb-0">{{ selectedServicesCount }} service{{ selectedServicesCount === 1 ? '' : 's' }} added to payment</p>
+      </div>
+    }
+  </ng-container>
+
   <!-- IF FILTERS ARE LOADED (ACTIVE FLIGHT SEARCH RESULTS) -->
-  <ng-container *ngIf="!flightResultService.loading && flightResultService.ResultFound && hasFlightResults && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
+  <ng-container *ngIf="!hasSelectedFlight && !flightResultService.loading && flightResultService.ResultFound && hasFlightResults && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
 
     <!-- 🛑 Stops Filter -->
     <div class="section-card" formGroupName="stopsForm">
@@ -139,7 +358,7 @@
   </ng-container>
 
   <!-- IF NO SEARCH ACTIVE (WELCOME SCREEN) -->
-  <ng-container *ngIf="flightResultService.loading || !flightResultService.ResultFound || !hasFlightResults">
+  <ng-container *ngIf="!hasSelectedFlight && (flightResultService.loading || !flightResultService.ResultFound || !hasFlightResults)">
     <!-- 🔍 Smart Filters (Static Mock) -->
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
@@ -167,6 +386,7 @@
     </div>
   </ng-container>
 
+  <ng-container *ngIf="!hasSelectedFlight">
   <!-- COMMON SECTIONS (FLIGHT INSIGHTS & COMPARE FLIGHTS & FARE ALERTS & TRAVEL ASSISTANT) -->
   <!-- 📊 Flight Insights -->
   <div class="section-card">
@@ -261,4 +481,5 @@
       </li>
     </ul>
   </div>
+  </ng-container>
 </ng-template>
