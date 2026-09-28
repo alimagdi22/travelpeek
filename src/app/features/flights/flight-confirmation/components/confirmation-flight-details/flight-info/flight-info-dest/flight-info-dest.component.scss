@@ -1,0 +1,20 @@
+.destination {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.destination-title,
+.destination-date {
+  font-weight: bold;
+}
+
+.destination-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.destination-time {
+  font-size: 12px;
+}

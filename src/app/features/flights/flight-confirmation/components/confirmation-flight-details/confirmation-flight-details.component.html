@@ -1,0 +1,11 @@
+<h2>{{ 'confirmation.flightDetails' | translate }}</h2>
+
+<div class="wrapper">
+  @for (flight of flights; track $index) {
+    <div class="flight">
+      <app-flight-path [flight]="flight" />
+      <hr />
+      <app-flight-info [flight]="flight" />
+    </div>
+  }
+</div>

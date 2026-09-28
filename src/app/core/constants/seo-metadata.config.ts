@@ -44,4 +44,10 @@ export const SEO_METADATA: Record<string, SeoConfig> = {
     ogTitle: 'Account Settings - Travelpeek',
     ogDescription: 'user-management Manage your profile details and account preferences.',
   },
+  paymentResult: {
+    title: 'Booking Confirmation - Travelpeek',
+    description: 'View your flight booking confirmation and e-ticket status on Travelpeek.',
+    ogTitle: 'Booking Confirmation - Travelpeek',
+    ogDescription: 'View your flight booking confirmation and e-ticket status on Travelpeek.',
+  },
 };

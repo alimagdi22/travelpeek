@@ -1,0 +1,7 @@
+<div class="loader-wrapper">
+  @if (text) {
+    <p class="loader-text">{{ text }}</p>
+  }
+
+  <div class="spinner" [ngStyle]="{ borderTopColor: color, width: diameter, height: diameter }"></div>
+</div>

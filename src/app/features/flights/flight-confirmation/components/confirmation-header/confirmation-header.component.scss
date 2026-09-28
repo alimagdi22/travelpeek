@@ -1,0 +1,47 @@
+@use '../../../../../../styles/variables' as vars;
+
+.confimration-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+
+  &__logo {
+    object-fit: contain;
+  }
+
+  &__btns {
+    display: flex;
+    gap: 15px;
+  }
+}
+
+.gradient-button {
+  background: transparent;
+  background-size: 150% 100%;
+  background-position: center;
+  color: vars.$color-primary;
+  border: 1px solid vars.$color-primary;
+  padding: 10px 20px;
+  transition: background-position 0.4s ease-in-out;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  &:hover {
+    background-position: right;
+    background-color: rgba(vars.$color-primary, 0.06);
+  }
+}
+
+.print-btn {
+  background-color: vars.$color-primary;
+  color: white;
+  border: none;
+
+  &:hover {
+    opacity: 0.92;
+  }
+}

@@ -1,0 +1,90 @@
+@use '../../../../../styles/variables' as vars;
+
+.pre-container {
+  height: 100vh;
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 15%;
+}
+
+.error-container {
+  font-family: vars.$font-family-base;
+  display: flex;
+  justify-content: center;
+  margin-top: 12%;
+  padding: 4%;
+  margin-bottom: 5%;
+  box-shadow:
+    rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
+    rgba(0, 0, 0, 0.3) 0px 30px 60px -30px,
+    rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+}
+
+.searchBtn {
+  text-align: center;
+  justify-content: center;
+
+  button {
+    background-color: vars.$color-primary;
+    border: 1px solid vars.$color-primary;
+    color: #fff;
+    border-radius: 7px;
+    padding: 1rem;
+    width: 200px;
+    position: relative;
+    top: 15px;
+
+    &:hover {
+      opacity: 0.92;
+    }
+  }
+}
+
+.main-text {
+  font-weight: 700;
+  font-size: large;
+}
+
+.contact-text {
+  font-family: vars.$font-family-base;
+  font-weight: 600;
+
+  a {
+    color: vars.$color-primary;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 670px) {
+  .main-text {
+    font-weight: 500;
+    font-size: small;
+  }
+
+  .searchBtn {
+    text-align: center;
+    justify-content: center;
+
+    button {
+      border-radius: 7px;
+      width: 150px;
+      position: relative;
+      top: 10px;
+      margin-bottom: 15px;
+    }
+  }
+
+  .contact-text {
+    font-family: vars.$font-family-base;
+    font-weight: 600;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,18 @@
+<div class="row between">
+  <div class="col-12 col-md-5 col-xl-3 info">
+    <p class="title">{{ 'confirmation.passengerName' | translate }}</p>
+    <p>{{ passenger.title }}. {{ passenger.firstName }} {{ passenger.lastName }}</p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-2 info">
+    <p class="title">{{ 'confirmation.passengerNumber' | translate }}</p>
+    <p>{{ passenger.passportNumber }}</p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-2 info">
+    <p class="title">{{ 'confirmation.ticket' | translate }}</p>
+    <p>{{ passenger.ticketNumber ?? 'N/A' }}</p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-3 info">
+    <p class="title">{{ 'confirmation.airlinePNR' | translate }}</p>
+    <p>{{ airlinePNR }}</p>
+  </div>
+</div>

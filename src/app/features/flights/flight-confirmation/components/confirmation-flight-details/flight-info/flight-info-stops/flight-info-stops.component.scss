@@ -1,0 +1,16 @@
+.stops {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stops-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stops-info {
+  display: flex;
+  gap: 20px;
+}

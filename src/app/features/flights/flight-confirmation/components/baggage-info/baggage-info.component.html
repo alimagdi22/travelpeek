@@ -1,0 +1,32 @@
+@if (baggages) {
+  <div class="baggage">
+    <p class="baggage-title">
+      {{ 'confirmation.baggage' | translate }}
+      <span class="baggage-caption">({{ 'confirmation.perPerson' | translate }}) </span>:
+    </p>
+
+    @for (baggage of baggages; track baggage) {
+      @if (baggage.baggage) {
+        <div class="baggage-info">
+          @if (['0 Piece', '0 KG', '0'].includes(baggage.baggage)) {
+            <img
+              src="assets/icons/no-baggage.png"
+              width="20"
+              height="20"
+              alt=""
+              title="Bag Icon"
+              class="baggage-icon"
+            />
+          } @else {
+            <img src="assets/icons/bags.svg" alt="" title="Bag Icon" class="baggage-icon" />
+          }
+          <div class="baggage-text" dir="ltr">
+            <p>{{ baggage.baggage }} x Cabin Baggage (7kg)</p>
+          </div>
+        </div>
+      }
+    }
+  </div>
+}
+
+<p class="paragraph">{{ 'confirmation.baggageMessage' | translate }}</p>

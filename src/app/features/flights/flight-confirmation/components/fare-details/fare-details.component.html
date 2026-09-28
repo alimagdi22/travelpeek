@@ -1,0 +1,9 @@
+<h2>{{ 'confirmation.fareDetails' | translate }}</h2>
+
+<pre>
+<span>{{ "confirmation.fare" | translate }}</span>           <span class="price">{{totalFare.currencyCode}} {{totalFare.fareAmount}}</span>
+
+<span>{{ "confirmation.tax" | translate }}</span>            <span class="price">{{totalFare.currencyCode}} {{totalFare.totalTaxes}}</span>
+
+<span>{{ "confirmation.total" | translate }}</span>          <span class="price">{{totalFare.currencyCode}} {{totalFare.amount + adds}}</span>
+</pre>

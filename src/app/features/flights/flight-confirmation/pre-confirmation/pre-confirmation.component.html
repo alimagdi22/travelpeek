@@ -1,0 +1,37 @@
+<div class="pre-container container mt-4">
+  <div *ngIf="Loading" class="loader-container container">
+    <app-loader />
+  </div>
+  <div class="error-container container" *ngIf="!Loading">
+    <div *ngIf="paymentErrorStatus">
+      <div class="main-text mb-3">{{ paymentError }}</div>
+      <div class="support-container">
+        <div class="contact-text">
+          Contact our customer support via the
+          <a routerLink="/support">Help Center</a>.
+        </div>
+        <div class="searchBtn">
+          <button type="button" id="faieldPayment" (click)="NavigateToHome()">New search</button>
+        </div>
+      </div>
+
+      <ng-container *ngIf="paymentErrorStatus && paymentinfo">
+        <p *ngIf="paymentinfo.paymentMethod" class="col-12 paymentInfo">
+          *{{ 'confirmation.total' | translate }}: {{ paymentinfo.currency }}{{ paymentinfo.amount }}
+        </p>
+        <p *ngIf="paymentinfo.paymentMethod" class="col-12 paymentInfo">
+          *{{ 'confirmation.paymentMethod' | translate }}: {{ paymentinfo.paymentMethod }}
+        </p>
+        <p *ngIf="paymentinfo.paymentRef" class="col-12 paymentInfo">
+          *{{ 'confirmation.paymentRef' | translate }} : {{ paymentinfo.paymentRef }}
+        </p>
+        <p *ngIf="paymentinfo.paymentTrackID" class="col-12 paymentInfo">
+          *{{ 'confirmation.paymentTrackID' | translate }} : {{ paymentinfo.paymentTrackID }}
+        </p>
+        <p *ngIf="paymentinfo.paymentTrackID" class="col-12 paymentInfo">
+          *Date of Issue: {{ myDate | date: 'short' }}
+        </p>
+      </ng-container>
+    </div>
+  </div>
+</div>

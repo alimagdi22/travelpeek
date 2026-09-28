@@ -51,6 +51,16 @@ export const routes: Routes = [
       seo: SEO_METADATA['userManagement'],
     },
   },
+  {
+    path: 'paymentresult',
+    loadChildren: () =>
+      import('./features/flights/flight-confirmation/flight-confirmation.module').then(
+        (m) => m.FlightConfirmationModule,
+      ),
+    data: {
+      seo: SEO_METADATA['paymentResult'],
+    },
+  },
 ];
 
 

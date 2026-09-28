@@ -1,0 +1,32 @@
+<div class="destination">
+  <div class="destination-title">
+    <img
+      [src]="'assets/icons/' + (isDepart ? 'departure-plane-icon.svg' : 'arrive-plane-icon.svg')"
+      title="{{ isDepart ? 'Depart Plane' : 'Arrive Plane' }}"
+      class="destination-icon"
+    />
+    <span class="destination-name">
+      {{ (isDepart ? 'confirmation.Departure' : 'confirmation.Arrive') | translate }}
+    </span>
+  </div>
+  <p class="destination-date">
+    {{
+      isDepart
+        ? (flightDTO.departureDate
+          | date: 'EEE d MMM, y' : undefined : (translate.currentLang === 'ar' ? 'ar-EG' : 'en-US'))
+        : (flightDTO.arrivalDate
+          | date: 'EEE d MMM, y' : undefined : (translate.currentLang === 'ar' ? 'ar-EG' : 'en-US'))
+    }}
+  </p>
+  <span class="destination-time">
+    {{
+      isDepart
+        ? (flightDTO.departureDate | date: 'hh:mm a' : undefined : (translate.currentLang === 'ar' ? 'ar-EG' : 'en-US'))
+        : (flightDTO.arrivalDate | date: 'hh:mm a' : undefined : (translate.currentLang === 'ar' ? 'ar-EG' : 'en-US'))
+    }}
+    ({{ isDepart ? flightDTO.departureTerminalAirport.cityCode : flightDTO.arrivalTerminalAirport.cityCode }})
+  </span>
+  <span class="destination-airport">
+    {{ isDepart ? flightDTO.departureTerminalAirport.airportName : flightDTO.arrivalTerminalAirport.airportName }}
+  </span>
+</div>

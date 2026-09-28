@@ -1,0 +1,17 @@
+<header class="confimration-header gap-2 center justify-content-sm-between">
+  <img src="assets/images/logo.png" title="Travelpeek" class="confimration-header__logo" width="150" alt="Travelpeek" />
+  <div class="confimration-header__btns">
+    <button class="gradient-button" [ngStyle]="{ height: '42px', borderRadius: '6px' }">
+      <a href="https://stagingconfirmation.round-pixel.net/confirmationpdf/{{ hgNumber }}.pdf" target="_blank">{{
+        'confirmation.emailTicket' | translate
+      }}</a>
+    </button>
+    <button
+      class="print-btn"
+      [ngStyle]="{ minWidth: '100px', height: '40px', borderRadius: '12px' }"
+      (click)="onPrintTicket()"
+    >
+      {{ 'confirmation.print' | translate }}
+    </button>
+  </div>
+</header>

@@ -1,0 +1,26 @@
+@use '../../../../styles/variables' as vars;
+
+.section {
+  height: auto;
+  background-color: vars.$color-background-primary;
+  padding-top: 30px;
+  padding-bottom: 30px;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  background-color: #fafafa;
+  border-radius: 10px;
+}
+
+.passengers {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loader {
+  height: 100vh;
+}

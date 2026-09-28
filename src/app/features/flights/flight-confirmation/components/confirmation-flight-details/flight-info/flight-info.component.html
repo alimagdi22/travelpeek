@@ -1,0 +1,12 @@
+<div class="row between wrapper gap-4">
+  <app-flight-info-dest [isDepart]="true" [flightDTO]="flight.flightDTO[0]" />
+
+  <!-- <div class="info">
+        <p>Layover at Turkey,</p>
+        <p>TTU(3h 15min)</p>
+        <p>Economy</p>
+    </div> -->
+
+  <app-flight-info-dest [isDepart]="false" [flightDTO]="flight.flightDTO[flight.flightDTO.length - 1]" />
+  <!-- <app-flight-info-stops /> -->
+</div>

@@ -1,0 +1,8 @@
+<pre>
+<span>{{ 'confirmation.bookingId' | translate }}</span>    <span>{{bookingId}}</span>
+
+<span>{{ 'confirmation.pnr' | translate }}</span>           <span>{{pnr}}</span>
+@if(bookingDate !== "N/A"){
+    <span>{{ 'confirmation.bookingDate' | translate }}</span>          <span>{{bookingDate | date: 'MMMdd, y' : undefined : translate.currentLang === 'ar' ? 'ar-EG' : 'en-US'}}</span>
+}
+</pre>

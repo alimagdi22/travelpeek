@@ -82,6 +82,8 @@ export class SeoService {
         mergedSeo = SEO_METADATA['login'] || {};
       } else if (url.startsWith('/user-management')) {
         mergedSeo = SEO_METADATA['userManagement'] || {};
+      } else if (url.startsWith('/paymentresult')) {
+        mergedSeo = SEO_METADATA['paymentResult'] || {};
       }
     }
 

@@ -1,0 +1,16 @@
+<h2>{{ 'confirmation.contactInfo' | translate }}</h2>
+
+<div class="row between gap-2">
+  <div class="col-12 col-md-5 col-xl-3 info">
+    <p class="title">{{ 'confirmation.passengerName' | translate }}</p>
+    <p class="content">{{ passenger.title }}. {{ passenger.firstName }} {{ passenger.lastName }}</p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-3 info">
+    <p class="title">{{ 'confirmation.emailAddress' | translate }}</p>
+    <p class="content">{{ email }}</p>
+  </div>
+  <div class="col-12 col-md-5 col-xl-3 info">
+    <p class="title">{{ 'confirmation.phoneNumber' | translate }}</p>
+    <p class="content" [class.text-end]="translate.currentLang === 'ar'" dir="ltr">{{ passenger.phoneNumber }}</p>
+  </div>
+</div>

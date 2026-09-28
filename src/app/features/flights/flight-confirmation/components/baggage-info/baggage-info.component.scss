@@ -1,0 +1,33 @@
+.baggage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+
+  .baggage-icon {
+    margin-top: 5px;
+    margin-inline-end: 10px;
+  }
+}
+
+.baggage-title {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.baggage-caption {
+  font-weight: 300;
+  font-size: 14px;
+}
+
+.baggage-info {
+  display: flex;
+  align-items: start;
+}
+
+.baggage-text {
+  line-height: 25px;
+}
+
+.paragraph {
+  margin-top: 50px;
+}
