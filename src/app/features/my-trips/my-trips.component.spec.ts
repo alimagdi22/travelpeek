@@ -75,6 +75,17 @@ describe('MyTripsComponent search results (mocked API)', () => {
       getDataFromAiUrl: jasmine.createSpy('getDataFromAiUrl').and.callFake(() => {
         flightResultService.loading = true;
       }),
+      searchFromVoice: jasmine.createSpy('searchFromVoice').and.callFake((file: File, chatId: string, onTranscript?: (text: string) => Promise<string>) => {
+        flightResultService.loading = true;
+        const transcript = 'I want to travel from Cairo to Dubai on October 23.';
+        const pendingChatId = onTranscript?.(transcript);
+        Promise.resolve(pendingChatId).then((nextChatId) => {
+          flightResultService.getDataFromAiUrl({
+            chat: transcript,
+            chatID: nextChatId || chatId,
+          });
+        });
+      }),
       getSearchHistory: jasmine.createSpy('getSearchHistory'),
       getConversationDetails: jasmine.createSpy('getConversationDetails'),
       getContactDetails: jasmine.createSpy('getContactDetails'),
@@ -276,5 +287,30 @@ describe('MyTripsComponent search results (mocked API)', () => {
     discardPeriodicTasks();
 
     expect(flightResultService.getDataFromAiUrl).toHaveBeenCalledTimes(1);
+  }));
+
+  it('shows the voice transcript as the client message before the search response', fakeAsync(() => {
+    component.pendingVoice = new File(['audio'], 'voice.webm', { type: 'audio/webm' });
+    component.submitChat();
+    tick();
+
+    const userMsg = component.messages.find(
+      (m) => m.sender === 'user' && m.text === 'I want to travel from Cairo to Dubai on October 23.',
+    );
+    expect(userMsg).toBeTruthy();
+    expect(flightResultService.searchFromVoice).toHaveBeenCalled();
+    expect(flightResultService.getDataFromAiUrl).toHaveBeenCalledWith({
+      chat: 'I want to travel from Cairo to Dubai on October 23.',
+      chatID: 'chat-test-1',
+    });
+
+    completeMockedSearch(mockSearchResult, { organized: [] });
+    tick(300);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const resultMsg = [...component.messages].reverse().find((m) => m.sender === 'system' && m.itineraries);
+    expect(resultMsg?.itineraries?.length).toBe(1);
+    expect(component.pendingVoice).toBeNull();
   }));
 });

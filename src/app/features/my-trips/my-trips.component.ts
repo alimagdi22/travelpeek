@@ -20,6 +20,23 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   messages: Message[] = [];
   newMessage: string = '';
   isTyping: boolean = false;
+  readonly maxRecordingSeconds = 35;
+  isVoiceRecorderOpen = false;
+  isRecording = false;
+  recordingSeconds = 0;
+  voiceRecorderError = '';
+  pendingVoice: File | null = null;
+  pendingVoiceUrl = '';
+  pendingVoiceDuration = 0;
+  isVoicePlaying = false;
+  private mediaRecorder: MediaRecorder | null = null;
+  private mediaStream: MediaStream | null = null;
+  private recordingChunks: Blob[] = [];
+  private recordingTimer: ReturnType<typeof setInterval> | null = null;
+  private recordingLimitTimer: ReturnType<typeof setTimeout> | null = null;
+  private stopPromise: Promise<void> | null = null;
+  private recordingStopResolver: (() => void) | null = null;
+  private discardNextRecording = false;
   chatID: string = '';
   get searchHistory(): any[] {
     const res = this.flightResultService.searchHistoryResponse;
@@ -415,6 +432,13 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   ngOnDestroy() {
     this.clearHumanLoadingCycle();
     this.stopLoadingMessageCycle();
+    this.clearRecordingTimers();
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.onstop = null;
+      this.mediaRecorder.stop();
+    }
+    this.releaseMediaStream();
+    this.clearPendingVoice();
     this.subscription.unsubscribe();
     this.resetFlightServiceState();
   }
@@ -555,6 +579,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.messages = [];
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
+    this.closeVoiceRecorder();
+    this.clearPendingVoice();
     this.generateChatId();
     this.resetFlightServiceState();
     if (this.filterFormSub) {
@@ -607,41 +633,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
     this.isTyping = true;
 
-    try {
-      let conversationId = this.sharedService.conversationId;
-      if (!conversationId) {
-        // First message: Create conversation first
-        const createRes = await firstValueFrom(this.sharedService.createConversation(text));
-        if (createRes && createRes.success && createRes.data?.conversationId) {
-          const newId: string = createRes.data.conversationId;
-          this.sharedService.conversationId = newId;
-          this.chatID = newId;
-
-          // Refresh search history list
-          this.flightResultService.getSearchHistory();
-
-          // Save the fixed initial greeting message first
-          try {
-            await firstValueFrom(
-              this.sharedService.saveMessage(newId, 'Assistant', 'Hello! I am your AI travel assistant. Where would you like to travel today?')
-            );
-          } catch (e) {
-            console.error('Error saving greeting:', e);
-          }
-
-          // Save the user's first message
-          try {
-            await firstValueFrom(
-              this.sharedService.saveMessage(newId, 'User', text)
-            );
-          } catch (e) {
-            console.error('Error saving first user message:', e);
-          }
-        }
-      }
-    } catch (err) {
-      console.error('Error saving conversation/message:', err);
-    }
+    await this.ensureConversationSaved(text);
 
     if (this.isEnteringContactDetails) {
       this.startLoadingMessageCycle(this.contactLoadingMessages);
@@ -837,6 +829,262 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
   }
 
+  async submitChat() {
+    if (this.isRecording) {
+      await this.stopVoiceRecording();
+    }
+    if (this.pendingVoice) {
+      this.sendVoiceMessage();
+      return;
+    }
+    this.sendMessage(this.newMessage);
+  }
+
+  toggleVoiceRecorder() {
+    if (this.isRecording) {
+      this.stopVoiceRecording();
+      return;
+    }
+    this.voiceRecorderError = '';
+    this.isVoiceRecorderOpen = !this.isVoiceRecorderOpen;
+  }
+
+  closeVoiceRecorder() {
+    if (this.isRecording) {
+      this.discardNextRecording = true;
+      this.stopVoiceRecording();
+    }
+    this.isVoiceRecorderOpen = false;
+    this.voiceRecorderError = '';
+  }
+
+  async startVoiceRecording() {
+    this.voiceRecorderError = '';
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      return;
+    }
+    if (typeof MediaRecorder === 'undefined') {
+      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      return;
+    }
+
+    try {
+      this.releaseMediaStream();
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      this.voiceRecorderError = 'Allow microphone access to record a voice message.';
+      return;
+    }
+
+    const mimeType = this.pickAudioMimeType();
+    this.recordingChunks = [];
+    this.recordingSeconds = 0;
+    try {
+      this.mediaRecorder = mimeType
+        ? new MediaRecorder(this.mediaStream, { mimeType })
+        : new MediaRecorder(this.mediaStream);
+    } catch {
+      this.releaseMediaStream();
+      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      return;
+    }
+
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data?.size) {
+        this.recordingChunks.push(event.data);
+      }
+    };
+    this.mediaRecorder.onstop = () => {
+      const type = this.mediaRecorder?.mimeType || mimeType || 'audio/webm';
+      const blob = new Blob(this.recordingChunks, { type });
+      const duration = this.recordingSeconds;
+      this.isRecording = false;
+      this.clearRecordingTimers();
+      this.releaseMediaStream();
+      const discard = this.discardNextRecording;
+      this.discardNextRecording = false;
+      if (!discard && blob.size > 0) {
+        const extension = this.audioExtension(type);
+        this.setPendingVoice(
+          new File([blob], `voice-message.${extension}`, { type }),
+          duration,
+        );
+      } else if (!discard) {
+        this.voiceRecorderError = 'No audio was captured. Try again.';
+        this.isVoiceRecorderOpen = true;
+      }
+      this.recordingStopResolver?.();
+      this.recordingStopResolver = null;
+      this.stopPromise = null;
+    };
+
+    this.mediaRecorder.start(250);
+    this.isRecording = true;
+    this.isVoiceRecorderOpen = true;
+    this.recordingTimer = setInterval(() => {
+      this.recordingSeconds = Math.min(this.recordingSeconds + 1, this.maxRecordingSeconds);
+    }, 1000);
+    this.recordingLimitTimer = setTimeout(() => {
+      this.stopVoiceRecording();
+    }, this.maxRecordingSeconds * 1000);
+  }
+
+  stopVoiceRecording(): Promise<void> {
+    if (this.stopPromise) {
+      return this.stopPromise;
+    }
+    if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+      this.isRecording = false;
+      this.clearRecordingTimers();
+      return Promise.resolve();
+    }
+    this.clearRecordingTimers();
+    this.stopPromise = new Promise((resolve) => {
+      this.recordingStopResolver = resolve;
+      this.mediaRecorder?.stop();
+    });
+    return this.stopPromise;
+  }
+
+  clearPendingVoice() {
+    if (this.pendingVoiceUrl) {
+      URL.revokeObjectURL(this.pendingVoiceUrl);
+    }
+    this.pendingVoice = null;
+    this.pendingVoiceUrl = '';
+    this.pendingVoiceDuration = 0;
+    this.isVoicePlaying = false;
+  }
+
+  togglePendingVoicePlayback(audio: HTMLAudioElement) {
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().then(() => {
+        this.isVoicePlaying = true;
+      }).catch(() => {
+        this.isVoicePlaying = false;
+      });
+      return;
+    }
+    audio.pause();
+    this.isVoicePlaying = false;
+  }
+
+  formatRecordingTime(totalSeconds: number): string {
+    const safeSeconds = Math.max(0, Math.min(totalSeconds, this.maxRecordingSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  private sendVoiceMessage() {
+    const file = this.pendingVoice;
+    if (!file || this.isChatLoading) return;
+
+    this.systemAnimationQueue = [];
+    this.isSystemAnimating = false;
+    this.clearPendingVoice();
+    this.isVoiceRecorderOpen = false;
+    this.voiceRecorderError = '';
+    this.isTyping = true;
+
+    const generation = ++this.searchGeneration;
+    this.resetAiSearchState();
+
+    this.flightResultService.searchFromVoice(file, this.chatID, async (text) => {
+      this.sharedService.addMessage({
+        sender: 'user',
+        text,
+      });
+      if (window.innerWidth <= 991) {
+        this.scrollToMessageTop();
+      } else {
+        this.scrollToBottom();
+      }
+      return this.ensureConversationSaved(text);
+    });
+
+    this.pollAiFlightSearch(generation);
+  }
+
+  private async ensureConversationSaved(text: string): Promise<string> {
+    try {
+      const conversationId = this.sharedService.conversationId;
+      if (!conversationId) {
+        const createRes = await firstValueFrom(this.sharedService.createConversation(text));
+        if (createRes && createRes.success && createRes.data?.conversationId) {
+          const newId: string = createRes.data.conversationId;
+          this.sharedService.conversationId = newId;
+          this.chatID = newId;
+          this.flightResultService.getSearchHistory();
+
+          try {
+            await firstValueFrom(
+              this.sharedService.saveMessage(newId, 'Assistant', 'Hello! I am your AI travel assistant. Where would you like to travel today?')
+            );
+          } catch (e) {
+            console.error('Error saving greeting:', e);
+          }
+
+          try {
+            await firstValueFrom(
+              this.sharedService.saveMessage(newId, 'User', text)
+            );
+          } catch (e) {
+            console.error('Error saving first user message:', e);
+          }
+              return newId;
+        }
+      }
+      return conversationId || this.chatID;
+    } catch (err) {
+      console.error('Error saving conversation/message:', err);
+    }
+    return this.chatID;
+  }
+
+  private setPendingVoice(file: File, durationSeconds: number) {
+    this.clearPendingVoice();
+    this.pendingVoice = file;
+    this.pendingVoiceDuration = durationSeconds;
+    this.pendingVoiceUrl = URL.createObjectURL(file);
+    this.isVoiceRecorderOpen = false;
+    this.voiceRecorderError = '';
+  }
+
+  private pickAudioMimeType(): string {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+    ];
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+  }
+
+  private audioExtension(mimeType: string): string {
+    if (mimeType.includes('mp4')) return 'm4a';
+    if (mimeType.includes('ogg')) return 'ogg';
+    return 'webm';
+  }
+
+  private clearRecordingTimers() {
+    if (this.recordingTimer) {
+      clearInterval(this.recordingTimer);
+      this.recordingTimer = null;
+    }
+    if (this.recordingLimitTimer) {
+      clearTimeout(this.recordingLimitTimer);
+      this.recordingLimitTimer = null;
+    }
+  }
+
+  private releaseMediaStream() {
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = null;
+  }
+
   private getAiSearchMessage(response: any, responseAi: any): string {
     const raw = responseAi?.searchMessage ?? response?.searchMessage;
     if (raw == null) return '';
@@ -874,14 +1122,20 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     );
   }
 
-  private runAiFlightSearch(text: string) {
-    const generation = ++this.searchGeneration;
+  private resetAiSearchState() {
+    this.didFollowUpSearch = false;
+    this.didShowFollowUpClientMessage = false;
     this.flightResultService.response = undefined;
     this.flightResultService.responseAi = undefined;
     this.flightResultService.ResultFound = false;
     this.flightResultService.orgnizedResponce = [];
     this.flightResultService.normalError = '';
     this.flightResultService.normalErrorStatus = false;
+  }
+
+  private runAiFlightSearch(text: string) {
+    const generation = ++this.searchGeneration;
+    this.resetAiSearchState();
 
     this.flightResultService.getDataFromAiUrl({
       chat: text,
@@ -1048,7 +1302,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   onInputKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      this.sendMessage(this.newMessage);
+      this.submitChat();
     }
   }
 
