@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
@@ -36,6 +36,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private filterFormSub: Subscription | null = null;
   private systemAnimationQueue: Message[] = [];
   private isSystemAnimating = false;
+  private didFollowUpSearch = false;
+  private didShowFollowUpClientMessage = false;
+  private searchGeneration = 0;
+  isSmartAssistantVisible = false;
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
   isEnteringContactDetails = false;
@@ -415,6 +419,16 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.resetFlightServiceState();
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+
+  canLeavePage(): boolean {
+    return window.confirm('Are you sure you want to leave? Your current chat will be lost.');
+  }
+
   resetFlightServiceState() {
     if (this.flightResultService) {
       this.flightResultService.response = undefined;
@@ -424,6 +438,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.flightResultService.normalError = '';
       this.flightResultService.orgnizedResponce = [];
     }
+    this.isSmartAssistantVisible = false;
+    this.sharedService.clearSmartAssistantSnapshot();
     this.resetCheckoutState();
   }
 
@@ -453,6 +469,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     if (!item.id) return;
 
     this.resetCheckoutState();
+    this.isSmartAssistantVisible = false;
+    this.sharedService.clearSmartAssistantSnapshot();
     this.chatID = item.id;
     this.sharedService.conversationId = item.id;
     this.messages = [];
@@ -551,6 +569,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
     this.resetFlightServiceState();
+    this.didFollowUpSearch = false;
+    this.didShowFollowUpClientMessage = false;
     this.sharedService.addMessage({
       sender: 'system',
       text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
@@ -811,85 +831,202 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       }, 200);
     } else {
       // ── Normal Flight Search Flow ──
-      this.flightResultService.response = undefined;
-      this.flightResultService.responseAi = undefined;
-      this.flightResultService.ResultFound = false;
-      this.flightResultService.orgnizedResponce = [];
+      this.didFollowUpSearch = false;
+      this.didShowFollowUpClientMessage = false;
+      this.runAiFlightSearch(text);
+    }
+  }
 
-      this.flightResultService.getDataFromAiUrl({
-        chat: text,
-        chatID: this.chatID,
+  private getAiSearchMessage(response: any, responseAi: any): string {
+    const raw = responseAi?.searchMessage ?? response?.searchMessage;
+    if (raw == null) return '';
+    return String(raw).trim();
+  }
+
+  private printFollowUpAsClientMessage(searchText: string, introText?: string) {
+    if (this.didShowFollowUpClientMessage || !searchText) return;
+    this.didShowFollowUpClientMessage = true;
+
+    const intro = introText ? String(introText).trim() : '';
+    if (intro) {
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: this.formatAiMessageText(intro),
       });
+    }
 
-      const checkInterval = setInterval(() => {
-        if (!this.flightResultService.loading) {
-          clearInterval(checkInterval);
-          this.isTyping = false;
-          this.stopLoadingMessageCycle();
+    this.sharedService.addMessage({
+      sender: 'user',
+      text: searchText,
+    });
+    this.scrollToBottom();
+  }
 
-          let replyText = '';
-          const response = this.flightResultService.response;
-          const responseAi = this.flightResultService.responseAi;
+  private revealLibraryFollowUpClientMessage() {
+    const followUpChat = String(
+      (this.flightResultService as any).aiFollowUpSearch || '',
+    ).trim();
+    if (!followUpChat) return;
 
-          const hasNewItineraries = !!(
-            response?.airItineraries?.length ||
-            responseAi?.airItineraries?.length ||
-            responseAi?.itineraries?.length
-          );
-          const airItineraries = hasNewItineraries ? this.getFilteredItineraries() : [];
+    this.printFollowUpAsClientMessage(
+      followUpChat,
+      (this.flightResultService as any).aiFollowUpOutput,
+    );
+  }
 
-          const aiOutput = responseAi?.output || (responseAi as any)?.text || (responseAi as any)?.message || response?.output || (response as any)?.text || (response as any)?.message;
+  private runAiFlightSearch(text: string) {
+    const generation = ++this.searchGeneration;
+    this.flightResultService.response = undefined;
+    this.flightResultService.responseAi = undefined;
+    this.flightResultService.ResultFound = false;
+    this.flightResultService.orgnizedResponce = [];
+    this.flightResultService.normalError = '';
+    this.flightResultService.normalErrorStatus = false;
 
-          if (aiOutput) {
-            replyText = aiOutput;
-          } else if (!hasNewItineraries || airItineraries.length === 0) {
-            const rawError = this.flightResultService.normalError;
-            let errorMessage =
-              'No flights found matching your query. Please try again.';
-            if (rawError) {
-              if (typeof rawError === 'string') {
-                errorMessage = rawError;
-              } else if (typeof rawError === 'object') {
-                errorMessage =
-                  (rawError as any).message ||
-                  (rawError as any).error?.message ||
-                  'Failed to search flights.';
-              }
-            }
-            replyText = errorMessage;
-          } else {
-            const flight = response?.searchCriteria?.flights?.[0] || responseAi?.searchCriteria?.flights?.[0];
-            const deptFrom = flight?.departingFrom || '';
-            const arrTo = flight?.arrivingTo || '';
-            const deptDate = flight?.departingOnDate ? flight.departingOnDate.split('T')[0] : '';
-            replyText = `Found flights matching your search: from "${deptFrom}" to "${arrTo}" on "${deptDate}".`;
-          }
+    this.flightResultService.getDataFromAiUrl({
+      chat: text,
+      chatID: this.chatID,
+    });
 
-          if (hasNewItineraries && airItineraries.length > 0) {
-            // Remove itineraries from older messages so flight cards are not duplicated across multiple chat bubbles
-            this.messages.forEach(m => {
-              if (m.sender === 'system') {
-                m.itineraries = undefined;
-              }
-            });
-          }
+    this.pollAiFlightSearch(generation);
+  }
 
-          replyText = this.formatAiMessageText(replyText);
+  private pollAiFlightSearch(generation: number) {
+    const checkInterval = setInterval(() => {
+      if (generation !== this.searchGeneration) {
+        clearInterval(checkInterval);
+        return;
+      }
+      this.revealLibraryFollowUpClientMessage();
+      if (this.flightResultService.loading) {
+        return;
+      }
 
-          this.sharedService.addMessage({
-            sender: 'system',
-            text: replyText,
-            itineraries:
-              hasNewItineraries && airItineraries.length > 0 ? airItineraries : undefined,
-          });
-
-          if (hasNewItineraries && airItineraries && airItineraries.length > 0) {
-            this.scrollToLastSystemMessage();
-          } else {
-            this.scrollToBottom();
-          }
+      clearInterval(checkInterval);
+      // A follow-up search can start in the same tick the first request completes.
+      setTimeout(() => {
+        if (generation !== this.searchGeneration) return;
+        if (this.flightResultService.loading) {
+          this.pollAiFlightSearch(generation);
+          return;
         }
-      }, 200);
+        this.handleFlightSearchCompletion();
+      }, 50);
+    }, 200);
+  }
+
+  private handleFlightSearchCompletion() {
+    const response = this.flightResultService.response as any;
+    const responseAi = this.flightResultService.responseAi as any;
+    const airItineraries = this.getFilteredItineraries();
+    const hasNewItineraries = airItineraries.length > 0;
+
+    const followUpOutput = (this.flightResultService as any).aiFollowUpOutput as string | undefined;
+    const libraryFollowUpChat = String(
+      (this.flightResultService as any).aiFollowUpSearch || '',
+    ).trim();
+    if (followUpOutput) {
+      this.didFollowUpSearch = true;
+    }
+    if (libraryFollowUpChat) {
+      this.printFollowUpAsClientMessage(libraryFollowUpChat, followUpOutput);
+    } else if (followUpOutput && !this.didShowFollowUpClientMessage) {
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: this.formatAiMessageText(followUpOutput),
+      });
+    }
+    if (followUpOutput || libraryFollowUpChat) {
+      (this.flightResultService as any).aiFollowUpOutput = undefined;
+      (this.flightResultService as any).aiFollowUpSearch = undefined;
+    }
+
+    const searchMessage = this.getAiSearchMessage(response, responseAi);
+
+    if (searchMessage && !hasNewItineraries && !this.didFollowUpSearch) {
+      this.didFollowUpSearch = true;
+      const followUpIntro =
+        responseAi?.output ||
+        responseAi?.text ||
+        responseAi?.message ||
+        response?.output ||
+        response?.text ||
+        response?.message;
+      this.printFollowUpAsClientMessage(searchMessage, followUpIntro);
+      this.isTyping = true;
+      this.startLoadingMessageCycle(this.defaultSearchLoadingMessages);
+      this.scrollToBottom();
+      this.runAiFlightSearch(searchMessage);
+      return;
+    }
+
+    this.isTyping = false;
+    this.stopLoadingMessageCycle();
+
+    const aiOutput =
+      responseAi?.output ||
+      responseAi?.text ||
+      responseAi?.message ||
+      response?.output ||
+      response?.text ||
+      response?.message;
+
+    let replyText = '';
+    if (aiOutput) {
+      replyText = aiOutput;
+    } else if (hasNewItineraries) {
+      const flight = response?.searchCriteria?.flights?.[0] || responseAi?.searchCriteria?.flights?.[0];
+      const deptFrom = flight?.departingFrom || '';
+      const arrTo = flight?.arrivingTo || '';
+      const deptDate = flight?.departingOnDate ? flight.departingOnDate.split('T')[0] : '';
+      replyText = `Found flights matching your search: from "${deptFrom}" to "${arrTo}" on "${deptDate}".`;
+    } else {
+      const rawError = this.flightResultService.normalError;
+      let errorMessage =
+        'No flights found matching your query. Please try again.';
+      if (rawError) {
+        if (typeof rawError === 'string') {
+          errorMessage = rawError;
+        } else if (typeof rawError === 'object') {
+          errorMessage =
+            (rawError as any).message ||
+            (rawError as any).error?.message ||
+            'Failed to search flights.';
+        }
+      }
+      replyText = errorMessage;
+    }
+
+    if (hasNewItineraries) {
+      this.isSmartAssistantVisible = true;
+      this.sharedService.saveSmartAssistantSnapshot({
+        comparisonFlights: airItineraries,
+        recommendationSummary:
+          response?.recommendation?.ai?.summary ||
+          responseAi?.recommendation?.ai?.summary ||
+          '',
+        isRoundTrip:
+          (response?.searchCriteria?.flightType || responseAi?.searchCriteria?.flightType) === 'RoundTrip',
+      });
+      this.messages.forEach(m => {
+        if (m.sender === 'system') {
+          m.itineraries = undefined;
+        }
+      });
+    }
+
+    replyText = this.formatAiMessageText(replyText);
+
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: replyText,
+      itineraries: hasNewItineraries ? airItineraries : undefined,
+    });
+
+    if (hasNewItineraries) {
+      this.scrollToLastSystemMessage();
+    } else {
+      this.scrollToBottom();
     }
   }
 
@@ -1226,16 +1363,24 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   getFilteredItineraries(): any[] {
-    if (this.flightResultService.orgnizedResponce !== undefined && this.flightResultService.orgnizedResponce !== null) {
-      return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
+    const organized = this.flightResultService.orgnizedResponce;
+    if (Array.isArray(organized) && organized.length > 0) {
+      return organized.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
     }
-    const res = this.flightResultService.response;
-    const resAi = this.flightResultService.responseAi;
-    const direct = res?.airItineraries || resAi?.airItineraries || resAi?.itineraries;
-    if (direct && direct.length > 0) {
-      return direct.slice(0, 5);
-    }
-    return [];
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+    const candidates = [
+      res?.airItineraries,
+      resAi?.airItineraries,
+      resAi?.itineraries,
+      res?.itineraries,
+      resAi?.data?.airItineraries,
+      resAi?.data?.itineraries,
+      res?.data?.airItineraries,
+      res?.data?.itineraries,
+    ];
+    const direct = candidates.find((list) => Array.isArray(list) && list.length > 0);
+    return direct ? direct.slice(0, 5) : [];
   }
 
   get hasFlightResults(): boolean {
@@ -1247,7 +1392,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||
         this.flightResultService.responseAi?.itineraries?.length ||
-        this.flightResultService.orgnizedResponce !== undefined
+        (this.flightResultService.orgnizedResponce?.length ?? 0) > 0
       )
     );
   }

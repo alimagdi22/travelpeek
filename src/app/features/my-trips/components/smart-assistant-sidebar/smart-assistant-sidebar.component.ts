@@ -62,6 +62,11 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
         }
       }),
     );
+    this.subscription.add(
+      this.flightResultService.notify.subscribe(() => {
+        this.persistAssistantSnapshot();
+      }),
+    );
   }
 
   ngOnDestroy(): void {
@@ -405,7 +410,14 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   }
 
   isRoundTrip(): boolean {
-    return this.flightResultService.response?.searchCriteria?.flightType === 'RoundTrip';
+    if (this.hasFlightResults) {
+      return this.isCurrentSearchRoundTrip();
+    }
+    return !!this.sharedService.getLastSmartAssistantSnapshot()?.isRoundTrip;
+  }
+
+  get isAssistantSearchLoading(): boolean {
+    return !this.hasSelectedFlight && !!this.flightResultService.loading;
   }
 
   get hasFlightResults(): boolean {
@@ -416,8 +428,48 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||
         this.flightResultService.responseAi?.itineraries?.length ||
-        this.flightResultService.orgnizedResponce !== undefined
+        (this.flightResultService.orgnizedResponce?.length ?? 0) > 0
       )
+    );
+  }
+
+  get hasPreviousAssistantData(): boolean {
+    const snapshot = this.sharedService.getLastSmartAssistantSnapshot();
+    return !!(snapshot?.comparisonFlights?.length || snapshot?.recommendationSummary);
+  }
+
+  get showAssistantFlightUi(): boolean {
+    return this.hasFlightResults || this.hasPreviousAssistantData;
+  }
+
+  get recommendationText(): string {
+    return (
+      this.flightResultService.response?.recommendation?.ai?.summary ||
+      (this.flightResultService.responseAi as any)?.recommendation?.ai?.summary ||
+      this.sharedService.getLastSmartAssistantSnapshot()?.recommendationSummary ||
+      ''
+    );
+  }
+
+  persistAssistantSnapshot() {
+    if (this.isAssistantSearchLoading) return;
+    const comparisonFlights = this.getCurrentComparisonFlights();
+    if (!comparisonFlights.length) return;
+    const recommendationSummary =
+      this.flightResultService.response?.recommendation?.ai?.summary ||
+      (this.flightResultService.responseAi as any)?.recommendation?.ai?.summary ||
+      '';
+    this.sharedService.saveSmartAssistantSnapshot({
+      comparisonFlights,
+      recommendationSummary,
+      isRoundTrip: this.isCurrentSearchRoundTrip(),
+    });
+  }
+
+  private isCurrentSearchRoundTrip(): boolean {
+    return (
+      this.flightResultService.response?.searchCriteria?.flightType === 'RoundTrip' ||
+      this.flightResultService.responseAi?.searchCriteria?.flightType === 'RoundTrip'
     );
   }
 
@@ -433,6 +485,14 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   }
 
   getComparisonFlights(): any[] {
+    const current = this.getCurrentComparisonFlights();
+    if (current.length > 0) {
+      return current;
+    }
+    return this.sharedService.getLastSmartAssistantSnapshot()?.comparisonFlights || [];
+  }
+
+  private getCurrentComparisonFlights(): any[] {
     if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
       return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
     }

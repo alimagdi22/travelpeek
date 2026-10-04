@@ -26,6 +26,12 @@ export class SharedService {
     travellers: {}
   };
 
+  private lastSmartAssistantSnapshot: {
+    comparisonFlights: any[];
+    recommendationSummary: string;
+    isRoundTrip: boolean;
+  } | null = null;
+
   setUser(user: any) {
     this.userSubject.next(user);
   }
@@ -48,6 +54,32 @@ export class SharedService {
 
   getSelectedItinerary() {
     return this.selectedItinerarySubject.getValue();
+  }
+
+  saveSmartAssistantSnapshot(snapshot: {
+    comparisonFlights: any[];
+    recommendationSummary?: string;
+    isRoundTrip?: boolean;
+  }) {
+    const comparisonFlights = Array.isArray(snapshot?.comparisonFlights)
+      ? snapshot.comparisonFlights.filter(Boolean).slice(0, 5)
+      : [];
+    if (!comparisonFlights.length && !snapshot?.recommendationSummary) {
+      return;
+    }
+    this.lastSmartAssistantSnapshot = {
+      comparisonFlights,
+      recommendationSummary: snapshot.recommendationSummary || '',
+      isRoundTrip: !!snapshot.isRoundTrip,
+    };
+  }
+
+  getLastSmartAssistantSnapshot() {
+    return this.lastSmartAssistantSnapshot;
+  }
+
+  clearSmartAssistantSnapshot() {
+    this.lastSmartAssistantSnapshot = null;
   }
 
   private formatDateTime(isoString: string): string {

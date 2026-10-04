@@ -21,7 +21,7 @@
       <!-- Main Chat Window Wrapper -->
       <div class="chat-main-wrapper flex-grow-1 d-flex align-items-center justify-content-center position-relative overflow-y-auto">
 
-    <div class="container chat-container-v2" [class.has-sidebar]="hasFlightResults">
+    <div class="container chat-container-v2" [class.has-sidebar]="isSmartAssistantVisible">
 
       <!-- Chat Messages Scroll Container -->
       <div class="chat-messages-container d-flex flex-column gap-4 p-4">
@@ -345,7 +345,7 @@
   </div>
 
   <!-- Smart Assistant Right Sidebar Component -->
-  @if (hasFlightResults) {
+  @if (isSmartAssistantVisible) {
     <app-smart-assistant-sidebar (stopsTriggered)="openStopsModal($event, 0)"></app-smart-assistant-sidebar>
   }
   </div>

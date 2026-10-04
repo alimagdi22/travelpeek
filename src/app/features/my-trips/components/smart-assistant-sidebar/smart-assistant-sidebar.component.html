@@ -316,8 +316,65 @@
     }
   </ng-container>
 
-  <!-- IF FILTERS ARE LOADED (ACTIVE FLIGHT SEARCH RESULTS) -->
-  <ng-container *ngIf="!hasSelectedFlight && !flightResultService.loading && flightResultService.ResultFound && hasFlightResults && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
+  <!-- IF SEARCH IS LOADING: keep assistant open with skeletons -->
+  <ng-container *ngIf="!hasSelectedFlight && isAssistantSearchLoading">
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon">🛑</span>
+        <h3 class="section-title mb-0">Stops</h3>
+      </div>
+      <div class="assistant-skeleton-pills d-flex flex-wrap gap-2">
+        <span class="offline-skeleton-bar pill"></span>
+        <span class="offline-skeleton-bar pill short-pill"></span>
+        <span class="offline-skeleton-bar pill"></span>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon">⭐</span>
+        <h3 class="section-title mb-0">AI Recommendation</h3>
+      </div>
+      <div class="offline-skeleton-card">
+        <span class="offline-skeleton-bar line"></span>
+        <span class="offline-skeleton-bar line short"></span>
+        <span class="offline-skeleton-bar line"></span>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon">📊</span>
+        <h3 class="section-title mb-0">Flight Insights</h3>
+      </div>
+      <div class="insights-chart-box d-flex flex-column gap-2">
+        <div class="chart-bars d-flex justify-content-between align-items-end h-70px px-2 gap-1">
+          <div class="bar assistant-skeleton-bar" style="height: 60%;"></div>
+          <div class="bar assistant-skeleton-bar" style="height: 80%;"></div>
+          <div class="bar assistant-skeleton-bar" style="height: 100%;"></div>
+          <div class="bar assistant-skeleton-bar" style="height: 70%;"></div>
+          <div class="bar assistant-skeleton-bar" style="height: 50%;"></div>
+        </div>
+        <span class="offline-skeleton-bar caption mx-auto"></span>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon">⚖</span>
+        <h3 class="section-title mb-0">Compare Flights</h3>
+      </div>
+      <div class="offline-skeleton-card">
+        <span class="offline-skeleton-bar line"></span>
+        <span class="offline-skeleton-bar line short"></span>
+        <span class="offline-skeleton-bar line"></span>
+        <span class="offline-skeleton-bar line short"></span>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- IF FILTERS ARE LOADED (ACTIVE FLIGHT SEARCH RESULTS OR PREVIOUS SNAPSHOT) -->
+  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && showAssistantFlightUi && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
 
     <!-- 🛑 Stops Filter -->
     <div class="section-card" formGroupName="stopsForm">
@@ -339,40 +396,10 @@
         }
       </div>
     </div>
-
-    <!-- ⭐ AI Recommendation (Contextual) -->
-    <div class="section-card" *ngIf="flightResultService.response?.airItineraries?.length">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">⭐</span>
-        <h3 class="section-title mb-0">AI Recommendation</h3>
-      </div>
-      <div class="ai-recommendation-box p-3 rounded-3">
-        @if(flightResultService.response){
-          <p class="recommendation-text mb-0">
-            {{flightResultService.response.recommendation.ai.summary}}
-          </p>
-        }
-      </div>
-    </div>
-
   </ng-container>
 
-  <!-- IF NO SEARCH ACTIVE (WELCOME SCREEN) -->
-  <ng-container *ngIf="!hasSelectedFlight && (flightResultService.loading || !flightResultService.ResultFound || !hasFlightResults)">
-    <!-- 🔍 Smart Filters (Static Mock) -->
-    <div class="section-card">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">🔍</span>
-        <h3 class="section-title mb-0">Smart Filters</h3>
-      </div>
-      <div class="badge-container d-flex flex-wrap gap-2">
-        <span class="badge-filter filter-default">Non-stop only</span>
-        <span class="badge-filter filter-default">Morning Dep.</span>
-        <span class="badge-filter filter-active">Best Value</span>
-      </div>
-    </div>
-
-    <!-- ⭐ AI Recommendation (Static Mock) -->
+  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && recommendationText">
+    <!-- ⭐ AI Recommendation (Contextual) -->
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">⭐</span>
@@ -380,13 +407,13 @@
       </div>
       <div class="ai-recommendation-box p-3 rounded-3">
         <p class="recommendation-text mb-0">
-          Search for flights to see real-time AI recommendations and smart filters tailored to your history!
+          {{ recommendationText }}
         </p>
       </div>
     </div>
   </ng-container>
 
-  <ng-container *ngIf="!hasSelectedFlight">
+  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading">
   <!-- COMMON SECTIONS (FLIGHT INSIGHTS & COMPARE FLIGHTS & FARE ALERTS & TRAVEL ASSISTANT) -->
   <!-- 📊 Flight Insights -->
   <div class="section-card">
@@ -407,7 +434,7 @@
   </div>
 
   <!-- ⚖ Compare Flights -->
-  <div class="section-card">
+  <div class="section-card" *ngIf="getComparisonFlights().length > 0">
     <div class="section-header d-flex align-items-center gap-2 mb-3">
       <span class="section-icon">⚖</span>
       <h3 class="section-title mb-0">Compare Flights</h3>
@@ -422,25 +449,17 @@
           </tr>
         </thead>
         <tbody>
-          @if (getComparisonFlights().length > 0) {
-            @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
-              <tr class="clickable-row" (click)="openStopsModal(flight)" title="Click to view itinerary & stops details">
-                <td class="metric-label">
-                  <img [src]="flight.allJourney.flights[0].flightAirline.airlineLogo" class="airline-logo" alt="airlineLogo" >
-                  <span class="ms-2">
-                    {{flight.allJourney.flights[0].flightAirline.airlineCode}}
-                  </span>
-                </td>
-                <td>{{ formatDuration(flight.totalDuration) }}</td>
-                <td class="font-semibold text-primary">
-                  {{ flight.itinTotalFare.amount | currency: (flight.itinTotalFare.currencyCode || 'EGP'): 'symbol': '1.0-0' }}
-                </td>
-              </tr>
-            }
-          } @else {
-            <tr>
-              <td colspan="3" class="text-center text-muted py-3" style="font-size: 12px;">
-                No flights to compare yet.
+          @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
+            <tr class="clickable-row" (click)="openStopsModal(flight)" title="Click to view itinerary & stops details">
+              <td class="metric-label">
+                <img [src]="flight.allJourney.flights[0].flightAirline.airlineLogo" class="airline-logo" alt="airlineLogo" >
+                <span class="ms-2">
+                  {{flight.allJourney.flights[0].flightAirline.airlineCode}}
+                </span>
+              </td>
+              <td>{{ formatDuration(flight.totalDuration) }}</td>
+              <td class="font-semibold text-primary">
+                {{ flight.itinTotalFare.amount | currency: (flight.itinTotalFare.currencyCode || 'EGP'): 'symbol': '1.0-0' }}
               </td>
             </tr>
           }

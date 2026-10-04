@@ -410,7 +410,8 @@
 .offline-skeleton-image,
 .offline-skeleton-bar,
 .offline-skeleton-action,
-.offline-skeleton-summary {
+.offline-skeleton-summary,
+.assistant-skeleton-bar {
   background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 37%, #e2e8f0 63%);
   background-size: 400% 100%;
   animation: offlineSkeletonPulse 1.4s ease-in-out infinite;
@@ -450,6 +451,21 @@
 
   &.short {
     width: 72%;
+  }
+
+  &.pill {
+    width: 88px;
+    height: 28px;
+    border-radius: 100px;
+  }
+
+  &.short-pill {
+    width: 64px;
+  }
+
+  &.caption {
+    width: 140px;
+    height: 8px;
   }
 }
 
