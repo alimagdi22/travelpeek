@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
@@ -20,22 +20,36 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   messages: Message[] = [];
   newMessage: string = '';
   isTyping: boolean = false;
-  readonly maxRecordingSeconds = 35;
   isVoiceRecorderOpen = false;
+  isListening = false;
+  voiceRecorderError = '';
+  readonly maxRecordingSeconds = 35;
   isRecording = false;
   recordingSeconds = 0;
-  voiceRecorderError = '';
-  pendingVoice: File | null = null;
-  pendingVoiceUrl = '';
-  pendingVoiceDuration = 0;
-  isVoicePlaying = false;
+  private speechRecognition: {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    maxAlternatives?: number;
+    start(): void;
+    stop(): void;
+    abort(): void;
+    onresult: ((event: any) => void) | null;
+    onerror: ((event: any) => void) | null;
+    onend: (() => void) | null;
+  } | null = null;
+  private typedBeforeVoice = '';
+  private restartSpeechRecognition = false;
+  private speechRestartTimer: ReturnType<typeof setTimeout> | null = null;
+  private speechErrorCount = 0;
+  private currentSpeechLang = 'en-US';
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
   private recordingChunks: Blob[] = [];
   private recordingTimer: ReturnType<typeof setInterval> | null = null;
   private recordingLimitTimer: ReturnType<typeof setTimeout> | null = null;
-  private stopPromise: Promise<void> | null = null;
-  private recordingStopResolver: (() => void) | null = null;
+  private stopPromise: Promise<File | null> | null = null;
+  private recordingStopResolver: ((file: File | null) => void) | null = null;
   private discardNextRecording = false;
   chatID: string = '';
   get searchHistory(): any[] {
@@ -49,6 +63,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
+  private zone = inject(NgZone);
   private subscription = new Subscription();
   private filterFormSub: Subscription | null = null;
   private systemAnimationQueue: Message[] = [];
@@ -432,13 +447,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   ngOnDestroy() {
     this.clearHumanLoadingCycle();
     this.stopLoadingMessageCycle();
-    this.clearRecordingTimers();
-    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-      this.mediaRecorder.onstop = null;
-      this.mediaRecorder.stop();
-    }
-    this.releaseMediaStream();
-    this.clearPendingVoice();
+    this.stopVoice({ cancel: true });
     this.subscription.unsubscribe();
     this.resetFlightServiceState();
   }
@@ -580,7 +589,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
     this.closeVoiceRecorder();
-    this.clearPendingVoice();
     this.generateChatId();
     this.resetFlightServiceState();
     if (this.filterFormSub) {
@@ -830,64 +838,158 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   async submitChat() {
-    if (this.isRecording) {
-      await this.stopVoiceRecording();
-    }
-    if (this.pendingVoice) {
-      this.sendVoiceMessage();
+    if (this.isListening || this.isRecording) {
+      await this.finishVoiceAndSend();
       return;
     }
     this.sendMessage(this.newMessage);
   }
 
+  get voicePreview(): string {
+    if (!this.isListening) return '';
+    const typed = this.typedBeforeVoice.trim();
+    const current = this.newMessage.trim();
+    if (typed && current.toLowerCase().startsWith(typed.toLowerCase())) {
+      return current.slice(typed.length).trim();
+    }
+    return current;
+  }
+
   toggleVoiceRecorder() {
-    if (this.isRecording) {
-      this.stopVoiceRecording();
+    if (this.isListening) {
+      this.finishVoiceAndSend();
       return;
     }
-    this.voiceRecorderError = '';
-    this.isVoiceRecorderOpen = !this.isVoiceRecorderOpen;
+    this.startVoice();
   }
 
   closeVoiceRecorder() {
-    if (this.isRecording) {
-      this.discardNextRecording = true;
-      this.stopVoiceRecording();
-    }
-    this.isVoiceRecorderOpen = false;
     this.voiceRecorderError = '';
+    this.stopVoice({ cancel: true });
   }
 
-  async startVoiceRecording() {
+  startVoice() {
     this.voiceRecorderError = '';
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.isVoiceRecorderOpen = true;
       return;
     }
     if (typeof MediaRecorder === 'undefined') {
       this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.isVoiceRecorderOpen = true;
       return;
     }
 
+    const keepTyped = this.newMessage.trim();
+    this.stopVoice({ cancel: true });
+    this.typedBeforeVoice = keepTyped;
+    this.newMessage = keepTyped;
+    this.isVoiceRecorderOpen = true;
+    this.isListening = true;
+    this.restartSpeechRecognition = true;
+    this.speechErrorCount = 0;
+    this.currentSpeechLang = this.getSpeechLang();
+    this.discardNextRecording = false;
+
+    void this.beginVoiceCapture();
+  }
+
+  stopVoice(options?: { cancel?: boolean }) {
+    this.stopSpeechRecognition();
+    if (options?.cancel) {
+      this.discardNextRecording = true;
+      void this.stopMediaRecorder();
+      this.newMessage = this.typedBeforeVoice;
+      this.resizeChatInput();
+      this.typedBeforeVoice = '';
+      this.voiceRecorderError = '';
+      this.isVoiceRecorderOpen = false;
+      this.isListening = false;
+      return;
+    }
+    this.typedBeforeVoice = '';
+    this.isListening = false;
+    if (!this.voiceRecorderError) {
+      this.isVoiceRecorderOpen = false;
+    }
+  }
+
+  startVoiceRecording() {
+    this.startVoice();
+  }
+
+  stopVoiceRecording() {
+    this.finishVoiceAndSend();
+  }
+
+  private finishVoiceAndSend() {
+    const liveText = this.newMessage.trim();
+    this.stopSpeechRecognition();
+    return this.stopMediaRecorder().then((file) => {
+      this.isListening = false;
+      this.isVoiceRecorderOpen = false;
+      this.typedBeforeVoice = '';
+      if (file) {
+        this.sendVoiceMessage(file, liveText);
+        return;
+      }
+      if (liveText) {
+        this.sendMessage(liveText);
+      }
+    });
+  }
+
+  applyVoiceTranscript(spoken: string) {
+    const spokenText = spoken.trim();
+    this.newMessage = this.typedBeforeVoice
+      ? (spokenText ? `${this.typedBeforeVoice} ${spokenText}` : this.typedBeforeVoice)
+      : spokenText;
+    this.resizeChatInput();
+  }
+
+  private async beginVoiceCapture() {
     try {
       this.releaseMediaStream();
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      this.voiceRecorderError = 'Allow microphone access to record a voice message.';
+      this.voiceRecorderError = 'Allow microphone access to use voice input.';
+      this.isListening = false;
+      this.restartSpeechRecognition = false;
+      this.isVoiceRecorderOpen = true;
       return;
     }
 
+    if (!this.isListening) {
+      this.releaseMediaStream();
+      return;
+    }
+
+    if (!this.startMediaRecorder(this.mediaStream)) {
+      this.releaseMediaStream();
+      this.isListening = false;
+      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.isVoiceRecorderOpen = true;
+      return;
+    }
+
+    const Recognition = this.getSpeechRecognitionCtor();
+    if (Recognition) {
+      this.beginSpeechRecognition(Recognition);
+    }
+  }
+
+  private startMediaRecorder(stream: MediaStream): boolean {
     const mimeType = this.pickAudioMimeType();
     this.recordingChunks = [];
     this.recordingSeconds = 0;
     try {
       this.mediaRecorder = mimeType
-        ? new MediaRecorder(this.mediaStream, { mimeType })
-        : new MediaRecorder(this.mediaStream);
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
     } catch {
-      this.releaseMediaStream();
-      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
-      return;
+      this.mediaRecorder = null;
+      return false;
     }
 
     this.mediaRecorder.ondataavailable = (event) => {
@@ -898,114 +1000,251 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.mediaRecorder.onstop = () => {
       const type = this.mediaRecorder?.mimeType || mimeType || 'audio/webm';
       const blob = new Blob(this.recordingChunks, { type });
-      const duration = this.recordingSeconds;
       this.isRecording = false;
       this.clearRecordingTimers();
       this.releaseMediaStream();
       const discard = this.discardNextRecording;
       this.discardNextRecording = false;
+      let file: File | null = null;
       if (!discard && blob.size > 0) {
         const extension = this.audioExtension(type);
-        this.setPendingVoice(
-          new File([blob], `voice-message.${extension}`, { type }),
-          duration,
-        );
-      } else if (!discard) {
-        this.voiceRecorderError = 'No audio was captured. Try again.';
-        this.isVoiceRecorderOpen = true;
+        file = new File([blob], `voice-message.${extension}`, { type });
       }
-      this.recordingStopResolver?.();
+      this.recordingStopResolver?.(file);
       this.recordingStopResolver = null;
       this.stopPromise = null;
     };
 
     this.mediaRecorder.start(250);
     this.isRecording = true;
-    this.isVoiceRecorderOpen = true;
     this.recordingTimer = setInterval(() => {
       this.recordingSeconds = Math.min(this.recordingSeconds + 1, this.maxRecordingSeconds);
     }, 1000);
     this.recordingLimitTimer = setTimeout(() => {
-      this.stopVoiceRecording();
+      this.finishVoiceAndSend();
     }, this.maxRecordingSeconds * 1000);
+    return true;
   }
 
-  stopVoiceRecording(): Promise<void> {
+  private stopMediaRecorder(): Promise<File | null> {
     if (this.stopPromise) {
       return this.stopPromise;
     }
     if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
       this.isRecording = false;
       this.clearRecordingTimers();
-      return Promise.resolve();
+      this.releaseMediaStream();
+      return Promise.resolve(null);
     }
     this.clearRecordingTimers();
     this.stopPromise = new Promise((resolve) => {
       this.recordingStopResolver = resolve;
-      this.mediaRecorder?.stop();
+      try {
+        this.mediaRecorder?.stop();
+      } catch {
+        resolve(null);
+        this.recordingStopResolver = null;
+        this.stopPromise = null;
+      }
     });
     return this.stopPromise;
   }
 
-  clearPendingVoice() {
-    if (this.pendingVoiceUrl) {
-      URL.revokeObjectURL(this.pendingVoiceUrl);
-    }
-    this.pendingVoice = null;
-    this.pendingVoiceUrl = '';
-    this.pendingVoiceDuration = 0;
-    this.isVoicePlaying = false;
-  }
-
-  togglePendingVoicePlayback(audio: HTMLAudioElement) {
-    if (!audio) return;
-    if (audio.paused) {
-      audio.play().then(() => {
-        this.isVoicePlaying = true;
-      }).catch(() => {
-        this.isVoicePlaying = false;
-      });
-      return;
-    }
-    audio.pause();
-    this.isVoicePlaying = false;
-  }
-
-  formatRecordingTime(totalSeconds: number): string {
-    const safeSeconds = Math.max(0, Math.min(totalSeconds, this.maxRecordingSeconds));
-    const minutes = Math.floor(safeSeconds / 60);
-    const seconds = safeSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  private sendVoiceMessage() {
-    const file = this.pendingVoice;
-    if (!file || this.isChatLoading) return;
+  private sendVoiceMessage(file: File, liveText: string) {
+    if (this.isChatLoading) return;
 
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
-    this.clearPendingVoice();
     this.isVoiceRecorderOpen = false;
     this.voiceRecorderError = '';
     this.isTyping = true;
+    this.startLoadingMessageCycle(this.defaultSearchLoadingMessages);
 
-    const generation = ++this.searchGeneration;
-    this.resetAiSearchState();
-
-    this.flightResultService.searchFromVoice(file, this.chatID, async (text) => {
+    const displayedText = liveText.trim();
+    if (displayedText) {
       this.sharedService.addMessage({
         sender: 'user',
-        text,
+        text: displayedText,
       });
+      this.newMessage = '';
+      this.resizeChatInput();
       if (window.innerWidth <= 991) {
         this.scrollToMessageTop();
       } else {
         this.scrollToBottom();
       }
-      return this.ensureConversationSaved(text);
+    }
+
+    const generation = ++this.searchGeneration;
+    this.resetAiSearchState();
+
+    (this.flightResultService as any).searchFromVoice(file, this.chatID, async (text: string) => {
+      if (!displayedText && text) {
+        this.sharedService.addMessage({
+          sender: 'user',
+          text,
+        });
+        if (window.innerWidth <= 991) {
+          this.scrollToMessageTop();
+        } else {
+          this.scrollToBottom();
+        }
+      }
+      return this.ensureConversationSaved(displayedText || text);
     });
 
     this.pollAiFlightSearch(generation);
+  }
+
+  private beginSpeechRecognition(Recognition: new () => any) {
+    if (!this.isListening) return;
+
+    const recognition = new Recognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = this.currentSpeechLang;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event: any) => {
+      this.speechErrorCount = 0;
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0]?.transcript || '';
+      }
+      this.zone.run(() => this.applyVoiceTranscript(transcript));
+    };
+
+    recognition.onerror = (event: any) => {
+      const error = String(event?.error || '');
+      this.zone.run(() => this.handleSpeechError(error));
+    };
+
+    recognition.onend = () => {
+      this.zone.run(() => this.scheduleSpeechRestart(recognition));
+    };
+
+    this.speechRecognition = recognition;
+    try {
+      recognition.start();
+    } catch {
+      this.speechRecognition = null;
+      this.restartSpeechRecognition = false;
+    }
+  }
+
+  private stopSpeechRecognition() {
+    this.restartSpeechRecognition = false;
+    this.clearSpeechRestartTimer();
+    const recognition = this.speechRecognition;
+    this.speechRecognition = null;
+    if (!recognition) return;
+    recognition.onresult = null;
+    recognition.onerror = null;
+    recognition.onend = null;
+    try {
+      recognition.stop();
+    } catch {
+      try {
+        recognition.abort();
+      } catch {
+        // Browser may already have stopped recognition.
+      }
+    }
+  }
+
+  private handleSpeechError(error: string) {
+    if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture') {
+      return;
+    }
+    if (error === 'not-allowed' || error === 'service-not-allowed') {
+      this.restartSpeechRecognition = false;
+      return;
+    }
+    if (error === 'language-not-supported' && this.currentSpeechLang !== 'en-US') {
+      this.currentSpeechLang = 'en-US';
+      return;
+    }
+    this.speechErrorCount++;
+    if (this.speechErrorCount >= 3) {
+      this.restartSpeechRecognition = false;
+    }
+  }
+
+  private scheduleSpeechRestart(recognition: { lang: string; start(): void }) {
+    if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+      return;
+    }
+
+    this.typedBeforeVoice = this.newMessage.trim();
+    this.clearSpeechRestartTimer();
+    this.speechRestartTimer = setTimeout(() => {
+      if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+        return;
+      }
+      recognition.lang = this.currentSpeechLang;
+      try {
+        recognition.start();
+      } catch {
+        this.restartSpeechRecognition = false;
+      }
+    }, 250);
+  }
+
+  private pickAudioMimeType(): string {
+    const types = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus',
+    ];
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+  }
+
+  private audioExtension(mimeType: string): string {
+    if (mimeType.includes('mp4')) return 'm4a';
+    if (mimeType.includes('ogg')) return 'ogg';
+    return 'webm';
+  }
+
+  private clearRecordingTimers() {
+    if (this.recordingTimer) {
+      clearInterval(this.recordingTimer);
+      this.recordingTimer = null;
+    }
+    if (this.recordingLimitTimer) {
+      clearTimeout(this.recordingLimitTimer);
+      this.recordingLimitTimer = null;
+    }
+  }
+
+  private releaseMediaStream() {
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = null;
+  }
+
+  private getSpeechLang(): string {
+    const sample = `${this.typedBeforeVoice} ${this.newMessage}`;
+    if (/[\u0600-\u06FF]/.test(sample)) {
+      return 'ar-SA';
+    }
+    return 'en-US';
+  }
+
+  private getSpeechRecognitionCtor(): (new () => any) | null {
+    if (typeof window === 'undefined') return null;
+    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+  }
+
+  private resizeChatInput() {
+    const textarea = document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement | null;
+    this.adjustTextareaHeight(textarea);
+  }
+
+  private clearSpeechRestartTimer() {
+    if (this.speechRestartTimer) {
+      clearTimeout(this.speechRestartTimer);
+      this.speechRestartTimer = null;
+    }
   }
 
   private async ensureConversationSaved(text: string): Promise<string> {
@@ -1042,47 +1281,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       console.error('Error saving conversation/message:', err);
     }
     return this.chatID;
-  }
-
-  private setPendingVoice(file: File, durationSeconds: number) {
-    this.clearPendingVoice();
-    this.pendingVoice = file;
-    this.pendingVoiceDuration = durationSeconds;
-    this.pendingVoiceUrl = URL.createObjectURL(file);
-    this.isVoiceRecorderOpen = false;
-    this.voiceRecorderError = '';
-  }
-
-  private pickAudioMimeType(): string {
-    const types = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/mp4',
-      'audio/ogg;codecs=opus',
-    ];
-    return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
-  }
-
-  private audioExtension(mimeType: string): string {
-    if (mimeType.includes('mp4')) return 'm4a';
-    if (mimeType.includes('ogg')) return 'ogg';
-    return 'webm';
-  }
-
-  private clearRecordingTimers() {
-    if (this.recordingTimer) {
-      clearInterval(this.recordingTimer);
-      this.recordingTimer = null;
-    }
-    if (this.recordingLimitTimer) {
-      clearTimeout(this.recordingLimitTimer);
-      this.recordingLimitTimer = null;
-    }
-  }
-
-  private releaseMediaStream() {
-    this.mediaStream?.getTracks().forEach((track) => track.stop());
-    this.mediaStream = null;
   }
 
   private getAiSearchMessage(response: any, responseAi: any): string {

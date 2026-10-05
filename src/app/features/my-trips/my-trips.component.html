@@ -254,30 +254,30 @@
            @if (isVoiceRecorderOpen) {
              <div class="voice-recorder-panel d-flex align-items-center justify-content-between gap-3 mb-3">
                <div class="d-flex align-items-center gap-2 min-w-0">
-                 <span class="voice-recorder-dot" [class.is-live]="isRecording"></span>
+                 <span class="voice-recorder-dot" [class.is-live]="isListening"></span>
                  <div class="d-flex flex-column min-w-0">
                    <span class="voice-recorder-title">
-                     {{ isRecording ? 'Recording' : 'Voice message' }}
+                     {{ isListening ? 'Listening...' : 'Voice input' }}
                    </span>
                    <span class="voice-recorder-subtitle">
-                     {{ isRecording ? formatRecordingTime(recordingSeconds) + ' / 0:35' : 'Record up to 35 seconds' }}
+                     {{ isListening ? (voicePreview || 'Speak now — English or Arabic') : 'Tap the mic and speak' }}
                    </span>
                  </div>
                </div>
                <div class="d-flex align-items-center gap-2">
-                 @if (!isRecording) {
-                   <button type="button" class="voice-record-btn" (click)="startVoiceRecording()" aria-label="Start recording">
+                 @if (!isListening) {
+                   <button type="button" class="voice-record-btn" (click)="startVoice()" aria-label="Start listening">
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"></path>
                        <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V20H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 11z"></path>
                      </svg>
                    </button>
                  } @else {
-                   <button type="button" class="voice-stop-btn" (click)="stopVoiceRecording()" aria-label="Stop recording">
+                   <button type="button" class="voice-stop-btn" (click)="stopVoiceRecording()" aria-label="Stop listening">
                      <span></span>
                    </button>
                  }
-                 <button type="button" class="voice-close-btn" (click)="closeVoiceRecorder()" aria-label="Close recorder">
+                 <button type="button" class="voice-close-btn" (click)="closeVoiceRecorder()" aria-label="Cancel voice input">
                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                      <line x1="6" y1="6" x2="18" y2="18"></line>
                      <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -336,48 +336,14 @@
                  rows="1"
                ></textarea>
 
-               @if (pendingVoice) {
-                 <div class="voice-attachment d-flex align-items-center gap-2 me-1">
-                   <button
-                     type="button"
-                     class="voice-play-btn"
-                     (click)="togglePendingVoicePlayback(pendingVoiceAudio)"
-                     [attr.aria-label]="isVoicePlaying ? 'Pause voice message' : 'Play voice message'"
-                   >
-                     @if (!isVoicePlaying) {
-                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                         <polygon points="8 5 19 12 8 19 8 5"></polygon>
-                       </svg>
-                     } @else {
-                       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                         <rect x="6" y="5" width="4" height="14" rx="1"></rect>
-                         <rect x="14" y="5" width="4" height="14" rx="1"></rect>
-                       </svg>
-                     }
-                   </button>
-                   <span class="voice-attachment-time">{{ formatRecordingTime(pendingVoiceDuration) }}</span>
-                   <button type="button" class="voice-remove-btn" (click)="clearPendingVoice()" aria-label="Remove voice message">
-                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-                       <line x1="6" y1="6" x2="18" y2="18"></line>
-                       <line x1="18" y1="6" x2="6" y2="18"></line>
-                     </svg>
-                   </button>
-                   <audio
-                     #pendingVoiceAudio
-                     [src]="pendingVoiceUrl"
-                     (ended)="isVoicePlaying = false"
-                   ></audio>
-                 </div>
-               }
-
-               <!-- Voice recorder -->
+               <!-- Voice input -->
                <button
                  type="button"
                  class="voice-btn-v2 d-flex align-items-center justify-content-center p-2 bg-transparent border-0"
-                 [class.is-recording]="isRecording"
+                 [class.is-recording]="isListening"
                  (click)="toggleVoiceRecorder()"
-                 [attr.aria-label]="isVoiceRecorderOpen ? 'Close voice recorder' : 'Open voice recorder'"
-                 title="Voice message"
+                 [attr.aria-label]="isListening ? 'Stop voice input' : 'Start voice input'"
+                 title="Voice input"
                >
                  <svg
                    width="20"
