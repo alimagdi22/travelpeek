@@ -398,9 +398,9 @@
     </div>
   </ng-container>
 
-  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && recommendationText">
+  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && recommendationText" >
     <!-- ⭐ AI Recommendation (Contextual) -->
-    <div class="section-card">
+    <div class="section-card" (click)="openStopsModal(recommendedFlight)" >
       <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">⭐</span>
         <h3 class="section-title mb-0">AI Recommendation</h3>

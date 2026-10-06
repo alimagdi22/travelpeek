@@ -50,9 +50,13 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   hiddenServiceImages: Record<string, boolean> = {};
 
   ngOnInit(): void {
+    console.log(this.recommendedFlight,'this.recommendedFlight');
+
     this.subscription.add(
       this.sharedService.selectedItinerary$.subscribe((itinerary) => {
         if (itinerary) {
+          console.log(itinerary,'itinerary');
+
           this.isSidebarCollapsed = false;
           this.isPreparingOfflineServices = true;
           this.waitForSelectedFlightThenLoad(itinerary);
@@ -62,9 +66,15 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
         }
       }),
     );
+
+    this.sharedService.message$.subscribe((msg) => {
+      console.log(msg,'msg');
+    })
     this.subscription.add(
       this.flightResultService.notify.subscribe(() => {
         this.persistAssistantSnapshot();
+        console.log(this.flightResultService.responseAi?.searchCriteria,'this.flightResultService.responseAi?.searchCriteria');
+        console.log(this.flightResultService.response,'this.flightResultService.response');
       }),
     );
   }
@@ -449,6 +459,10 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
       this.sharedService.getLastSmartAssistantSnapshot()?.recommendationSummary ||
       ''
     );
+  }
+
+  get recommendedFlight():any{
+    return ( this.flightResultService.responseAi as any)?.airItineraries.find((flight:any)=>flight.sequenceNum === this.flightResultService.responseAi?.recommendation.ai.sequenceNum && flight.pKey === this.flightResultService.responseAi?.recommendation.ai.pkey && flight.pcc === this.flightResultService.responseAi?.recommendation.ai.pcc);
   }
 
   persistAssistantSnapshot() {

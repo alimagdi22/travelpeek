@@ -29,6 +29,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   private speechRecognition: any = null;
   private restartSpeechRecognition = false;
   private typedBeforeVoice = '';
+  private speechRestartTimer: ReturnType<typeof setTimeout> | null = null;
+  private speechErrorCount = 0;
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
   private recordingChunks: Blob[] = [];
@@ -241,8 +243,9 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     this.isVoicePlaying = false;
   }
 
-  private async startVoice() {
+  private startVoice() {
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
       return;
     }
 
@@ -252,16 +255,23 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     this.voiceRecorderError = '';
     this.isListening = true;
     this.restartSpeechRecognition = true;
+    this.speechErrorCount = 0;
     this.discardNextRecording = false;
     this.recordingChunks = [];
     this.recordingSeconds = 0;
 
+    this.startSpeechRecognition();
+    void this.startMediaRecording();
+  }
+
+  private async startMediaRecording() {
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
       this.isListening = false;
       this.restartSpeechRecognition = false;
       this.voiceRecorderError = 'Microphone access is needed to record.';
+      this.stopSpeechRecognition();
       return;
     }
 
@@ -282,18 +292,21 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const recorder = this.mediaRecorder;
     this.mediaRecorder.ondataavailable = (event) => {
       if (event.data?.size) {
         this.recordingChunks.push(event.data);
       }
     };
     this.mediaRecorder.onstop = () => {
-      const type = this.mediaRecorder?.mimeType || mimeType || 'audio/webm';
+      const type = recorder?.mimeType || mimeType || 'audio/webm';
       const blob = new Blob(this.recordingChunks, { type });
       const duration = this.recordingSeconds;
       const discard = this.discardNextRecording;
       this.discardNextRecording = false;
-      this.releaseMediaStream();
+      if (this.mediaRecorder === recorder) {
+        this.releaseMediaStream();
+      }
       let file: File | null = null;
       if (!discard && blob.size > 0) {
         const extension = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
@@ -315,7 +328,10 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
         void this.stopVoiceAndKeepRecording();
       });
     }, this.maxRecordingSeconds * 1000);
-    this.startSpeechRecognition();
+
+    if (this.isListening && this.restartSpeechRecognition && !this.speechRecognition) {
+      this.startSpeechRecognition();
+    }
   }
 
   private async stopVoiceAndKeepRecording() {
@@ -360,9 +376,10 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     const recognition = new Recognition();
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = /[\u0600-\u06FF]/.test(this.searchQuery) ? 'ar-SA' : 'en-US';
+    recognition.lang = /[\u0600-\u06FF]/.test(`${this.typedBeforeVoice} ${this.searchQuery}`) ? 'ar-SA' : 'en-US';
     recognition.maxAlternatives = 1;
     recognition.onresult = (event: any) => {
+      this.speechErrorCount = 0;
       let transcript = '';
       for (let i = 0; i < event.results.length; i++) {
         transcript += event.results[i][0]?.transcript || '';
@@ -374,34 +391,65 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
           : spoken;
       });
     };
-    recognition.onend = () => {
+    recognition.onerror = (event: any) => {
+      const error = String(event?.error || '');
       this.zone.run(() => {
-        if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+        if (error === 'not-allowed' || error === 'service-not-allowed') {
+          this.restartSpeechRecognition = false;
           return;
         }
-        this.typedBeforeVoice = this.searchQuery.trim();
-        try {
-          recognition.start();
-        } catch {
+        if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture' || error === 'network') {
+          return;
+        }
+        this.speechErrorCount++;
+        if (this.speechErrorCount >= 3) {
           this.restartSpeechRecognition = false;
         }
       });
     };
+    recognition.onend = () => {
+      this.zone.run(() => this.scheduleSpeechRestart(recognition));
+    };
     this.speechRecognition = recognition;
     try {
-      recognition.start();
+      this.zone.runOutsideAngular(() => recognition.start());
     } catch {
       this.speechRecognition = null;
       this.restartSpeechRecognition = false;
     }
   }
 
+  private scheduleSpeechRestart(recognition: any) {
+    if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+      return;
+    }
+    this.typedBeforeVoice = this.searchQuery.trim();
+    if (this.speechRestartTimer) {
+      clearTimeout(this.speechRestartTimer);
+    }
+    this.speechRestartTimer = setTimeout(() => {
+      if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+        return;
+      }
+      try {
+        this.zone.runOutsideAngular(() => recognition.start());
+      } catch {
+        this.restartSpeechRecognition = false;
+      }
+    }, 250);
+  }
+
   private stopSpeechRecognition() {
     this.restartSpeechRecognition = false;
+    if (this.speechRestartTimer) {
+      clearTimeout(this.speechRestartTimer);
+      this.speechRestartTimer = null;
+    }
     const recognition = this.speechRecognition;
     this.speechRecognition = null;
     if (!recognition) return;
     recognition.onresult = null;
+    recognition.onerror = null;
     recognition.onend = null;
     try {
       recognition.stop();

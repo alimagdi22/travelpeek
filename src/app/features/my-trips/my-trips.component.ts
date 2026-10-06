@@ -898,6 +898,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.currentSpeechLang = this.getSpeechLang();
     this.discardNextRecording = false;
 
+    const Recognition = this.getSpeechRecognitionCtor();
+    if (Recognition) {
+      this.beginSpeechRecognition(Recognition);
+    }
     void this.beginVoiceCapture();
   }
 
@@ -979,9 +983,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       return;
     }
 
-    const Recognition = this.getSpeechRecognitionCtor();
-    if (Recognition) {
-      this.beginSpeechRecognition(Recognition);
+    if (this.isListening && this.restartSpeechRecognition && !this.speechRecognition) {
+      const Recognition = this.getSpeechRecognitionCtor();
+      if (Recognition) {
+        this.beginSpeechRecognition(Recognition);
+      }
     }
   }
 
@@ -1131,7 +1137,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
     this.speechRecognition = recognition;
     try {
-      recognition.start();
+      this.zone.runOutsideAngular(() => recognition.start());
     } catch {
       this.speechRecognition = null;
       this.restartSpeechRecognition = false;
@@ -1159,7 +1165,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   private handleSpeechError(error: string) {
-    if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture') {
+    if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture' || error === 'network') {
       return;
     }
     if (error === 'not-allowed' || error === 'service-not-allowed') {
@@ -1189,7 +1195,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       }
       recognition.lang = this.currentSpeechLang;
       try {
-        recognition.start();
+        this.zone.runOutsideAngular(() => recognition.start());
       } catch {
         this.restartSpeechRecognition = false;
       }
