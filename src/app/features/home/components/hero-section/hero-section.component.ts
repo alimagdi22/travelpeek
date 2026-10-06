@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { Component, inject, NgZone, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { SharedService } from '../../../../shared/shared.service';
@@ -15,8 +15,28 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   sharedService = inject(SharedService);
   homePageService = inject(HomePageService);
   platformId = inject(PLATFORM_ID);
+  private zone = inject(NgZone);
   isBrowser = isPlatformBrowser(this.platformId);
   searchQuery: string = '';
+  isListening = false;
+  recordingSeconds = 0;
+  readonly maxRecordingSeconds = 35;
+  pendingVoice: File | null = null;
+  pendingVoiceUrl = '';
+  pendingVoiceDuration = 0;
+  isVoicePlaying = false;
+  voiceRecorderError = '';
+  private speechRecognition: any = null;
+  private restartSpeechRecognition = false;
+  private typedBeforeVoice = '';
+  private mediaRecorder: MediaRecorder | null = null;
+  private mediaStream: MediaStream | null = null;
+  private recordingChunks: Blob[] = [];
+  private recordingTimer: ReturnType<typeof setInterval> | null = null;
+  private recordingLimitTimer: ReturnType<typeof setTimeout> | null = null;
+  private stopPromise: Promise<File | null> | null = null;
+  private recordingStopResolver: ((file: File | null) => void) | null = null;
+  private discardNextRecording = false;
 
   cards = [
     { city: 'Bangkok', country: 'Thailand', code: 'BKK', price: 'AED 890' },
@@ -69,6 +89,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     if (this.placeholderIntervalId) {
       clearInterval(this.placeholderIntervalId);
     }
+    this.cancelVoice();
+    this.clearPendingVoice();
   }
 
   startPlaceholderRotation() {
@@ -150,11 +172,275 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     }
   }
 
+  onSearchKeydown() {
+    if (this.isListening) {
+      void this.stopVoiceAndKeepRecording();
+      return;
+    }
+    this.submitHomeSearch();
+  }
+
+  toggleVoice() {
+    if (!this.isBrowser) return;
+    if (this.isListening) {
+      void this.stopVoiceAndKeepRecording();
+      return;
+    }
+    void this.startVoice();
+  }
+
   performSearch(query?: string) {
     const q = query || this.searchQuery;
     if (!q || !q.trim()) return;
 
     this.sharedService.setSearchQuery(q.trim());
     this.router.navigate(['/my-trips']);
+  }
+
+  private submitHomeSearch() {
+    const transcript = this.searchQuery.trim();
+    if (this.pendingVoice) {
+      this.sharedService.setPendingVoiceSearch(this.pendingVoice, transcript);
+      if (transcript) {
+        this.sharedService.setSearchQuery(transcript);
+      }
+      this.router.navigate(['/my-trips']);
+      return;
+    }
+    this.performSearch();
+  }
+
+  formatRecordingTime(totalSeconds: number): string {
+    const safeSeconds = Math.max(0, Math.min(totalSeconds, this.maxRecordingSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  togglePendingVoicePlayback(audio: HTMLAudioElement) {
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().then(() => {
+        this.isVoicePlaying = true;
+      }).catch(() => {
+        this.isVoicePlaying = false;
+      });
+      return;
+    }
+    audio.pause();
+    this.isVoicePlaying = false;
+  }
+
+  clearPendingVoice() {
+    if (this.pendingVoiceUrl) {
+      URL.revokeObjectURL(this.pendingVoiceUrl);
+    }
+    this.pendingVoice = null;
+    this.pendingVoiceUrl = '';
+    this.pendingVoiceDuration = 0;
+    this.isVoicePlaying = false;
+  }
+
+  private async startVoice() {
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+      return;
+    }
+
+    this.clearPendingVoice();
+    this.cancelVoice();
+    this.typedBeforeVoice = this.searchQuery.trim();
+    this.voiceRecorderError = '';
+    this.isListening = true;
+    this.restartSpeechRecognition = true;
+    this.discardNextRecording = false;
+    this.recordingChunks = [];
+    this.recordingSeconds = 0;
+
+    try {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      this.isListening = false;
+      this.restartSpeechRecognition = false;
+      this.voiceRecorderError = 'Microphone access is needed to record.';
+      return;
+    }
+
+    if (!this.isListening) {
+      this.releaseMediaStream();
+      return;
+    }
+
+    const mimeType = this.pickAudioMimeType();
+    try {
+      this.mediaRecorder = mimeType
+        ? new MediaRecorder(this.mediaStream, { mimeType })
+        : new MediaRecorder(this.mediaStream);
+    } catch {
+      this.releaseMediaStream();
+      this.isListening = false;
+      this.voiceRecorderError = 'Recording is not supported in this browser.';
+      return;
+    }
+
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data?.size) {
+        this.recordingChunks.push(event.data);
+      }
+    };
+    this.mediaRecorder.onstop = () => {
+      const type = this.mediaRecorder?.mimeType || mimeType || 'audio/webm';
+      const blob = new Blob(this.recordingChunks, { type });
+      const duration = this.recordingSeconds;
+      const discard = this.discardNextRecording;
+      this.discardNextRecording = false;
+      this.releaseMediaStream();
+      let file: File | null = null;
+      if (!discard && blob.size > 0) {
+        const extension = type.includes('mp4') ? 'm4a' : type.includes('ogg') ? 'ogg' : 'webm';
+        file = new File([blob], `voice-message.${extension}`, { type });
+        this.zone.run(() => this.setPendingVoice(file!, duration));
+      }
+      this.recordingStopResolver?.(file);
+      this.recordingStopResolver = null;
+      this.stopPromise = null;
+    };
+    this.mediaRecorder.start(250);
+    this.recordingTimer = setInterval(() => {
+      this.zone.run(() => {
+        this.recordingSeconds = Math.min(this.recordingSeconds + 1, this.maxRecordingSeconds);
+      });
+    }, 1000);
+    this.recordingLimitTimer = setTimeout(() => {
+      this.zone.run(() => {
+        void this.stopVoiceAndKeepRecording();
+      });
+    }, this.maxRecordingSeconds * 1000);
+    this.startSpeechRecognition();
+  }
+
+  private async stopVoiceAndKeepRecording() {
+    this.stopSpeechRecognition();
+    this.clearRecordingTimers();
+    await this.stopMediaRecorder();
+    this.isListening = false;
+    this.typedBeforeVoice = '';
+  }
+
+  private setPendingVoice(file: File, durationSeconds: number) {
+    this.clearPendingVoice();
+    this.pendingVoice = file;
+    this.pendingVoiceDuration = durationSeconds;
+    this.pendingVoiceUrl = URL.createObjectURL(file);
+  }
+
+  private cancelVoice() {
+    this.discardNextRecording = true;
+    this.stopSpeechRecognition();
+    this.clearRecordingTimers();
+    void this.stopMediaRecorder();
+    this.isListening = false;
+    this.typedBeforeVoice = '';
+  }
+
+  private clearRecordingTimers() {
+    if (this.recordingTimer) {
+      clearInterval(this.recordingTimer);
+      this.recordingTimer = null;
+    }
+    if (this.recordingLimitTimer) {
+      clearTimeout(this.recordingLimitTimer);
+      this.recordingLimitTimer = null;
+    }
+  }
+
+  private startSpeechRecognition() {
+    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!Recognition) return;
+
+    const recognition = new Recognition();
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = /[\u0600-\u06FF]/.test(this.searchQuery) ? 'ar-SA' : 'en-US';
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0]?.transcript || '';
+      }
+      this.zone.run(() => {
+        const spoken = String(transcript || '').trim();
+        this.searchQuery = this.typedBeforeVoice
+          ? (spoken ? `${this.typedBeforeVoice} ${spoken}` : this.typedBeforeVoice)
+          : spoken;
+      });
+    };
+    recognition.onend = () => {
+      this.zone.run(() => {
+        if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
+          return;
+        }
+        this.typedBeforeVoice = this.searchQuery.trim();
+        try {
+          recognition.start();
+        } catch {
+          this.restartSpeechRecognition = false;
+        }
+      });
+    };
+    this.speechRecognition = recognition;
+    try {
+      recognition.start();
+    } catch {
+      this.speechRecognition = null;
+      this.restartSpeechRecognition = false;
+    }
+  }
+
+  private stopSpeechRecognition() {
+    this.restartSpeechRecognition = false;
+    const recognition = this.speechRecognition;
+    this.speechRecognition = null;
+    if (!recognition) return;
+    recognition.onresult = null;
+    recognition.onend = null;
+    try {
+      recognition.stop();
+    } catch {
+      try {
+        recognition.abort();
+      } catch {
+        // Already stopped.
+      }
+    }
+  }
+
+  private stopMediaRecorder(): Promise<File | null> {
+    if (this.stopPromise) return this.stopPromise;
+    if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') {
+      this.releaseMediaStream();
+      return Promise.resolve(null);
+    }
+    this.stopPromise = new Promise((resolve) => {
+      this.recordingStopResolver = resolve;
+      try {
+        this.mediaRecorder?.stop();
+      } catch {
+        resolve(null);
+        this.recordingStopResolver = null;
+        this.stopPromise = null;
+      }
+    });
+    return this.stopPromise;
+  }
+
+  private releaseMediaStream() {
+    this.mediaStream?.getTracks().forEach((track) => track.stop());
+    this.mediaStream = null;
+    this.mediaRecorder = null;
+  }
+
+  private pickAudioMimeType(): string {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || '';
   }
 }

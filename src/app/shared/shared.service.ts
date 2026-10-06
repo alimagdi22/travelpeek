@@ -48,6 +48,22 @@ export class SharedService {
     this.searchQuerySubject.next(null);
   }
 
+  private pendingVoiceFile: File | null = null;
+  private pendingVoiceTranscript = '';
+
+  setPendingVoiceSearch(file: File | null, transcript = '') {
+    this.pendingVoiceFile = file;
+    this.pendingVoiceTranscript = transcript.trim();
+  }
+
+  consumePendingVoiceSearch(): { file: File | null; transcript: string } {
+    const file = this.pendingVoiceFile;
+    const transcript = this.pendingVoiceTranscript;
+    this.pendingVoiceFile = null;
+    this.pendingVoiceTranscript = '';
+    return { file, transcript };
+  }
+
   setSelectedItinerary(itinerary: any) {
     this.selectedItinerarySubject.next(itinerary);
   }

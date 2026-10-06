@@ -29,6 +29,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   pendingVoiceUrl = '';
   pendingVoiceDuration = 0;
   isVoicePlaying = false;
+  incomingVoiceTranscript = '';
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
   private recordingChunks: Blob[] = [];
@@ -246,8 +247,16 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.loadSearchHistory();
     }
 
+    const pendingVoice = this.sharedService.consumePendingVoiceSearch();
     const query = this.sharedService.getSearchQuery();
-    if (query) {
+    if (pendingVoice.file) {
+      this.sharedService.clearSearchQuery();
+      this.sharedService.setSelectedItinerary(null);
+      this.initializeChat();
+      this.pendingVoice = pendingVoice.file;
+      this.incomingVoiceTranscript = pendingVoice.transcript;
+      this.sendVoiceMessage();
+    } else if (query) {
       this.sharedService.clearSearchQuery();
       this.sendMessage(query);
     } else {
@@ -989,20 +998,36 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.voiceRecorderError = '';
     this.isTyping = true;
 
-    const generation = ++this.searchGeneration;
-    this.resetAiSearchState();
-
-    this.flightResultService.searchFromVoice(file, this.chatID, async (text) => {
+    const liveText = this.incomingVoiceTranscript.trim();
+    this.incomingVoiceTranscript = '';
+    if (liveText) {
       this.sharedService.addMessage({
         sender: 'user',
-        text,
+        text: liveText,
       });
       if (window.innerWidth <= 991) {
         this.scrollToMessageTop();
       } else {
         this.scrollToBottom();
       }
-      return this.ensureConversationSaved(text);
+    }
+
+    const generation = ++this.searchGeneration;
+    this.resetAiSearchState();
+
+    this.flightResultService.searchFromVoice(file, this.chatID, async (text) => {
+      if (!liveText) {
+        this.sharedService.addMessage({
+          sender: 'user',
+          text,
+        });
+        if (window.innerWidth <= 991) {
+          this.scrollToMessageTop();
+        } else {
+          this.scrollToBottom();
+        }
+      }
+      return this.ensureConversationSaved(liveText || text);
     });
 
     this.pollAiFlightSearch(generation);
@@ -1103,10 +1128,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       });
     }
 
-    this.sharedService.addMessage({
-      sender: 'user',
-      text: searchText,
-    });
+    // Do not show searchMessage as a client/user bubble.
+    // this.sharedService.addMessage({
+    //   sender: 'user',
+    //   text: searchText,
+    // });
     this.scrollToBottom();
   }
 

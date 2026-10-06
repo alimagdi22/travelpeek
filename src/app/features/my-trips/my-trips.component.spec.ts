@@ -250,7 +250,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
     const followUpUserMsg = component.messages.find(
       (m) => m.sender === 'user' && m.text === 'beach destination',
     );
-    expect(followUpUserMsg).toBeTruthy();
+    expect(followUpUserMsg).toBeFalsy();
 
     completeMockedSearch(mockSearchResult, { organized: [] });
     tick(300);

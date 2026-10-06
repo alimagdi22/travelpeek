@@ -14,7 +14,25 @@
         </p>
 
         <!-- Search Input Bar -->
-        <div class="search-bar d-flex align-items-center">
+        @if (isListening || voiceRecorderError) {
+          <div class="voice-recorder-panel d-flex align-items-center justify-content-between gap-3 mb-2">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+              <span class="voice-recorder-dot" [class.is-live]="isListening"></span>
+              <div class="d-flex flex-column min-w-0">
+                <span class="voice-recorder-title">{{ isListening ? 'Recording' : 'Voice message' }}</span>
+                <span class="voice-recorder-subtitle">
+                  {{ isListening ? formatRecordingTime(recordingSeconds) + ' / 0:35' : (voiceRecorderError || 'Record up to 35 seconds') }}
+                </span>
+              </div>
+            </div>
+            @if (isListening) {
+              <button type="button" class="voice-stop-btn" (click)="toggleVoice()" aria-label="Stop recording">
+                <span></span>
+              </button>
+            }
+          </div>
+        }
+        <div class="search-bar d-flex align-items-center" [class.is-recording]="isListening">
           <svg class="search-icon-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -25,10 +43,60 @@
             class="search-input col"
             [placeholder]="placeholderText"
             [(ngModel)]="searchQuery"
-            (keydown.enter)="performSearch()"
+            (keydown.enter)="onSearchKeydown()"
           />
 
-          <button class="btn-search-action d-flex align-items-center justify-content-center" (click)="performSearch()">
+          @if (pendingVoice) {
+            <div class="voice-attachment d-flex align-items-center gap-2 me-1">
+              <button
+                type="button"
+                class="voice-play-btn"
+                (click)="togglePendingVoicePlayback(pendingVoiceAudio)"
+                [attr.aria-label]="isVoicePlaying ? 'Pause voice message' : 'Play voice message'"
+              >
+                @if (!isVoicePlaying) {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <polygon points="8 5 19 12 8 19 8 5"></polygon>
+                  </svg>
+                } @else {
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <rect x="6" y="5" width="4" height="14" rx="1"></rect>
+                    <rect x="14" y="5" width="4" height="14" rx="1"></rect>
+                  </svg>
+                }
+              </button>
+              <span class="voice-attachment-time">{{ formatRecordingTime(pendingVoiceDuration) }}</span>
+              <button type="button" class="voice-remove-btn" (click)="clearPendingVoice()" aria-label="Remove voice message">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                </svg>
+              </button>
+              <audio
+                #pendingVoiceAudio
+                [src]="pendingVoiceUrl"
+                (ended)="isVoicePlaying = false"
+              ></audio>
+            </div>
+          }
+
+          <button
+            type="button"
+            class="voice-btn-home d-flex align-items-center justify-content-center"
+            [class.is-recording]="isListening"
+            (click)="toggleVoice()"
+            [attr.aria-label]="isListening ? 'Stop recording' : 'Start voice input'"
+            title="Voice input"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </button>
+
+          <button class="btn-search-action d-flex align-items-center justify-content-center" (click)="onSearchKeydown()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
