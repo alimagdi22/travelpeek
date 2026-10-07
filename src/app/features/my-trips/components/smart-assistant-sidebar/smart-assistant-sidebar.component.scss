@@ -151,6 +151,13 @@
       strong {
         color: vars.$color-primary;
       }
+
+
+    ::ng-deep b , b {
+      color: vars.$color-primary;
+      font-weight: 700;
+      text-decoration: underline;
+    }
     }
   }
 
