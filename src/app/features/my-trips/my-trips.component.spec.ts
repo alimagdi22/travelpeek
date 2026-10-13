@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, UserProfileService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { MyTripsComponent } from './my-trips.component';
@@ -90,6 +90,8 @@ describe('MyTripsComponent search results (mocked API)', () => {
       getConversationDetails: jasmine.createSpy('getConversationDetails'),
       getContactDetails: jasmine.createSpy('getContactDetails'),
       bookFromAiUrl: jasmine.createSpy('bookFromAiUrl'),
+      uploadPassportFromAiUrl: jasmine.createSpy('uploadPassportFromAiUrl'),
+      uploadPassportResponseAi: undefined,
       getBrandedFares: jasmine.createSpy('getBrandedFares'),
       currentSelectedBrands: [],
     };
@@ -104,6 +106,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
       addMessage: jasmine.createSpy('addMessage').and.callFake((msg: any) => message$.next(msg)),
       getSearchQuery: () => null,
       clearSearchQuery: () => undefined,
+      consumePendingVoiceSearch: () => ({ file: null, transcript: '' }),
       setSelectedItinerary: jasmine.createSpy('setSelectedItinerary'),
       saveSmartAssistantSnapshot: jasmine.createSpy('saveSmartAssistantSnapshot'),
       clearSmartAssistantSnapshot: jasmine.createSpy('clearSmartAssistantSnapshot'),
@@ -135,7 +138,12 @@ describe('MyTripsComponent search results (mocked API)', () => {
             selectedFlight: null,
           },
         },
-        { provide: FlightCheckoutApiService, useValue: {} },
+        {
+          provide: FlightCheckoutApiService,
+          useValue: {
+            addPaymentGateways: jasmine.createSpy('addPaymentGateways').and.returnValue(of([])),
+          },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -335,9 +343,146 @@ describe('MyTripsComponent search results (mocked API)', () => {
     expect(userMsg).toBeTruthy();
     expect(flightResultService.searchFromVoice).toHaveBeenCalled();
     expect(flightResultService.searchFromVoice.calls.mostRecent().args[0]).toBe(file);
-    expect(flightResultService.getDataFromAiUrl).toHaveBeenCalledWith({
-      chat: transcript,
-      chatID: component.chatID,
+    tick();
+    expect(flightResultService.getDataFromAiUrl.calls.mostRecent().args[0].chat).toBe(transcript);
+  }));
+
+  it('shows extracted passport details with confirm and edit instead of booking immediately', fakeAsync(() => {
+    component.selectedItinerary = mockItinerary as any;
+    component.passengerList = [{ type: 'adult', index: 1 }];
+    component.currentPassengerIndex = 0;
+    const file = new File(['img'], 'passport.jpg', { type: 'image/jpeg' });
+
+    flightResultService.uploadPassportFromAiUrl.and.callFake(() => {
+      flightResultService.loading = false;
+      flightResultService.normalErrorStatus = false;
+      flightResultService.uploadPassportResponseAi = {
+        passport_number: 'A303919869',
+        first_name: 'MOETAZ',
+        last_name: 'ABDELHAKIM',
+        nationality: 'EGYPTIAN',
+        date_of_birth: '1981-08-16',
+        gender: 'M',
+        expiry_date: '2029-04-26',
+      };
     });
+
+    component.onFileSelected({ target: { files: [file], value: '' } });
+    tick(250);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    expect(flightResultService.uploadPassportFromAiUrl).toHaveBeenCalledWith(file, component.chatID);
+    const detailsMsg = component.messages.find(
+      (m) => m.sender === 'system' && m.showPassportReview && m.text.includes('MOETAZ') && m.text.includes('A303919869'),
+    );
+    expect(detailsMsg).toBeTruthy();
+    expect(detailsMsg?.text).toContain('EGYPTIAN');
+    expect(detailsMsg?.text).toContain('2029-04-26');
+    expect(component.messages.some((m) => m.isPayment)).toBeFalse();
+    expect(flightResultService.bookFromAiUrl).not.toHaveBeenCalled();
+  }));
+
+  it('sends the book request after confirming scanned passport details', fakeAsync(() => {
+    component.selectedItinerary = mockItinerary as any;
+    component.passengerList = [{ type: 'adult', index: 1 }];
+    component.currentPassengerIndex = 0;
+    component.isEnteringNamesManually = true;
+    const reviewMsg = {
+      sender: 'system' as const,
+      text: 'Passport details',
+      showPassportReview: true,
+      passportTraveler: {
+        firstName: 'MOETAZ',
+        lastName: 'ABDELHAKIM',
+        dateOfBirth: '1981-08-16',
+        gender: 'M',
+        nationality: 'EGYPTIAN',
+        passportNumber: 'A303919869',
+        passportExpiry: '2029-04-26',
+        passportIssuedCountry: 'EGYPTIAN',
+        travelerType: null,
+      },
+    };
+    component.messages = [reviewMsg as any];
+
+    flightResultService.bookFromAiUrl.and.callFake(() => {
+      flightResultService.loading = false;
+      flightResultService.bookResponseAi = {
+        status: 'completed',
+        reply: 'Traveler details saved.',
+        missingFields: [],
+        traveler: { firstName: 'MOETAZ', lastName: 'ABDELHAKIM' },
+      };
+    });
+
+    component.confirmPassportDetails(reviewMsg as any);
+    tick();
+    tick(250);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    expect(flightResultService.bookFromAiUrl).toHaveBeenCalled();
+    const bookPayload = flightResultService.bookFromAiUrl.calls.mostRecent().args[0];
+    expect(bookPayload.chat).toContain('MOETAZ');
+    expect(bookPayload.chat).toContain('A303919869');
+    expect(component.messages.some((m) => m.isPayment)).toBeTrue();
+  }));
+
+  it('opens the passenger form with scanned values when edit is clicked', () => {
+    component.passengerList = [{ type: 'adult', index: 1 }];
+    component.currentPassengerIndex = 0;
+    const reviewMsg = {
+      sender: 'system' as const,
+      text: 'Passport details',
+      showPassportReview: true,
+      passengerLabel: 'Adult 1',
+      passengerType: 'adult' as const,
+      passportTraveler: {
+        firstName: 'MOETAZ',
+        lastName: 'ABDELHAKIM',
+        dateOfBirth: '1981-08-16',
+        gender: 'M',
+        nationality: 'EGYPTIAN',
+        passportNumber: 'A303919869',
+        passportExpiry: '2029-04-26',
+        passportIssuedCountry: 'EGYPTIAN',
+        travelerType: null,
+      },
+    };
+    component.messages = [reviewMsg as any];
+
+    component.editPassportDetails(reviewMsg as any);
+
+    const formMsg = [...component.messages].reverse().find((m) => m.showPassengerForm);
+    expect(formMsg).toBeTruthy();
+    expect(formMsg?.passengerFormPrefill?.firstName).toBe('MOETAZ');
+    expect(formMsg?.passengerFormPrefill?.lastName).toBe('ABDELHAKIM');
+    expect(formMsg?.passengerFormPrefill?.birthDate).toBe('1981-08-16');
+    expect(formMsg?.passengerFormPrefill?.passportNumber).toBe('A303919869');
+    expect(formMsg?.passengerFormPrefill?.passportExpiry).toBe('2029-04-26');
+    expect(formMsg?.passengerFormPrefill?.gender).toBe('Mr');
+    expect(formMsg?.passengerFormPrefill?.issueCountry).toBe('EGYPTIAN');
+    expect(component.messages.some((m) => m.isPayment)).toBeFalse();
+  }));
+
+  it('shows an error when passport upload fails', fakeAsync(() => {
+    component.selectedItinerary = mockItinerary as any;
+    const file = new File(['img'], 'passport.jpg', { type: 'image/jpeg' });
+
+    flightResultService.uploadPassportFromAiUrl.and.callFake(() => {
+      flightResultService.loading = false;
+      flightResultService.normalErrorStatus = true;
+      flightResultService.normalError = 'Something went wrong. Please try again later.';
+    });
+
+    component.onFileSelected({ target: { files: [file], value: '' } });
+    tick(250);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const errorMsg = [...component.messages].reverse().find((m) => m.sender === 'system');
+    expect(errorMsg?.text).toContain('Something went wrong. Please try again later.');
+    expect(component.messages.some((m) => m.isPayment)).toBeFalse();
   }));
 });

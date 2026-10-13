@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as countries from 'world-countries';
 
@@ -13,15 +13,26 @@ export interface PassengerFormData {
   formattedChatMessage: string;
 }
 
+export interface PassengerFormPrefill {
+  gender?: string;
+  firstName?: string;
+  lastName?: string;
+  birthDate?: string;
+  passportNumber?: string;
+  passportExpiry?: string;
+  issueCountry?: string;
+}
+
 @Component({
   selector: 'app-passenger-form',
   standalone: false,
   templateUrl: './passenger-form.component.html',
   styleUrls: ['./passenger-form.component.scss']
 })
-export class PassengerFormComponent implements OnInit {
+export class PassengerFormComponent implements OnInit, OnChanges {
   @Input() passengerLabel: string = 'Adult 1';
   @Input() passengerType: 'adult' | 'child' | 'infant' = 'adult';
+  @Input() prefill: PassengerFormPrefill | null = null;
   @Output() formSubmitted = new EventEmitter<PassengerFormData>();
 
   passengerForm!: FormGroup;
@@ -34,6 +45,7 @@ export class PassengerFormComponent implements OnInit {
   minBirthDateStr: string = '';
   maxBirthDateStr: string = '';
   minExpiryDateStr: string = '';
+  private allowedPassportCountry = '';
 
   private fb = inject(FormBuilder);
 
@@ -50,6 +62,31 @@ export class PassengerFormComponent implements OnInit {
       passportExpiry: ['', Validators.required],
       issueCountry: ['', [Validators.required, this.countryValidator.bind(this)]]
     });
+    this.applyPrefill();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['prefill'] && this.passengerForm) {
+      this.applyPrefill();
+    }
+  }
+
+  private applyPrefill(): void {
+    if (!this.prefill || !this.passengerForm) return;
+    this.allowedPassportCountry = (this.prefill.issueCountry || '').trim();
+    this.passengerForm.patchValue({
+      gender: this.prefill.gender || this.passengerForm.get('gender')?.value,
+      firstName: this.prefill.firstName || '',
+      lastName: this.prefill.lastName || '',
+      birthDate: this.prefill.birthDate || '',
+      passportNumber: this.prefill.passportNumber || '',
+      passportExpiry: this.prefill.passportExpiry || '',
+      issueCountry: this.prefill.issueCountry || '',
+    });
+    this.passengerForm.get('issueCountry')?.updateValueAndValidity();
+    if (this.prefill.issueCountry) {
+      this.filterCountries(this.prefill.issueCountry);
+    }
   }
 
   initCountryList(): void {
@@ -70,6 +107,9 @@ export class PassengerFormComponent implements OnInit {
   countryValidator(control: any) {
     if (!control.value) return { required: true };
     const val = control.value.trim().toLowerCase();
+    if (this.allowedPassportCountry && val === this.allowedPassportCountry.toLowerCase()) {
+      return null;
+    }
     const exists = this.countryList.some(c => c.toLowerCase() === val);
     return exists ? null : { invalidCountry: true };
   }

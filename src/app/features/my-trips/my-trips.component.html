@@ -134,8 +134,19 @@
                       <app-passenger-form
                         [passengerLabel]="msg.passengerLabel || 'Adult 1'"
                         [passengerType]="msg.passengerType || 'adult'"
+                        [prefill]="msg.passengerFormPrefill || null"
                         (formSubmitted)="onPassengerFormSubmitted($event)"
                       ></app-passenger-form>
+                    }
+                    @if (msg.showPassportReview) {
+                      <div class="booking-prompt-actions d-flex gap-3 flex-wrap mt-2">
+                        <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="confirmPassportDetails(msg)" [disabled]="msg.actionsDisabled">
+                          Confirm
+                        </button>
+                        <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="editPassportDetails(msg)" [disabled]="msg.actionsDisabled">
+                          Edit
+                        </button>
+                      </div>
                     }
                   </div>
                 }
@@ -366,6 +377,9 @@
                <button
                  type="button"
                  class="attachment-btn-v2 d-flex align-items-center justify-content-center p-2 bg-transparent border-0 me-2"
+                 (click)="fileInput.click()"
+                 aria-label="Upload passport"
+                 title="Upload passport"
                >
                  <svg
                    width="20"

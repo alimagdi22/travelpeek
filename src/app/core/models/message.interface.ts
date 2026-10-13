@@ -20,6 +20,17 @@ export interface Message {
   showPassengerForm?: boolean;
   passengerLabel?: string;
   passengerType?: 'adult' | 'child' | 'infant';
+  passengerFormPrefill?: {
+    gender?: string;
+    firstName?: string;
+    lastName?: string;
+    birthDate?: string;
+    passportNumber?: string;
+    passportExpiry?: string;
+    issueCountry?: string;
+  };
+  showPassportReview?: boolean;
+  passportTraveler?: Record<string, string | null>;
   actionsDisabled?: boolean;
 }
 

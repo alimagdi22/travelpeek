@@ -5,7 +5,8 @@ import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { Message } from '../../core/models/message.interface';
-import { PassengerFormData } from './components/passenger-form/passenger-form.component';
+import { PassengerFormData, PassengerFormPrefill } from './components/passenger-form/passenger-form.component';
+import * as countries from 'world-countries';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -743,87 +744,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
             // Show Secure Payment Card only if booking status is completed
             if (response.status === 'completed') {
-              // Save completed traveler info to the sharedService object
-              if (currentPassenger) {
-                const passengerKey = `${currentPassenger.type}${currentPassenger.index}`;
-                this.sharedService.travellersDetails.travellers[passengerKey] = response.traveler;
-              }
-
-              if (this.passengerList.length > 0 && this.currentPassengerIndex < this.passengerList.length - 1) {
-                // Not the last passenger yet!
-                const completedPassenger = this.passengerList[this.currentPassengerIndex];
-                this.currentPassengerIndex++;
-                const nextPassenger = this.passengerList[this.currentPassengerIndex];
-
-                const completedLabel = this.getPassengerLabel(completedPassenger);
-                const nextLabel = this.getPassengerLabel(nextPassenger);
-
-                const transitionMessage = `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`;
-
-                // Text bubble first, then form-only bubble
-                this.sharedService.addMessage({
-                  sender: 'system',
-                  text: transitionMessage,
-                });
-                this.sharedService.addMessage({
-                  sender: 'system',
-                  text: '',
-                  showPassengerForm: true,
-                  passengerLabel: nextLabel,
-                  passengerType: nextPassenger.type
-                });
-              } else {
-                // Last passenger completed! Log the value
-                console.log('Final travellersDetails:', this.sharedService.travellersDetails);
-
-                // Show please wait message
-                this.sharedService.addMessage({
-                  sender: 'system',
-                  text: 'Please wait while providing payment methods.'
-                });
-                this.flightResultService.loading = true;
-                this.startLoadingMessageCycle(this.paymentLoadingMessages);
-                this.scrollToBottom();
-
-                const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
-
-                if (!this.flightCheckoutService.selectedFlight) {
-                  this.flightCheckoutService.selectedFlight = {
-                    searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
-                    airItineraryDTO: this.selectedItinerary!
-                  } as any;
-                }
-
-                const paymentAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount
-                  ?? ((this.selectedItinerary?.itinTotalFare?.amount || 1240) + (this.flightCheckoutService.serviceFees || 0));
-
-                this.flightCheckoutServiceApi.addPaymentGateways(currency, 'EG', this.selectedItinerary!).subscribe({
-                  next: (gateways) => {
-                    this.flightResultService.loading = false;
-                    this.stopLoadingMessageCycle();
-                    this.sharedService.addMessage({
-                      sender: 'system',
-                      text: '',
-                      isPayment: true,
-                      itineraries: this.selectedItinerary ? [this.selectedItinerary] : undefined,
-                      paymentAmount,
-                      paymentCurrency: currency,
-                      gateways: gateways // Pass the gateways array to the component
-                    });
-                    this.scrollToBottom();
-                  },
-                  error: (err) => {
-                    this.flightResultService.loading = false;
-                    this.stopLoadingMessageCycle();
-                    console.error('Error adding payment gateways:', err);
-                    this.sharedService.addMessage({
-                      sender: 'system',
-                      text: 'Failed to load payment methods. Please try again.'
-                    });
-                    this.scrollToBottom();
-                  }
-                });
-              }
+              this.savePassengerTraveler(response.traveler);
+              this.continueAfterPassengerCompleted();
             }
           } else {
             // Error handling
@@ -1621,44 +1543,334 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   onFileSelected(event: any) {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Add a user message indicating file upload
+    const input = event?.target as HTMLInputElement | undefined;
+    const file = input?.files?.[0];
+    if (input) {
+      input.value = '';
+    }
+    if (!file) return;
+
+    this.disableCurrentActionButtons();
+    this.sharedService.addMessage({
+      sender: 'user',
+      text: `Uploaded passport copy: ${file.name}`,
+    });
+
+    if (window.innerWidth <= 991) {
+      this.scrollToMessageTop();
+    } else {
+      this.scrollToBottom();
+    }
+
+    if (!this.selectedItinerary) {
       this.sharedService.addMessage({
-        sender: 'user',
-        text: `Uploaded passport copy: ${file.name}`,
+        sender: 'system',
+        text: 'Please select a flight before uploading a passport.',
       });
+      return;
+    }
 
-      if (window.innerWidth <= 991) {
-        this.scrollToMessageTop();
-      } else {
-        this.scrollToBottom();
-      }
+    this.isTyping = true;
+    this.startLoadingMessageCycle(this.passportScanLoadingMessages);
+    this.flightResultService.uploadPassportResponseAi = undefined;
+    this.flightResultService.uploadPassportFromAiUrl(file, this.chatID);
 
-      // Simulate system processing the passport
-      this.isTyping = true;
-      this.startLoadingMessageCycle(this.passportScanLoadingMessages);
-      setTimeout(() => {
-        this.isTyping = false;
-        this.stopLoadingMessageCycle();
+    const checkInterval = setInterval(() => {
+      if (this.flightResultService.loading) return;
+
+      clearInterval(checkInterval);
+      this.isTyping = false;
+      this.stopLoadingMessageCycle();
+
+      if (this.flightResultService.normalErrorStatus) {
         this.sharedService.addMessage({
           sender: 'system',
-          text: `Thank you for uploading the passport copy (${file.name}). I have successfully received it and processed the details.`,
+          text: this.flightResultService.normalError || 'Failed to read the passport. Please try again.',
         });
+        this.scrollToBottom();
+        return;
+      }
+
+      const parsed = this.parsePassportUploadResponse(this.flightResultService.uploadPassportResponseAi);
+      if (!parsed.ok || !parsed.traveler) {
+        const missing = parsed.missingFields.length ? ` Missing: ${parsed.missingFields.join(', ')}.` : '';
+        this.sharedService.addMessage({
+          sender: 'system',
+          text: `${parsed.reply || 'Failed to read the passport. Please try again or enter the details manually.'}${missing}`,
+        });
+        this.scrollToBottom();
+        return;
+      }
+
+      const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: this.formatPassportDetailsMessage(parsed.traveler, parsed.reply),
+        showPassportReview: true,
+        passportTraveler: parsed.traveler,
+        passengerLabel: this.getPassengerLabel(currentPassenger),
+        passengerType: currentPassenger?.type || 'adult',
+      });
+      this.scrollToBottom();
+    }, 200);
+  }
+
+  confirmPassportDetails(msg: Message) {
+    if (msg.actionsDisabled || !msg.passportTraveler) return;
+    this.disableCurrentActionButtons();
+    this.isEnteringNamesManually = true;
+    this.sendMessage(this.buildBookMessageFromPassport(msg.passportTraveler));
+  }
+
+  editPassportDetails(msg: Message) {
+    if (msg.actionsDisabled || !msg.passportTraveler) return;
+    this.disableCurrentActionButtons();
+    this.isEnteringNamesManually = true;
+    this.sharedService.addMessage({
+      sender: 'user',
+      text: 'Edit passport details',
+    });
+    const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
+    const targetPassengerLabel = msg.passengerLabel
+      || (currentPassenger ? this.getPassengerLabel(currentPassenger) : 'Adult 1');
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: '',
+      showPassengerForm: true,
+      passengerLabel: targetPassengerLabel,
+      passengerType: msg.passengerType || currentPassenger?.type || 'adult',
+      passengerFormPrefill: this.toPassengerFormPrefill(msg.passportTraveler),
+    });
+    this.scrollToBottom();
+  }
+
+  private parsePassportUploadResponse(raw: any): {
+    ok: boolean;
+    traveler?: Record<string, string | null>;
+    reply?: string;
+    missingFields: string[];
+  } {
+    if (!raw) {
+      return { ok: false, missingFields: [] };
+    }
+
+    const nested = raw.traveler || {};
+    const firstName = this.asPassportText(nested.firstName || raw.first_name);
+    const lastName = this.asPassportText(nested.lastName || raw.last_name);
+    const dateOfBirth = this.asPassportText(nested.dateOfBirth || raw.date_of_birth) || null;
+    const passportNumber = this.asPassportText(nested.passportNumber || raw.passport_number) || null;
+    const passportExpiry = this.asPassportText(nested.passportExpiry || raw.expiry_date || raw.passportExpiry) || null;
+    const passportIssuedCountry = this.asPassportText(nested.passportIssuedCountry || raw.passport_issued_country) || null;
+    const nationality = this.asPassportText(raw.nationality) || null;
+    const gender = this.asPassportText(raw.gender) || null;
+    const missingFields = Array.isArray(raw.missingFields) ? raw.missingFields.filter(Boolean) : [];
+    const reply = this.asPassportText(raw.reply);
+    const traveler = {
+      travelerType: nested.travelerType ?? null,
+      firstName,
+      lastName,
+      dateOfBirth,
+      passportNumber,
+      passportExpiry,
+      passportIssuedCountry: passportIssuedCountry || nationality,
+      gender,
+      nationality,
+    };
+
+    if (raw.status === 'missing') {
+      return { ok: false, traveler, reply, missingFields };
+    }
+
+    const ok = raw.status === 'completed' || !!(firstName && lastName && passportNumber);
+    return { ok, traveler, reply, missingFields };
+  }
+
+  private asPassportText(value: unknown): string {
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  private toPassengerFormPrefill(traveler: Record<string, string | null>): PassengerFormPrefill {
+    return {
+      gender: this.toFormGender(traveler['gender']),
+      firstName: traveler['firstName'] || '',
+      lastName: traveler['lastName'] || '',
+      birthDate: this.toIsoDate(traveler['dateOfBirth']),
+      passportNumber: traveler['passportNumber'] || '',
+      passportExpiry: this.toIsoDate(traveler['passportExpiry']),
+      issueCountry: traveler['nationality']
+        || traveler['passportIssuedCountry']
+        || this.resolveIssueCountry(traveler['passportIssuedCountry'] || traveler['nationality'] || ''),
+    };
+  }
+
+  private buildBookMessageFromPassport(traveler: Record<string, string | null>): string {
+    const firstName = traveler['firstName'] || '';
+    const lastName = traveler['lastName'] || '';
+    const gender = this.toBookGender(traveler['gender']);
+    const birthday = this.formatBookDate(traveler['dateOfBirth'] || '');
+    const passportNumber = traveler['passportNumber'] || '';
+    const expiry = this.formatBookDate(traveler['passportExpiry'] || '');
+    const country = this.resolveIssueCountry(traveler['passportIssuedCountry'] || traveler['nationality'] || '').toLowerCase();
+    return `my first name is ${firstName} my last name is ${lastName} , my gender is ${gender} , my birthday is ${birthday} , my passport number is ${passportNumber} , passport expiry is ${expiry} , issue country is ${country}`;
+  }
+
+  private toFormGender(value: string | null | undefined): string {
+    const gender = (value || '').trim().toLowerCase();
+    if (gender === 'f' || gender === 'female' || gender === 'mrs' || gender === 'ms' || gender === 'miss') {
+      return 'Mrs';
+    }
+    return 'Mr';
+  }
+
+  private toBookGender(value: string | null | undefined): string {
+    return this.toFormGender(value) === 'Mrs' ? 'female' : 'male';
+  }
+
+  private toIsoDate(value: string | null | undefined): string {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+    const parts = raw.split(/[\/.-]/);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    return raw;
+  }
+
+  private formatBookDate(value: string): string {
+    const iso = this.toIsoDate(value);
+    if (!iso) return '';
+    const parts = iso.split('-');
+    if (parts.length === 3) {
+      return `${parseInt(parts[2], 10)}/${parseInt(parts[1], 10)}/${parts[0]}`;
+    }
+    return value;
+  }
+
+  private resolveIssueCountry(value: string): string {
+    const raw = value.trim();
+    if (!raw) return '';
+    const list = (countries as any).default || countries;
+    const lower = raw.toLowerCase();
+    const byCode = list.find((c: any) => String(c.cca2 || '').toLowerCase() === lower);
+    if (byCode) return byCode.name.common;
+    const byName = list.find((c: any) => String(c.name?.common || '').toLowerCase() === lower);
+    if (byName) return byName.name.common;
+    const byDemonym = list.find((c: any) => {
+      const eng = c.demonyms?.eng;
+      return String(eng?.m || '').toLowerCase() === lower || String(eng?.f || '').toLowerCase() === lower;
+    });
+    if (byDemonym) return byDemonym.name.common;
+    return raw;
+  }
+
+  private formatPassportDetailsMessage(traveler: Record<string, string | null>, reply?: string): string {
+    const lines = [
+      reply || 'Passport details were read successfully.',
+      '',
+      traveler['firstName'] ? `First name: ${traveler['firstName']}` : '',
+      traveler['lastName'] ? `Last name: ${traveler['lastName']}` : '',
+      traveler['dateOfBirth'] ? `Date of birth: ${traveler['dateOfBirth']}` : '',
+      traveler['gender'] ? `Gender: ${traveler['gender']}` : '',
+      traveler['nationality'] ? `Nationality: ${traveler['nationality']}` : '',
+      traveler['passportNumber'] ? `Passport number: ${traveler['passportNumber']}` : '',
+      traveler['passportExpiry'] ? `Expiry date: ${traveler['passportExpiry']}` : '',
+      traveler['passportIssuedCountry'] && traveler['passportIssuedCountry'] !== traveler['nationality']
+        ? `Issuing country: ${traveler['passportIssuedCountry']}`
+        : '',
+    ].filter((line, index) => index < 2 || line);
+    return lines.join('\n').trim();
+  }
+
+  private savePassengerTraveler(traveler: any) {
+    const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
+    if (!currentPassenger) return;
+    const passengerKey = `${currentPassenger.type}${currentPassenger.index}`;
+    if (!this.sharedService.travellersDetails.travellers) {
+      this.sharedService.travellersDetails.travellers = {};
+    }
+    this.sharedService.travellersDetails.travellers[passengerKey] = traveler;
+  }
+
+  private continueAfterPassengerCompleted() {
+    if (this.passengerList.length > 0 && this.currentPassengerIndex < this.passengerList.length - 1) {
+      const completedPassenger = this.passengerList[this.currentPassengerIndex];
+      this.currentPassengerIndex++;
+      const nextPassenger = this.passengerList[this.currentPassengerIndex];
+      const completedLabel = this.getPassengerLabel(completedPassenger);
+      const nextLabel = this.getPassengerLabel(nextPassenger);
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`,
+        isFlightSelection: true,
+        showBookingPrompt: true,
+      });
+      return;
+    }
+
+    this.startPaymentMethodsFlow();
+  }
+
+  private startPaymentMethodsFlow() {
+    console.log('Final travellersDetails:', this.sharedService.travellersDetails);
+    this.sharedService.addMessage({
+      sender: 'system',
+      text: 'Please wait while providing payment methods.',
+    });
+    this.flightResultService.loading = true;
+    this.startLoadingMessageCycle(this.paymentLoadingMessages);
+    this.scrollToBottom();
+
+    const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
+    if (!this.flightCheckoutService.selectedFlight && this.selectedItinerary) {
+      this.flightCheckoutService.selectedFlight = {
+        searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
+        airItineraryDTO: this.selectedItinerary,
+      } as any;
+    }
+
+    const paymentAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount
+      ?? ((this.selectedItinerary?.itinTotalFare?.amount || 1240) + (this.flightCheckoutService.serviceFees || 0));
+
+    if (!this.selectedItinerary) {
+      this.flightResultService.loading = false;
+      this.stopLoadingMessageCycle();
+      this.sharedService.addMessage({
+        sender: 'system',
+        text: 'Failed to load payment methods. Please try again.',
+      });
+      return;
+    }
+
+    this.flightCheckoutServiceApi.addPaymentGateways(currency, 'EG', this.selectedItinerary).subscribe({
+      next: (gateways) => {
+        this.flightResultService.loading = false;
+        this.stopLoadingMessageCycle();
         this.sharedService.addMessage({
           sender: 'system',
           text: '',
           isPayment: true,
-          itineraries: this.selectedItinerary
-            ? [this.selectedItinerary]
-            : undefined,
-          paymentAmount: this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount
-            || ((this.selectedItinerary?.itinTotalFare?.amount || 1240) + (this.flightCheckoutService.serviceFees || 0)),
-          paymentCurrency:
-            this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED',
+          itineraries: [this.selectedItinerary!],
+          paymentAmount,
+          paymentCurrency: currency,
+          gateways,
         });
-      }, 1500);
-    }
+        this.scrollToBottom();
+      },
+      error: (err) => {
+        this.flightResultService.loading = false;
+        this.stopLoadingMessageCycle();
+        console.error('Error adding payment gateways:', err);
+        this.sharedService.addMessage({
+          sender: 'system',
+          text: 'Failed to load payment methods. Please try again.',
+        });
+        this.scrollToBottom();
+      },
+    });
   }
 
   disableCurrentActionButtons() {
