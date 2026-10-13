@@ -150,6 +150,8 @@
       color: #1e3a8a;
       strong {
         color: vars.$color-primary;
+        text-decoration: underline;
+        cursor: pointer;
       }
 
 
@@ -158,8 +160,14 @@
       font-weight: 700;
       text-decoration: underline;
       cursor: pointer;
+
     }
     }
+  }
+
+  b{
+    text-decoration: underline;
+    cursor: pointer;
   }
 
   /* Flight Insights Chart */
@@ -812,6 +820,10 @@
   z-index: 1000000;
   animation: fabSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   color: #0b1c30;
+  b{
+    text-decoration: underline;
+    cursor: pointer;
+  }
 }
 
 .drawer-drag-handle {

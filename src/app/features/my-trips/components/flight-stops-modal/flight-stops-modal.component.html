@@ -15,12 +15,13 @@
 
       <!-- Modal Body -->
       <div class="policy-modal-body">
-        @if (activeLeg; as leg) {
+        @for (displayLeg of displayLegs; track displayLeg.index; let isLast = $last) {
+          @if (displayLeg.flight; as leg) {
           <!-- Route Summary -->
-          <div class="option-summary mb-4 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between">
+          <div class="option-summary mb-4 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between" [class.mt-4]="displayLeg.index > 0">
             <div>
               <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">
-                {{ selectedStopsIndex === 0 ? 'Outbound Flight' : 'Return Flight' }}
+                {{ displayLeg.label }}
               </span>
               <strong style="color: #0b1c30; font-size: 14px;">
                 {{ getDeptCity(leg) }} ({{ getDeptCode(leg) }}) &rarr; {{ getArrCity(leg) }} ({{ getArrCode(leg) }})
@@ -35,7 +36,7 @@
           </div>
 
           <!-- Vertical Timeline of Segments -->
-          <div class="timeline-container ps-3 relative" style="position: relative;">
+          <div class="timeline-container ps-3 relative" style="position: relative;" [class.mb-2]="!isLast">
             <div class="timeline-line"></div>
 
             @for (segment of (leg.flightDTO || []); track segment; let i = $index) {
@@ -126,6 +127,7 @@
               }
             }
           </div>
+          }
         }
       </div>
 

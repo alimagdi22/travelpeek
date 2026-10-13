@@ -426,7 +426,7 @@
 
   <!-- Smart Assistant Right Sidebar Component -->
   @if (isSmartAssistantVisible) {
-    <app-smart-assistant-sidebar (stopsTriggered)="openStopsModal($event, 0)"></app-smart-assistant-sidebar>
+    <app-smart-assistant-sidebar (stopsTriggered)="openStopsModal($event.itinerary, $event.index)"></app-smart-assistant-sidebar>
   }
   </div>
 </div>

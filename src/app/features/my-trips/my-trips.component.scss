@@ -332,9 +332,24 @@ textarea{
     min-width: 0;
     resize: none;
     line-height: 20px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 120px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    field-sizing: fixed;
+
+    &:placeholder-shown {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     &::placeholder {
       color: #98a2b3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 

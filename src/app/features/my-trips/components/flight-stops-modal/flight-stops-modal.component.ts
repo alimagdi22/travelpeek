@@ -40,25 +40,48 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
     }
   }
 
-  get activeLeg(): IFlight | null {
-    if (!this.leg) return null;
+  get journeyFlights(): IFlight[] {
     const anyLeg = this.leg as any;
+    if (!anyLeg) return [];
+    if (Array.isArray(anyLeg.allJourney?.flights) && anyLeg.allJourney.flights.length) {
+      return anyLeg.allJourney.flights;
+    }
+    if (Array.isArray(anyLeg.flights) && anyLeg.flights.length) {
+      return anyLeg.flights;
+    }
     if (anyLeg.flightDTO) {
-      return anyLeg as IFlight;
+      return [anyLeg as IFlight];
     }
-    if (anyLeg.allJourney?.flights?.[this.selectedStopsIndex]) {
-      return anyLeg.allJourney.flights[this.selectedStopsIndex];
+    return [];
+  }
+
+  get displayLegs(): { flight: IFlight; label: string; index: number }[] {
+    const flights = this.journeyFlights;
+    if (!flights.length) return [];
+    if (this.selectedStopsIndex < 0) {
+      return flights.map((flight, index) => ({
+        flight,
+        label: this.legLabel(index),
+        index,
+      }));
     }
-    if (anyLeg.allJourney?.flights?.[0]) {
-      return anyLeg.allJourney.flights[0];
+    const flight = this.activeLeg;
+    return flight ? [{ flight, label: this.legLabel(this.selectedStopsIndex), index: this.selectedStopsIndex }] : [];
+  }
+
+  get activeLeg(): IFlight | null {
+    const flights = this.journeyFlights;
+    if (!flights.length) return null;
+    if (this.selectedStopsIndex >= 0 && flights[this.selectedStopsIndex]) {
+      return flights[this.selectedStopsIndex];
     }
-    if (anyLeg.flights?.[this.selectedStopsIndex]) {
-      return anyLeg.flights[this.selectedStopsIndex];
-    }
-    if (anyLeg.flights?.[0]) {
-      return anyLeg.flights[0];
-    }
-    return anyLeg as IFlight;
+    return flights[0];
+  }
+
+  private legLabel(index: number): string {
+    if (index === 0) return 'Outbound Flight';
+    if (index === 1) return 'Return Flight';
+    return `Flight ${index + 1}`;
   }
 
   onClose() {

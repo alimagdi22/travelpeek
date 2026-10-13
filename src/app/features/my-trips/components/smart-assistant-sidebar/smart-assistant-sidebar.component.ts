@@ -528,7 +528,7 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
 
   openStopsModal(flight: any) {
     if (!flight) return;
-    this.stopsTriggered.emit(flight);
+    this.stopsTriggered.emit({ itinerary: flight, index: -1 });
   }
 
   closeStopsModal() {

@@ -1441,6 +1441,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
   adjustTextareaHeight(textarea: any) {
     if (!textarea) return;
+    if (!textarea.value) {
+      textarea.style.height = '';
+      return;
+    }
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
   }
@@ -2173,7 +2177,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
   openStopsModal(itinerary: any, legIndex: number = 0) {
     this.selectedItineraryForStops = itinerary;
-    this.selectedStopsIndex = legIndex || 0;
+    this.selectedStopsIndex = legIndex ?? 0;
     this.showStopsModal = true;
   }
 
