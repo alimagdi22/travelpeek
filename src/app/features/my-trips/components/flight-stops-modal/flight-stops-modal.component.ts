@@ -101,10 +101,14 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
   onSelectFlight() {
     if (!this.leg) return;
     const itinerary = this.leg as any;
-    const response = this.flightResultService.response;
-    if (response) {
+    const searchId =
+      this.sharedService.getSavedFlightSearchId() ||
+      this.flightResultService.responseAi?.searchCriteria?.searchId ||
+      this.flightResultService.response?.searchCriteria?.searchId ||
+      '';
+    if (searchId) {
       this.flightCheckoutService.getSelectedFlightData(
-        response.searchCriteria.searchId,
+        searchId,
         itinerary.sequenceNum,
         itinerary.pKey,
         true,

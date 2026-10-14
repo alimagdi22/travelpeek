@@ -122,9 +122,9 @@
                   ></app-secure-payment>
                 </div>
               }  @else {
-                @if (msg.text || msg.showContactForm || msg.showPassengerForm) {
+                @if ((msg.text && !msg.recommendedItineraries?.length) || msg.showContactForm || msg.showPassengerForm) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
-                    @if (msg.text) {
+                    @if (msg.text && !msg.recommendedItineraries?.length) {
                       <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
                     }
                     @if (msg.showContactForm) {
@@ -151,8 +151,21 @@
                   </div>
                 }
 
+                @if (msg.recommendedItineraries?.length) {
+                  <div class="w-100 d-flex flex-column gap-3">
+                    @for (itinerary of msg.recommendedItineraries; track itinerary.sequenceNum + '-' + itinerary.pKey + '-' + itinerary.pcc) {
+                      <app-selected-flight
+                        [itinerary]="itinerary"
+                        [passengerCountLabel]="msg.passengerCountLabel || ''"
+                        [showSelectButton]="true"
+                        (selectClicked)="selectRecommendedFlight($event)"
+                      ></app-selected-flight>
+                    }
+                  </div>
+                }
+
                 <!-- Flight Results Cards -->
-                @if (msg.itineraries !== undefined && msg.itineraries !== null) {
+                @if (!msg.recommendedItineraries?.length && msg.itineraries !== undefined && msg.itineraries !== null) {
                   <div class="system-bubble p-1 rounded-4 w-100">
                     <app-available-flights
                       [itineraries]="msg.itineraries"
@@ -510,8 +523,8 @@
                       <div class="d-flex justify-content-between align-items-center mt-1">
                         <span class="text-sm text-muted" style="font-size: 13px;">Cancellation Penalty Fee</span>
                         <strong class="text-dark" style="font-size: 13px;">
-                          {{ penalty.curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
-                          {{ penalty.price | exchange: 'value' }}
+                          {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
+                          {{ 'EGP' | exchange: 'code' }}
                         </strong>
                       </div>
                     } @else {
@@ -535,8 +548,8 @@
                     <span>Agency Admin Fee</span>
                   </span>
                   <strong class="text-dark" style="font-size: 13px;">
-                    {{ adminCharges[0].curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
-                    {{ adminCharges[0].price | exchange: 'value' }}
+                    {{ convertPenaltyToBaseAmount(adminCharges[0].price, adminCharges[0].curency) | exchange: 'value' | number: '1.0-0' }}
+                    {{ 'EGP' | exchange: 'code' }}
                   </strong>
                 </div>
               }
@@ -563,8 +576,8 @@
                     <div class="d-flex justify-content-between align-items-center mt-1">
                       <span class="text-sm text-muted" style="font-size: 13px;">Change Penalty Fee</span>
                       <strong class="text-dark" style="font-size: 13px;">
-                        {{ penalty.curency || getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}
-                        {{ penalty.price | exchange: 'value' }}
+                        {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
+                        {{ 'EGP' | exchange: 'code' }}
                       </strong>
                     </div>
                   </div>

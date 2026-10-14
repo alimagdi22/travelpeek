@@ -111,6 +111,10 @@ describe('MyTripsComponent search results (mocked API)', () => {
       saveSmartAssistantSnapshot: jasmine.createSpy('saveSmartAssistantSnapshot'),
       clearSmartAssistantSnapshot: jasmine.createSpy('clearSmartAssistantSnapshot'),
       getLastSmartAssistantSnapshot: () => null,
+      saveFlightSearchResponseAi: jasmine.createSpy('saveFlightSearchResponseAi'),
+      getSavedFlightSearchResponseAi: () => null,
+      getSavedFlightSearchId: () => '',
+      clearSavedFlightSearchResponseAi: jasmine.createSpy('clearSavedFlightSearchResponseAi'),
     };
 
     await TestBed.configureTestingModule({
@@ -136,6 +140,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
             payLaterSuccess: null,
             serviceFees: 0,
             selectedFlight: null,
+            getSelectedFlightData: jasmine.createSpy('getSelectedFlightData'),
           },
         },
         {
@@ -215,6 +220,129 @@ describe('MyTripsComponent search results (mocked API)', () => {
     expect(resultMsg?.text).not.toContain('Something went wrong');
     expect(resultMsg?.text).not.toContain('No flights found');
     expect(component.isSmartAssistantVisible).toBeTrue();
+  }));
+
+  it('replaces recommendation output text with matching selected-flight cards', fakeAsync(() => {
+    const egyptAir = {
+      ...mockItinerary,
+      sequenceNum: 1,
+      pcc: '8JQ8',
+      pKey: '52',
+    };
+    const turkishAirlines = {
+      ...mockItinerary,
+      sequenceNum: 3,
+      pcc: '8JQ8',
+      pKey: '52',
+    };
+
+    component.sendMessage('best experience cairo to dubai');
+    tick();
+
+    completeMockedSearch({
+      airItineraries: [egyptAir, { ...mockItinerary, sequenceNum: 2, pcc: '8JQ8', pKey: '99' }, turkishAirlines],
+      searchCriteria: {
+        searchId: 'search-1',
+        flights: mockSearchResult.searchCriteria.flights,
+      },
+      output:
+        'Based on the search results, **[EgyptAir](sequence:1, pcc:8JQ8, pKey:52)** provides the best experience with a total fare of 6000 EGP, a short 2h 30m duration, and excellent value for money. Alternatively, **[Turkish Airlines](sequence:3, pcc:8JQ8, pKey:52)** offers a faster option with a total fare of 12750 EGP and a 2h 25m duration.',
+    });
+
+    tick(300);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const resultMsg = component.messages.find((m) => m.sender === 'system' && m.recommendedItineraries?.length);
+    expect(resultMsg).toBeTruthy();
+    expect(resultMsg?.text).toBe('');
+    expect(resultMsg?.recommendedItineraries?.length).toBe(2);
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
+    expect(resultMsg?.recommendedItineraries?.[1].sequenceNum).toBe(3);
+    expect(resultMsg?.itineraries?.length).toBe(3);
+
+    component.selectRecommendedFlight(egyptAir as any);
+    expect(sharedService.setSelectedItinerary).toHaveBeenCalledWith(egyptAir);
+  }));
+
+  it('matches sequence 1 exactly and does not take 10 or 100', fakeAsync(() => {
+    const seq1 = { ...mockItinerary, sequenceNum: 1, pcc: '8JQ8', pKey: '52' };
+    const seq10 = { ...mockItinerary, sequenceNum: 10, pcc: '8JQ8', pKey: '52' };
+    const seq100 = { ...mockItinerary, sequenceNum: 100, pcc: '8JQ8', pKey: '52' };
+
+    component.sendMessage('cairo to dubai');
+    tick();
+    completeMockedSearch({
+      airItineraries: [seq10, seq100, seq1],
+      searchCriteria: { searchId: 'search-1', flights: mockSearchResult.searchCriteria.flights },
+      output:
+        "Based on your search results, **[EgyptAir](sequence:1, pcc:8JQ8, pKey:52)** offers the best experience.",
+    });
+    tick(300);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const resultMsg = component.messages.find((m) => m.recommendedItineraries?.length);
+    expect(resultMsg?.recommendedItineraries?.length).toBe(1);
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).not.toBe(10);
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).not.toBe(100);
+  }));
+
+  it('matches sequence 2 exactly and does not also show 20', fakeAsync(() => {
+    const seq2 = { ...mockItinerary, sequenceNum: 2, pcc: '8JQ8', pKey: '52' };
+    const seq20 = { ...mockItinerary, sequenceNum: 20, pcc: '8JQ8', pKey: '52' };
+
+    component.sendMessage('cairo to dubai');
+    tick();
+    completeMockedSearch({
+      airItineraries: [seq20, seq2],
+      searchCriteria: { searchId: 'search-1', flights: mockSearchResult.searchCriteria.flights },
+      output:
+        "Based on your search results, **[EgyptAir](sequence:2, pcc:8JQ8, pKey:52)** offers the best experience.",
+    });
+    tick(300);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const resultMsg = component.messages.find((m) => m.recommendedItineraries?.length);
+    expect(resultMsg?.recommendedItineraries?.length).toBe(1);
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(2);
+    expect(resultMsg?.recommendedItineraries?.some((item) => Number(item.sequenceNum) === 20)).toBeFalse();
+  }));
+
+  it('shows the recommended flight card on a follow-up after itineraries were cleared', fakeAsync(() => {
+    const egyptAir = {
+      ...mockItinerary,
+      sequenceNum: 1,
+      pcc: '8JQ8',
+      pKey: '52',
+    };
+
+    component.sendMessage('cairo to dubai');
+    tick();
+    completeMockedSearch({
+      airItineraries: [egyptAir],
+      searchCriteria: mockSearchResult.searchCriteria,
+    });
+    tick(300);
+    flushSystemMessages();
+
+    component.sendMessage('what do u recommend');
+    tick();
+    completeMockedSearch({
+      output:
+        "Based on your search results, **[EgyptAir](sequence:1, pcc:8JQ8, pKey:52)** offers the best experience with an overall score of 100, a total fare of 11,062.5 EGP for a 3h 20m direct flight from Cairo to Dubai on November 22, 2026.",
+    });
+    tick(300);
+    flushSystemMessages();
+    discardPeriodicTasks();
+
+    const resultMsg = [...component.messages].reverse().find((m) => m.sender === 'system' && m.recommendedItineraries?.length);
+    expect(resultMsg).toBeTruthy();
+    expect(resultMsg?.text).toBe('');
+    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
+    expect(resultMsg?.recommendedItineraries?.[0].pKey).toBe('52');
   }));
 
   it('shows AI output without treating an empty organized list as a failed search', fakeAsync(() => {

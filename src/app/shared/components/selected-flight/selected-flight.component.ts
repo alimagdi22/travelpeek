@@ -1,4 +1,4 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { IAirItinerary, IFlight } from 'rp-travel-ui';
 
 @Component({
@@ -10,6 +10,14 @@ import { IAirItinerary, IFlight } from 'rp-travel-ui';
 export class SelectedFlightComponent {
   @Input() itinerary: IAirItinerary | null = null;
   @Input() passengerCountLabel: string = '';
+  @Input() showSelectButton = false;
+  @Output() selectClicked = new EventEmitter<IAirItinerary>();
+
+  onSelectFlight() {
+    if (this.itinerary) {
+      this.selectClicked.emit(this.itinerary);
+    }
+  }
 
   getOutboundFlight(itinerary: IAirItinerary): IFlight | null {
     return itinerary?.allJourney?.flights?.[0] ?? null;

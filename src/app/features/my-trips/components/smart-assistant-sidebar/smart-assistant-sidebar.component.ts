@@ -180,8 +180,9 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   }
 
   private getSearchCriteria(): any {
-    return this.flightResultService.response?.searchCriteria
+    return this.sharedService.getSavedFlightSearchResponseAi()?.searchCriteria
       || this.flightResultService.responseAi?.searchCriteria
+      || this.flightResultService.response?.searchCriteria
       || this.flightCheckoutService.selectedFlight?.searchCriteria;
   }
 

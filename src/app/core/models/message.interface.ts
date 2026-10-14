@@ -6,6 +6,7 @@ export interface Message {
   timestamp: Date;
   flights?: FlightCard[];
   itineraries?: IAirItinerary[];
+  recommendedItineraries?: IAirItinerary[];
   isFlightSelection?: boolean;
   showBookingPrompt?: boolean;
   passengerCountLabel?: string;

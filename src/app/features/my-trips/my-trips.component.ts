@@ -1,6 +1,6 @@
 import { Component, inject, NgZone, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
 import { FormArray } from '@angular/forms';
-import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
+import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService, HomePageService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
@@ -64,6 +64,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
+  homePageService = inject(HomePageService);
   private zone = inject(NgZone);
   private subscription = new Subscription();
   private filterFormSub: Subscription | null = null;
@@ -72,6 +73,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private didFollowUpSearch = false;
   private didShowFollowUpClientMessage = false;
   private searchGeneration = 0;
+  private lastSearchItineraries: any[] = [];
   isSmartAssistantVisible = false;
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
@@ -88,7 +90,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   currentPassengerIndex: number = 0;
 
   initializePassengerList() {
-    const criteria = this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria;
+    const criteria = this.getPersistedSearchCriteria();
     this.passengerList = [];
     this.currentPassengerIndex = 0;
     if (!criteria) return;
@@ -195,6 +197,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         if (msg) {
           if (msg.sender === 'system') {
             msg.isAnimating = false;
+            this.attachRecommendedItinerariesToMessage(msg);
             // Prevent duplicate consecutive system messages
             const lastMsg = this.messages[this.messages.length - 1];
             if (
@@ -479,7 +482,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.flightResultService.orgnizedResponce = [];
     }
     this.isSmartAssistantVisible = false;
+    this.lastSearchItineraries = [];
     this.sharedService.clearSmartAssistantSnapshot();
+    this.sharedService.clearSavedFlightSearchResponseAi();
     this.resetCheckoutState();
   }
 
@@ -1228,7 +1233,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.didShowFollowUpClientMessage = true;
 
     const intro = introText ? String(introText).trim() : '';
-    if (intro) {
+    if (intro && !this.findRecommendedItinerariesFromOutput(intro).length) {
       this.sharedService.addMessage({
         sender: 'system',
         text: this.formatAiMessageText(intro),
@@ -1317,7 +1322,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
     if (libraryFollowUpChat) {
       this.printFollowUpAsClientMessage(libraryFollowUpChat, followUpOutput);
-    } else if (followUpOutput && !this.didShowFollowUpClientMessage) {
+    } else if (
+      followUpOutput &&
+      !this.didShowFollowUpClientMessage &&
+      !this.findRecommendedItinerariesFromOutput(String(followUpOutput)).length
+    ) {
       this.sharedService.addMessage({
         sender: 'system',
         text: this.formatAiMessageText(followUpOutput),
@@ -1385,6 +1394,8 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
 
     if (hasNewItineraries) {
+      this.cacheSearchItineraries(this.getCurrentResponseItineraries());
+      this.sharedService.saveFlightSearchResponseAi(responseAi);
       this.isSmartAssistantVisible = true;
       this.sharedService.saveSmartAssistantSnapshot({
         comparisonFlights: airItineraries,
@@ -1398,16 +1409,20 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.messages.forEach(m => {
         if (m.sender === 'system') {
           m.itineraries = undefined;
+          m.recommendedItineraries = undefined;
         }
       });
     }
 
-    replyText = this.formatAiMessageText(replyText);
+    const recommendedItineraries = this.findRecommendedItinerariesFromOutput(replyText);
+    replyText = recommendedItineraries.length ? '' : this.formatAiMessageText(replyText);
 
     this.sharedService.addMessage({
       sender: 'system',
       text: replyText,
       itineraries: hasNewItineraries ? airItineraries : undefined,
+      recommendedItineraries: recommendedItineraries.length ? recommendedItineraries : undefined,
+      passengerCountLabel: recommendedItineraries.length ? this.getPassengersCountLabel() : undefined,
     });
 
     if (hasNewItineraries) {
@@ -1447,6 +1462,143 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
+  }
+
+  selectRecommendedFlight(itinerary: IAirItinerary) {
+    const searchId = this.getPersistedFlightSearchId();
+    if (searchId) {
+      this.flightCheckoutService.getSelectedFlightData(
+        searchId,
+        itinerary.sequenceNum,
+        itinerary.pKey,
+        true,
+        itinerary.pcc,
+      );
+    }
+    this.sharedService.setSelectedItinerary(itinerary);
+  }
+
+  private getPersistedFlightSearchId(): string {
+    return this.getPersistedSearchCriteria()?.searchId || '';
+  }
+
+  private getPersistedSearchCriteria(): any {
+    return (
+      this.sharedService.getSavedFlightSearchResponseAi()?.searchCriteria ||
+      this.flightResultService.responseAi?.searchCriteria ||
+      this.flightResultService.response?.searchCriteria ||
+      null
+    );
+  }
+
+  private attachRecommendedItinerariesToMessage(msg: Message) {
+    if (!msg?.text || msg.recommendedItineraries?.length) return;
+    const recommendedItineraries = this.findRecommendedItinerariesFromOutput(msg.text);
+    if (!recommendedItineraries.length) return;
+    msg.recommendedItineraries = recommendedItineraries;
+    msg.text = '';
+    msg.passengerCountLabel = msg.passengerCountLabel || this.getPassengersCountLabel();
+  }
+
+  private findRecommendedItinerariesFromOutput(text: string): IAirItinerary[] {
+    const refs = this.parseRecommendedFlightRefs(text || '');
+    if (!refs.length) return [];
+
+    const itineraries = this.getItinerariesForRecommendationMatch();
+    const matched: IAirItinerary[] = [];
+    refs.forEach((ref) => {
+      const itinerary = itineraries.find((item) =>
+        this.sequencesAreExact(item?.sequenceNum, ref.sequenceNum) &&
+        String(item?.pKey) === String(ref.pKey) &&
+        this.pccMatches(item?.pcc, ref.pcc)
+      );
+      if (!itinerary) return;
+      const alreadyAdded = matched.some((item) =>
+        this.sequencesAreExact(item.sequenceNum, itinerary.sequenceNum) &&
+        String(item.pKey) === String(itinerary.pKey) &&
+        this.pccMatches(item.pcc, itinerary.pcc ?? ref.pcc)
+      );
+      if (!alreadyAdded) {
+        matched.push(itinerary);
+      }
+    });
+    return matched;
+  }
+
+  private parseRecommendedFlightRefs(text: string): Array<{ sequenceNum: number; pcc: string; pKey: string }> {
+    if (!text) return [];
+    const looksLikeRecommendation =
+      /^\s*Based on (the|your) search results,/i.test(text) ||
+      /\*\*\[[^\]]+\]\(sequence:\s*\d+,\s*pcc:/i.test(text);
+    if (!looksLikeRecommendation) return [];
+
+    const refs: Array<{ sequenceNum: number; pcc: string; pKey: string }> = [];
+    const pattern = /sequence:\s*(\d+)\s*,\s*pcc:\s*([^,)\s]+)\s*,\s*pKey:\s*([^,)\s]+)/gi;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      refs.push({
+        sequenceNum: Number(match[1]),
+        pcc: match[2].trim(),
+        pKey: match[3].trim(),
+      });
+    }
+    return refs;
+  }
+
+  private sequencesAreExact(left: unknown, right: unknown): boolean {
+    const leftText = String(left ?? '').trim();
+    const rightText = String(right ?? '').trim();
+    if (!/^\d+$/.test(leftText) || !/^\d+$/.test(rightText)) return false;
+    return leftText === rightText;
+  }
+
+  private pccMatches(itemPcc: unknown, refPcc: unknown): boolean {
+    const left = String(itemPcc ?? '').trim();
+    if (!left) return true;
+    return left === String(refPcc ?? '').trim();
+  }
+
+  private cacheSearchItineraries(itineraries: any[]) {
+    if (Array.isArray(itineraries) && itineraries.length) {
+      this.lastSearchItineraries = itineraries;
+    }
+  }
+
+  private getCurrentResponseItineraries(): any[] {
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+    const candidates = [
+      res?.airItineraries,
+      resAi?.airItineraries,
+      resAi?.itineraries,
+      res?.itineraries,
+      resAi?.data?.airItineraries,
+      resAi?.data?.itineraries,
+      res?.data?.airItineraries,
+      res?.data?.itineraries,
+    ];
+    const direct = candidates.find((list) => Array.isArray(list) && list.length > 0);
+    if (direct) return direct;
+
+    const organized = this.flightResultService.orgnizedResponce;
+    if (Array.isArray(organized) && organized.length > 0) {
+      return organized.map((group) => (Array.isArray(group) ? group[0] : group));
+    }
+    return [];
+  }
+
+  private getItinerariesForRecommendationMatch(): any[] {
+    const current = this.getCurrentResponseItineraries();
+    if (current.length) return current;
+    if (this.lastSearchItineraries.length) return this.lastSearchItineraries;
+
+    const fromMessages = this.messages.flatMap((msg) => [
+      ...(msg.itineraries || []),
+      ...(msg.recommendedItineraries || []),
+    ]);
+    if (fromMessages.length) return fromMessages;
+
+    return this.sharedService.getLastSmartAssistantSnapshot()?.comparisonFlights || [];
   }
 
   handleFlightSelection(itinerary: IAirItinerary) {
@@ -1525,7 +1677,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   getPassengersCountLabel(): string {
-    const criteria = this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria;
+    const criteria = this.getPersistedSearchCriteria();
     if (!criteria) return '';
     const parts: string[] = [];
     if (criteria.adultNum > 0) {
@@ -1831,7 +1983,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     const currency = this.selectedItinerary?.itinTotalFare?.currencyCode || 'AED';
     if (!this.flightCheckoutService.selectedFlight && this.selectedItinerary) {
       this.flightCheckoutService.selectedFlight = {
-        searchCriteria: this.flightResultService.response?.searchCriteria || this.flightResultService.responseAi?.searchCriteria!,
+        searchCriteria: this.getPersistedSearchCriteria(),
         airItineraryDTO: this.selectedItinerary,
       } as any;
     }
@@ -2102,8 +2254,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.changePenalties = [];
     this.adminCharges = [];
 
-    const response = this.flightResultService.response || this.flightResultService.responseAi;
-    const searchId = response?.searchCriteria?.searchId || '';
+    const searchId = this.getPersistedFlightSearchId();
     const sequenceNum = itinerary.sequenceNum;
     const pKey = itinerary.pKey;
     const pcc = itinerary.pcc || '';
@@ -2155,6 +2306,19 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.policySubscription.unsubscribe();
       this.policySubscription = null;
     }
+  }
+
+  convertPenaltyToBaseAmount(price: number, sourceCurrency?: string): number {
+    const amount = Number(price);
+    if (!Number.isFinite(amount)) return 0;
+    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
+    if (sourceCode === 'EGP') return amount;
+    const source = this.homePageService.allCurrency.find(
+      (currency) => currency.Currency_Code === sourceCode,
+    );
+    const sourceRate = Number(source?.rate);
+    if (!sourceRate) return amount;
+    return amount / sourceRate;
   }
 
   getSectors(itinerary: IAirItinerary): string[] {

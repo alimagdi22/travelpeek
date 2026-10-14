@@ -98,6 +98,31 @@ export class SharedService {
     this.lastSmartAssistantSnapshot = null;
   }
 
+  private lastFlightSearchResponseAi: any = null;
+
+  saveFlightSearchResponseAi(responseAi: any) {
+    if (!responseAi) return;
+    const hasFlights = !!(
+      responseAi.airItineraries?.length ||
+      responseAi.itineraries?.length ||
+      responseAi.data?.airItineraries?.length
+    );
+    if (!hasFlights) return;
+    this.lastFlightSearchResponseAi = responseAi;
+  }
+
+  getSavedFlightSearchResponseAi() {
+    return this.lastFlightSearchResponseAi;
+  }
+
+  getSavedFlightSearchId(): string {
+    return this.lastFlightSearchResponseAi?.searchCriteria?.searchId || '';
+  }
+
+  clearSavedFlightSearchResponseAi() {
+    this.lastFlightSearchResponseAi = null;
+  }
+
   private formatDateTime(isoString: string): string {
     if (!isoString) return '';
     const date = new Date(isoString);

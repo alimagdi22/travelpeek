@@ -8,7 +8,11 @@
           alt="Selected Flight"
           class="header-icon"
         />
-        <h2 class="header-title mb-0">Selected Flight</h2>
+        @if(showSelectButton){
+          <h2 class="header-title mb-0">Recommended Flight</h2>
+        }@else {
+          <h2 class="header-title mb-0">Selected Flight</h2>
+        }
         <span class="passenger-badge ms-2 px-2.5 py-1 rounded-pill" *ngIf="passengerCountLabel">
           {{ passengerCountLabel }}
         </span>
@@ -85,7 +89,7 @@
         <!-- Leg Details -->
         <div class="leg-details ps-4 ms-2 d-flex flex-column gap-2">
           <!-- From / To -->
-          <div class="detail-row d-flex flex-column align-items-center gap-2">
+          <div class="detail-row d-flex gap-2">
             <img
               src="/assets/icons/mytrips/from.svg"
               class="detail-icon"
@@ -102,7 +106,7 @@
 
           <!-- Departure / Arrival Times -->
           <div class="detail-row d-flex flex-column gap-2 mobile-details">
-            <div class="time-item d-flex flex-column align-items-center gap-2">
+            <div class="time-item d-flex gap-2">
               <img
                 src="/assets/icons/mytrips/departure-time.svg"
                 class="detail-icon"
@@ -116,7 +120,7 @@
               </span>
             </div>
             @if (getArrDate(outbound)) {
-              <div class="time-item d-flex flex-column align-items-center gap-2">
+              <div class="time-item d-flex gap-2">
                 <img
                   src="/assets/icons/mytrips/arrival-time.svg"
                   class="detail-icon"
@@ -210,7 +214,7 @@
           <div
             class="detail-row d-flex flex-column flex-wrap align-items-center gap-2"
           >
-            <div class="time-item d-flex align-items-center gap-2">
+            <div class="time-item gap-2">
               <img
                 src="/assets/icons/mytrips/departure-time.svg"
                 class="detail-icon"
@@ -224,7 +228,7 @@
               </span>
             </div>
             @if (getArrDate(returnF)) {
-              <div class="time-item d-flex flex-column align-items-center gap-2">
+              <div class="time-item d-flex gap-2">
                 <img
                   src="/assets/icons/mytrips/arrival-time.svg"
                   class="detail-icon"
@@ -295,5 +299,10 @@
         }}</span>
       </span>
     </div>
+    @if (showSelectButton) {
+      <button type="button" class="btn btn-select-flight font-semibold" (click)="onSelectFlight()">
+        Select Flight
+      </button>
+    }
   </div>
 </div>

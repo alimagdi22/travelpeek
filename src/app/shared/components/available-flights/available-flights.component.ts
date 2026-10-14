@@ -103,12 +103,19 @@ export class AvailableFlightsComponent {
   }
 
   selectFlight(itinerary: IAirItinerary) {
-    const response = this.flightResultService.response;
-    console.log(response);
-
-    console.log(itinerary, 'itenaries');
-    if (response) {
-      this.flightCheckoutService.getSelectedFlightData(response.searchCriteria.searchId,itinerary.sequenceNum,itinerary.pKey,true,itinerary.pcc)
+    const searchId =
+      this.sharedService.getSavedFlightSearchId() ||
+      this.flightResultService.responseAi?.searchCriteria?.searchId ||
+      this.flightResultService.response?.searchCriteria?.searchId ||
+      '';
+    if (searchId) {
+      this.flightCheckoutService.getSelectedFlightData(
+        searchId,
+        itinerary.sequenceNum,
+        itinerary.pKey,
+        true,
+        itinerary.pcc,
+      );
     }
     this.sharedService.setSelectedItinerary(itinerary);
   }
