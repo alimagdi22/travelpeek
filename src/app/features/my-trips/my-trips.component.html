@@ -130,9 +130,11 @@
                   ></app-secure-payment>
                 </div>
               }  @else {
-                @if ((msg.text && !msg.recommendedItineraries?.length) || msg.showContactForm || msg.showPassengerForm) {
+                @if (msg.text || msg.showContactForm || msg.showPassengerForm) {
                   <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100" [class.animating]="msg.isAnimating">
-                    @if (msg.text && !msg.recommendedItineraries?.length) {
+                    @if (msg.recommendedHtml) {
+                      <p class="mb-0 system-intro-text" [innerHTML]="msg.recommendedHtml" (click)="onRecommendedAirlineClick($event)"></p>
+                    } @else if (msg.text) {
                       <p class="mb-0 system-intro-text" [appTypewriter]="msg.text" [animate]="!!msg.isAnimating" (typeEnd)="onTypewriterComplete(msg)"></p>
                     }
                     @if (msg.showContactForm) {
@@ -159,21 +161,8 @@
                   </div>
                 }
 
-                @if (msg.recommendedItineraries?.length) {
-                  <div class="w-100 d-flex flex-column gap-3">
-                    @for (itinerary of msg.recommendedItineraries; track itinerary.sequenceNum + '-' + itinerary.pKey + '-' + itinerary.pcc) {
-                      <app-selected-flight
-                        [itinerary]="itinerary"
-                        [passengerCountLabel]="msg.passengerCountLabel || ''"
-                        [showSelectButton]="true"
-                        (selectClicked)="selectRecommendedFlight($event)"
-                      ></app-selected-flight>
-                    }
-                  </div>
-                }
-
                 <!-- Flight Results Cards -->
-                @if (!msg.recommendedItineraries?.length && msg.itineraries !== undefined && msg.itineraries !== null) {
+                @if (msg.itineraries !== undefined && msg.itineraries !== null) {
                   <div class="system-bubble p-1 rounded-4 w-100">
                     <app-available-flights
                       [itineraries]="msg.itineraries"

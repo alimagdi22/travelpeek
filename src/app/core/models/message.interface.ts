@@ -1,3 +1,4 @@
+import { SafeHtml } from '@angular/platform-browser';
 import { IAirItinerary } from "rp-travel-ui";
 
 export interface Message {
@@ -7,6 +8,7 @@ export interface Message {
   flights?: FlightCard[];
   itineraries?: IAirItinerary[];
   recommendedItineraries?: IAirItinerary[];
+  recommendedHtml?: SafeHtml;
   isFlightSelection?: boolean;
   showBookingPrompt?: boolean;
   passengerCountLabel?: string;

@@ -170,7 +170,6 @@ textarea{
   }
 
   &.agent-avatar {
-    background: #eff4ff;
     border: 1px solid rgba(0, 74, 198, 0.12);
 
     img {
@@ -232,6 +231,13 @@ textarea{
     color: #0b1a30;
     white-space: pre-line;
   }
+}
+
+:host ::ng-deep .recommended-airline-link {
+  color: #004ac6;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* Typing indicator */

@@ -4,6 +4,7 @@ import { FlightResultService, IAirItinerary, IFlight, UserProfileService, Flight
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { DatePipe } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Message } from '../../core/models/message.interface';
 import { PassengerFormData, PassengerFormPrefill } from './components/passenger-form/passenger-form.component';
 import * as countries from 'world-countries';
@@ -65,6 +66,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
   homePageService = inject(HomePageService);
+  private sanitizer = inject(DomSanitizer);
   private zone = inject(NgZone);
   private subscription = new Subscription();
   private filterFormSub: Subscription | null = null;
@@ -549,6 +551,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             }
             deduplicated.push(msg);
           }
+          deduplicated.forEach((msg) => {
+            if (msg.sender === 'system') {
+              this.attachRecommendedItinerariesToMessage(msg);
+            }
+          });
           this.messages = deduplicated;
           this.scrollToBottom();
         }
@@ -1233,10 +1240,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.didShowFollowUpClientMessage = true;
 
     const intro = introText ? String(introText).trim() : '';
-    if (intro && !this.findRecommendedItinerariesFromOutput(intro).length) {
+    if (intro && !this.hasRecommendedAirlineMarkup(intro) && !this.findRecommendedItinerariesFromOutput(intro).length) {
       this.sharedService.addMessage({
         sender: 'system',
-        text: this.formatAiMessageText(intro),
+        ...this.prepareSystemMessageText(intro),
       });
     }
 
@@ -1419,15 +1426,13 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       });
     }
 
-    const recommendedItineraries = this.findRecommendedItinerariesFromOutput(replyText);
-    replyText = recommendedItineraries.length ? '' : this.formatAiMessageText(replyText);
+    const preparedReply = this.prepareSystemMessageText(replyText);
 
     this.sharedService.addMessage({
       sender: 'system',
-      text: replyText,
+      text: preparedReply.text,
+      recommendedHtml: preparedReply.recommendedHtml,
       itineraries: hasNewItineraries ? airItineraries : undefined,
-      recommendedItineraries: recommendedItineraries.length ? recommendedItineraries : undefined,
-      passengerCountLabel: recommendedItineraries.length ? this.getPassengersCountLabel() : undefined,
     });
 
     if (hasNewItineraries) {
@@ -1497,12 +1502,72 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   private attachRecommendedItinerariesToMessage(msg: Message) {
-    if (!msg?.text || msg.recommendedItineraries?.length) return;
-    const recommendedItineraries = this.findRecommendedItinerariesFromOutput(msg.text);
-    if (!recommendedItineraries.length) return;
-    msg.recommendedItineraries = recommendedItineraries;
-    msg.text = '';
-    msg.passengerCountLabel = msg.passengerCountLabel || this.getPassengersCountLabel();
+    if (!msg?.text || msg.recommendedHtml) return;
+    if (this.hasRecommendedAirlineMarkup(msg.text)) {
+      msg.recommendedHtml = this.toRecommendedAirlineHtml(msg.text);
+    }
+  }
+
+  private prepareSystemMessageText(text: string): { text: string; recommendedHtml?: SafeHtml } {
+    const formatted = this.formatAiMessageText(text || '');
+    return {
+      text: formatted,
+      recommendedHtml: this.hasRecommendedAirlineMarkup(formatted)
+        ? this.toRecommendedAirlineHtml(formatted)
+        : undefined,
+    };
+  }
+
+  private recommendedAirlinePattern(): RegExp {
+    return /\*{0,2}\[([^\]]+)\]\(\s*sequence:\s*(\d+)\s*,\s*pcc:\s*([^,)\s]+)\s*,\s*pKey:\s*([^,)\s]+)\s*\)\*{0,2}/gi;
+  }
+
+  hasRecommendedAirlineMarkup(text: string): boolean {
+    return this.recommendedAirlinePattern().test(text || '');
+  }
+
+  private toRecommendedAirlineHtml(text: string): SafeHtml {
+    const source = text || '';
+    const pattern = this.recommendedAirlinePattern();
+    let html = '';
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(source)) !== null) {
+      html += this.escapeHtml(source.slice(lastIndex, match.index));
+      const name = this.escapeHtml(match[1].trim());
+      const sequence = this.escapeHtml(match[2]);
+      const pcc = this.escapeHtml(match[3]);
+      const pKey = this.escapeHtml(match[4]);
+      html += `<a href="#" class="recommended-airline-link" data-sequence="${sequence}" data-pcc="${pcc}" data-pkey="${pKey}">${name}</a>`;
+      lastIndex = match.index + match[0].length;
+    }
+    html += this.escapeHtml(source.slice(lastIndex));
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  onRecommendedAirlineClick(event: Event) {
+    const target = (event.target as HTMLElement | null)?.closest?.('.recommended-airline-link') as HTMLElement | null;
+    if (!target) return;
+    event.preventDefault();
+    const sequenceNum = target.dataset['sequence'];
+    const pcc = target.dataset['pcc'];
+    const pKey = target.dataset['pkey'];
+    const itinerary = this.getItinerariesForRecommendationMatch().find((item) =>
+      this.sequencesAreExact(item?.sequenceNum, sequenceNum) &&
+      String(item?.pKey ?? '') === String(pKey ?? '') &&
+      this.pccMatches(item?.pcc, pcc)
+    );
+    if (itinerary) {
+      this.openStopsModal(itinerary, -1);
+    }
   }
 
   private findRecommendedFlightFromAi(response: any, responseAi: any): IAirItinerary | undefined {
@@ -2162,7 +2227,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
     this.messages.push(nextMsg);
 
-    if (nextMsg.text && nextMsg.text.trim().length > 0) {
+    if (nextMsg.recommendedHtml) {
+      nextMsg.isAnimating = false;
+      this.scrollToLastSystemMessage();
+      this.processNextSystemAnimation();
+    } else if (nextMsg.text && nextMsg.text.trim().length > 0) {
       this.isSystemAnimating = true;
       nextMsg.isAnimating = true;
       this.scrollToLastSystemMessage();

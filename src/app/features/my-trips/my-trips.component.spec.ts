@@ -1,8 +1,9 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
 import { of, Subject } from 'rxjs';
-import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, UserProfileService } from 'rp-travel-ui';
+import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, HomePageService, UserProfileService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { MyTripsComponent } from './my-trips.component';
 
@@ -149,6 +150,18 @@ describe('MyTripsComponent search results (mocked API)', () => {
             addPaymentGateways: jasmine.createSpy('addPaymentGateways').and.returnValue(of([])),
           },
         },
+        {
+          provide: DomSanitizer,
+          useValue: {
+            bypassSecurityTrustHtml: (html: string) => html,
+          },
+        },
+        {
+          provide: HomePageService,
+          useValue: {
+            allCurrency: [{ Currency_Code: 'EGP', rate: 1 }],
+          },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -159,7 +172,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
   });
 
   afterEach(() => {
-    fixture.destroy();
+    fixture?.destroy();
   });
 
   function flushSystemMessages() {
@@ -222,7 +235,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
     expect(component.isSmartAssistantVisible).toBeTrue();
   }));
 
-  it('replaces recommendation output text with matching selected-flight cards', fakeAsync(() => {
+  it('keeps recommendation text and highlights matching airline names', fakeAsync(() => {
     const egyptAir = {
       ...mockItinerary,
       sequenceNum: 1,
@@ -253,16 +266,23 @@ describe('MyTripsComponent search results (mocked API)', () => {
     flushSystemMessages();
     discardPeriodicTasks();
 
-    const resultMsg = component.messages.find((m) => m.sender === 'system' && m.recommendedItineraries?.length);
+    const resultMsg = component.messages.find((m) => m.sender === 'system' && m.recommendedHtml);
     expect(resultMsg).toBeTruthy();
-    expect(resultMsg?.text).toBe('');
-    expect(resultMsg?.recommendedItineraries?.length).toBe(2);
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
-    expect(resultMsg?.recommendedItineraries?.[1].sequenceNum).toBe(3);
+    expect(resultMsg?.text).toContain('EgyptAir');
+    expect(resultMsg?.text).toContain('Turkish Airlines');
+    expect(String(resultMsg?.recommendedHtml)).toContain('recommended-airline-link');
     expect(resultMsg?.itineraries?.length).toBe(3);
+    expect(resultMsg?.recommendedItineraries).toBeUndefined();
 
-    component.selectRecommendedFlight(egyptAir as any);
-    expect(sharedService.setSelectedItinerary).toHaveBeenCalledWith(egyptAir);
+    const link = document.createElement('a');
+    link.className = 'recommended-airline-link';
+    link.dataset['sequence'] = '1';
+    link.dataset['pcc'] = '8JQ8';
+    link.dataset['pkey'] = '52';
+    component.onRecommendedAirlineClick({ target: link, preventDefault() {} } as any);
+    expect(component.showStopsModal).toBeTrue();
+    expect(component.selectedStopsIndex).toBe(-1);
+    expect(component.selectedItineraryForStops?.sequenceNum).toBe(1);
   }));
 
   it('matches sequence 1 exactly and does not take 10 or 100', fakeAsync(() => {
@@ -282,11 +302,12 @@ describe('MyTripsComponent search results (mocked API)', () => {
     flushSystemMessages();
     discardPeriodicTasks();
 
-    const resultMsg = component.messages.find((m) => m.recommendedItineraries?.length);
-    expect(resultMsg?.recommendedItineraries?.length).toBe(1);
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).not.toBe(10);
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).not.toBe(100);
+    const resultMsg = component.messages.find((m) => m.sender === 'system' && m.recommendedHtml);
+    expect(resultMsg?.text).toContain('**[EgyptAir](sequence:1, pcc:8JQ8, pKey:52)**');
+    const html = String(resultMsg?.recommendedHtml);
+    expect(html).toContain('data-sequence="1"');
+    expect(html).not.toContain('data-sequence="10"');
+    expect(html).not.toContain('data-sequence="100"');
   }));
 
   it('matches sequence 2 exactly and does not also show 20', fakeAsync(() => {
@@ -305,13 +326,13 @@ describe('MyTripsComponent search results (mocked API)', () => {
     flushSystemMessages();
     discardPeriodicTasks();
 
-    const resultMsg = component.messages.find((m) => m.recommendedItineraries?.length);
-    expect(resultMsg?.recommendedItineraries?.length).toBe(1);
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(2);
-    expect(resultMsg?.recommendedItineraries?.some((item) => Number(item.sequenceNum) === 20)).toBeFalse();
+    const resultMsg = component.messages.find((m) => m.sender === 'system' && m.recommendedHtml);
+    const html = String(resultMsg?.recommendedHtml);
+    expect(html).toContain('data-sequence="2"');
+    expect(html).not.toContain('data-sequence="20"');
   }));
 
-  it('shows the recommended flight card on a follow-up after itineraries were cleared', fakeAsync(() => {
+  it('keeps recommended airline text clickable on a follow-up after itineraries were cleared', fakeAsync(() => {
     const egyptAir = {
       ...mockItinerary,
       sequenceNum: 1,
@@ -338,11 +359,20 @@ describe('MyTripsComponent search results (mocked API)', () => {
     flushSystemMessages();
     discardPeriodicTasks();
 
-    const resultMsg = [...component.messages].reverse().find((m) => m.sender === 'system' && m.recommendedItineraries?.length);
+    const resultMsg = [...component.messages].reverse().find((m) => m.sender === 'system' && m.recommendedHtml);
     expect(resultMsg).toBeTruthy();
-    expect(resultMsg?.text).toBe('');
-    expect(resultMsg?.recommendedItineraries?.[0].sequenceNum).toBe(1);
-    expect(resultMsg?.recommendedItineraries?.[0].pKey).toBe('52');
+    expect(resultMsg?.text).toContain('EgyptAir');
+    expect(String(resultMsg?.recommendedHtml)).toContain('data-sequence="1"');
+    expect(String(resultMsg?.recommendedHtml)).toContain('data-pkey="52"');
+
+    const link = document.createElement('a');
+    link.className = 'recommended-airline-link';
+    link.dataset['sequence'] = '1';
+    link.dataset['pcc'] = '8JQ8';
+    link.dataset['pkey'] = '52';
+    component.onRecommendedAirlineClick({ target: link, preventDefault() {} } as any);
+    expect(component.showStopsModal).toBeTrue();
+    expect(component.selectedItineraryForStops?.pKey).toBe('52');
   }));
 
   it('shows AI output without treating an empty organized list as a failed search', fakeAsync(() => {
@@ -592,7 +622,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
     expect(formMsg?.passengerFormPrefill?.gender).toBe('Mr');
     expect(formMsg?.passengerFormPrefill?.issueCountry).toBe('EGYPTIAN');
     expect(component.messages.some((m) => m.isPayment)).toBeFalse();
-  }));
+  });
 
   it('shows an error when passport upload fails', fakeAsync(() => {
     component.selectedItinerary = mockItinerary as any;
