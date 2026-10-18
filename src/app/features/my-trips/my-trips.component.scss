@@ -135,8 +135,50 @@ textarea{
   }
 }
 
-.mobile-details{
-  flex-direction: column !important;
+.message-with-sender {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+
+  &.is-user {
+    justify-content: flex-end;
+  }
+
+  &.is-agent {
+    justify-content: flex-start;
+  }
+}
+
+.sender-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+
+  &.user-avatar {
+    background: #004ac6;
+    color: #ffffff;
+    font-family: vars.$font-family-base;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  &.agent-avatar {
+    background: #eff4ff;
+    border: 1px solid rgba(0, 74, 198, 0.12);
+
+    img {
+      width: 30px;
+      height: 23px;
+      display: block;
+    }
+  }
 }
 
 /* User & System Bubbles */
@@ -439,9 +481,7 @@ textarea{
 
 .voice-record-btn,
 .voice-stop-btn,
-.voice-close-btn,
-.voice-play-btn,
-.voice-remove-btn {
+.voice-close-btn {
   border: 0;
   display: flex;
   align-items: center;
@@ -476,8 +516,7 @@ textarea{
   }
 }
 
-.voice-close-btn,
-.voice-remove-btn {
+.voice-close-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -488,38 +527,6 @@ textarea{
     background: #f5f6f8;
     color: #0b1a30;
   }
-}
-
-.voice-attachment {
-  background: #eff4ff;
-  border-radius: 999px;
-  padding: 4px 6px 4px 4px;
-  flex-shrink: 0;
-
-  audio {
-    display: none;
-  }
-}
-
-.voice-play-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: vars.$color-primary;
-  color: #ffffff;
-}
-
-.voice-attachment-time {
-  font-family: vars.$font-family-base;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0b1a30;
-  min-width: 28px;
-}
-
-.voice-remove-btn {
-  width: 24px;
-  height: 24px;
 }
 
 @keyframes voicePulse {
@@ -567,17 +574,6 @@ textarea{
     transform: translateY(0) scale(0.96);
     box-shadow: 0 4px 12px rgba(0, 74, 198, 0.05);
   }
-}
-
-.btn-mobile-history {
-  color: #0b1a30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  cursor: pointer;
-  border-radius: 8px;
-  &:hover { background-color: #eff4ff; color: vars.$color-primary; }
 }
 
 .suggestions-slider-wrapper {
@@ -917,82 +913,3 @@ textarea{
   }
 }
 
-.stops-trigger {
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-
-  &:hover {
-    .select-stops-label {
-      color: #0039a6 !important;
-      text-decoration: underline;
-    }
-  }
-}
-
-.timeline-container {
-  position: relative;
-
-  .timeline-line {
-    position: absolute;
-    top: 10px;
-    bottom: 10px;
-    left: 4px; /* Align to the center of bullet */
-    width: 2px;
-    border-left: 2px dashed rgba(11, 28, 48, 0.15);
-    z-index: 1;
-  }
-}
-
-.timeline-node-item {
-  position: relative;
-  z-index: 2;
-
-  .timeline-bullet {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid #ffffff;
-    box-shadow: 0 0 0 2px rgba(11, 28, 48, 0.15);
-    margin-top: 6px;
-    flex-shrink: 0;
-
-    &.bg-primary {
-      background-color: #004ac6 !important;
-      box-shadow: 0 0 0 2px rgba(0, 74, 198, 0.25);
-    }
-
-    &.bg-secondary {
-      background-color: #5c6479 !important;
-      box-shadow: 0 0 0 2px rgba(92, 100, 121, 0.25);
-    }
-  }
-
-  .timeline-content {
-    flex-grow: 1;
-  }
-}
-
-.timeline-flight-details {
-  position: relative;
-  z-index: 2;
-  border: 1px solid rgba(11, 28, 48, 0.06) !important;
-  box-shadow: 0 4px 10px rgba(11, 28, 48, 0.02);
-
-  .airline-logo-modal {
-    flex-shrink: 0;
-  }
-}
-
-.timeline-layover {
-  position: relative;
-  z-index: 2;
-  background-color: #fffbeb !important;
-  border-left: 3px solid #f59e0b !important;
-  border-top: 1px solid #fef3c7 !important;
-  border-right: 1px solid #fef3c7 !important;
-  border-bottom: 1px solid #fef3c7 !important;
-
-  mat-icon {
-    flex-shrink: 0;
-  }
-}

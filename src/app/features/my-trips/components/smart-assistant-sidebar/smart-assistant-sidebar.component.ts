@@ -462,8 +462,61 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     );
   }
 
-  get recommendedFlight():any{
-    return ( this.flightResultService.responseAi as any)?.airItineraries.find((flight:any)=>flight.sequenceNum === this.flightResultService.responseAi?.recommendation.ai.sequenceNum && flight.pKey === this.flightResultService.responseAi?.recommendation.ai.pkey && flight.pcc === this.flightResultService.responseAi?.recommendation.ai.pcc);
+  get recommendedFlight(): any {
+    return this.findRecommendedFlight()
+      || this.sharedService.getLastSmartAssistantSnapshot()?.recommendedFlight;
+  }
+
+  private findRecommendedFlight(): any {
+    const rec = this.getRecommendationAi();
+    const itineraries = this.getItinerariesForRecommendation();
+    if (!rec || !itineraries.length) return undefined;
+    const recSeq = rec.sequenceNum ?? rec.sequence;
+    const recPKey = rec.pkey ?? rec.pKey;
+    const recPcc = rec.pcc;
+    return itineraries.find((flight: any) => this.flightMatchesRecommendation(flight, recSeq, recPKey, recPcc));
+  }
+
+  private getRecommendationAi(): any {
+    return (
+      (this.flightResultService.response as any)?.recommendation?.ai ||
+      (this.flightResultService.responseAi as any)?.recommendation?.ai ||
+      this.sharedService.getSavedFlightSearchResponseAi()?.recommendation?.ai ||
+      null
+    );
+  }
+
+  private getItinerariesForRecommendation(): any[] {
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+    const saved = this.sharedService.getSavedFlightSearchResponseAi();
+    const candidates = [
+      res?.airItineraries,
+      resAi?.airItineraries,
+      resAi?.itineraries,
+      res?.itineraries,
+      saved?.airItineraries,
+      saved?.itineraries,
+      saved?.data?.airItineraries,
+    ];
+    const direct = candidates.find((list) => Array.isArray(list) && list.length > 0);
+    if (direct) return direct;
+
+    const organized = this.flightResultService.orgnizedResponce;
+    if (Array.isArray(organized) && organized.length > 0) {
+      return organized.map((group) => (Array.isArray(group) ? group[0] : group));
+    }
+    return this.sharedService.getLastSmartAssistantSnapshot()?.comparisonFlights || [];
+  }
+
+  private flightMatchesRecommendation(flight: any, sequenceNum: unknown, pKey: unknown, pcc: unknown): boolean {
+    if (!flight) return false;
+    const seqMatch = String(flight.sequenceNum ?? '').trim() === String(sequenceNum ?? '').trim();
+    const keyMatch = String(flight.pKey ?? '').trim() === String(pKey ?? '').trim();
+    const itemPcc = String(flight.pcc ?? '').trim();
+    const recPcc = String(pcc ?? '').trim();
+    const pccMatch = !itemPcc || !recPcc || itemPcc === recPcc;
+    return seqMatch && keyMatch && pccMatch;
   }
 
   persistAssistantSnapshot() {
@@ -478,6 +531,7 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
       comparisonFlights,
       recommendationSummary,
       isRoundTrip: this.isCurrentSearchRoundTrip(),
+      recommendedFlight: this.findRecommendedFlight(),
     });
   }
 

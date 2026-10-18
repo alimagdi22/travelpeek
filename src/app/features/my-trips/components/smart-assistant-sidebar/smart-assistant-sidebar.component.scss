@@ -96,6 +96,10 @@
     flex-direction: column;
   }
 
+  .recommendation-card.is-clickable {
+    cursor: pointer;
+  }
+
   .section-header {
     .section-icon {
       font-size: 16px;

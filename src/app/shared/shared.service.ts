@@ -30,6 +30,7 @@ export class SharedService {
     comparisonFlights: any[];
     recommendationSummary: string;
     isRoundTrip: boolean;
+    recommendedFlight?: any;
   } | null = null;
 
   setUser(user: any) {
@@ -76,17 +77,19 @@ export class SharedService {
     comparisonFlights: any[];
     recommendationSummary?: string;
     isRoundTrip?: boolean;
+    recommendedFlight?: any;
   }) {
     const comparisonFlights = Array.isArray(snapshot?.comparisonFlights)
       ? snapshot.comparisonFlights.filter(Boolean).slice(0, 5)
       : [];
-    if (!comparisonFlights.length && !snapshot?.recommendationSummary) {
+    if (!comparisonFlights.length && !snapshot?.recommendationSummary && !snapshot?.recommendedFlight) {
       return;
     }
     this.lastSmartAssistantSnapshot = {
       comparisonFlights,
       recommendationSummary: snapshot.recommendationSummary || '',
       isRoundTrip: !!snapshot.isRoundTrip,
+      recommendedFlight: snapshot.recommendedFlight || this.lastSmartAssistantSnapshot?.recommendedFlight,
     };
   }
 

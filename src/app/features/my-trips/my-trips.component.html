@@ -62,16 +62,24 @@
           [class.system-row]="msg.sender === 'system'"
         >
           <!-- User Chat Bubble -->
-          <div
-            *ngIf="msg.sender === 'user'"
-            class="user-bubble p-3 px-4 rounded-4 shadow-sm"
-          >
-            <p class="mb-0 text-content">{{ msg.text }}</p>
-          </div>
+          @if (msg.sender === "user") {
+            <div class="message-with-sender is-user">
+              <div class="user-bubble p-3 px-4 rounded-4 shadow-sm">
+                <p class="mb-0 text-content">{{ msg.text }}</p>
+              </div>
+              <div class="sender-avatar user-avatar" [attr.aria-label]="'User'">
+                {{ userInitials }}
+              </div>
+            </div>
+          }
 
           <!-- System Chat Bubble (With Nested Flight Cards) -->
           @if (msg.sender === "system") {
-            <div class="system-bubble-wrapper w-100 d-flex flex-column gap-2 align-items-start">
+            <div class="message-with-sender is-agent">
+              <div class="sender-avatar agent-avatar" aria-label="TravelPeek assistant">
+                <img src="/assets/icons/mytrips/ai-star.svg" alt="TravelPeek Logo" />
+              </div>
+              <div class="system-bubble-wrapper w-100 d-flex flex-column gap-2 align-items-start">
               @if (msg.isFlightSelection) {
                 <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3" [class.animating]="msg.isAnimating">
                   @if (msg.itineraries && msg.itineraries.length > 0) {
@@ -176,6 +184,7 @@
                 }
               }
             </div>
+            </div>
           }
         </div>
       </ng-container>
@@ -185,6 +194,10 @@
           <div
             class="message-row system-row d-flex flex-column align-items-start"
           >
+            <div class="message-with-sender is-agent">
+              <div class="sender-avatar agent-avatar" aria-label="TravelPeek assistant">
+                <img src="/assets/icons/mytrips/ai-star.svg" alt="TravelPeek Logo" />
+              </div>
             <div
               class="system-typing-bubble p-3 px-4 rounded-4 d-flex align-items-center gap-2"
             >
@@ -197,6 +210,7 @@
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
               </div>
+            </div>
             </div>
           </div>
         }

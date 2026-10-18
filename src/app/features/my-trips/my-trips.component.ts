@@ -1405,6 +1405,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           '',
         isRoundTrip:
           (response?.searchCriteria?.flightType || responseAi?.searchCriteria?.flightType) === 'RoundTrip',
+        recommendedFlight: this.findRecommendedItinerariesFromOutput(
+          response?.recommendation?.ai?.summary ||
+          responseAi?.recommendation?.ai?.summary ||
+          ''
+        )[0] || this.findRecommendedFlightFromAi(response, responseAi),
       });
       this.messages.forEach(m => {
         if (m.sender === 'system') {
@@ -1498,6 +1503,16 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     msg.recommendedItineraries = recommendedItineraries;
     msg.text = '';
     msg.passengerCountLabel = msg.passengerCountLabel || this.getPassengersCountLabel();
+  }
+
+  private findRecommendedFlightFromAi(response: any, responseAi: any): IAirItinerary | undefined {
+    const rec = response?.recommendation?.ai || responseAi?.recommendation?.ai;
+    if (!rec) return undefined;
+    return this.getItinerariesForRecommendationMatch().find((item) =>
+      this.sequencesAreExact(item?.sequenceNum, rec.sequenceNum ?? rec.sequence) &&
+      String(item?.pKey ?? '') === String(rec.pkey ?? rec.pKey ?? '') &&
+      this.pccMatches(item?.pcc, rec.pcc)
+    );
   }
 
   private findRecommendedItinerariesFromOutput(text: string): IAirItinerary[] {
