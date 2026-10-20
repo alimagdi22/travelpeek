@@ -4,7 +4,7 @@
     [pageSize]="pageSize"
     [hidePageSize]="true"
     (page)="onPaginate($event.pageIndex + 1)"
-    aria-label="Select page"
+    [attr.aria-label]="'PROFILE.SELECT_PAGE' | translate"
   />
 }
 
@@ -15,7 +15,7 @@
 }
 
 @if (!isLoading && !trips.length) {
-  <p class="empty-state text-center text-muted py-5">No Flights Booking to Show</p>
+  <p class="empty-state text-center text-muted py-5">{{ 'PROFILE.NO_FLIGHTS' | translate }}</p>
 }
 
 <main class="d-flex flex-column gap-3 mt-3">

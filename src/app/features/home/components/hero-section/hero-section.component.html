@@ -5,12 +5,12 @@
       <!-- Left Column: Search & Text -->
       <div class="col-lg-6 hero-left-column">
         <h1 class="hero-title">
-          The smarter <br />
-          <span class="highlight-text">way to fly.</span>
+          {{ 'HOME.HERO.TITLE_PREFIX' | translate }} <br />
+          <span class="highlight-text">{{ 'HOME.HERO.TITLE_HIGHLIGHT' | translate }}</span>
         </h1>
 
         <p class="hero-subtitle">
-          Skip the forms. Just describe your trip and we'll find the best flights instantly.
+          {{ 'HOME.HERO.SUBTITLE' | translate }}
         </p>
 
         <!-- Search Input Bar -->
@@ -19,14 +19,14 @@
             <div class="d-flex align-items-center gap-2 min-w-0">
               <span class="voice-recorder-dot" [class.is-live]="isListening"></span>
               <div class="d-flex flex-column min-w-0">
-                <span class="voice-recorder-title">{{ isListening ? 'Recording' : 'Voice message' }}</span>
+                <span class="voice-recorder-title">{{ isListening ? ('HOME.HERO.RECORDING' | translate) : ('HOME.HERO.VOICE_MESSAGE' | translate) }}</span>
                 <span class="voice-recorder-subtitle">
-                  {{ isListening ? formatRecordingTime(recordingSeconds) + ' / 0:35' : (voiceRecorderError || 'Record up to 35 seconds') }}
+                  {{ isListening ? formatRecordingTime(recordingSeconds) + ' / 0:35' : (voiceRecorderError || ('HOME.HERO.RECORD_UP_TO' | translate)) }}
                 </span>
               </div>
             </div>
             @if (isListening) {
-              <button type="button" class="voice-stop-btn" (click)="toggleVoice()" aria-label="Stop recording">
+              <button type="button" class="voice-stop-btn" (click)="toggleVoice()" [attr.aria-label]="'HOME.HERO.STOP_RECORDING' | translate">
                 <span></span>
               </button>
             }
@@ -41,7 +41,7 @@
           <input
             type="text"
             class="search-input col"
-            [placeholder]="placeholderText"
+            [placeholder]="'HOME.HERO.PLACEHOLDER' | translate:{ city: cities[currentCityIndex] }"
             [(ngModel)]="searchQuery"
             (keydown.enter)="onSearchKeydown()"
           />
@@ -52,7 +52,7 @@
                 type="button"
                 class="voice-play-btn"
                 (click)="togglePendingVoicePlayback(pendingVoiceAudio)"
-                [attr.aria-label]="isVoicePlaying ? 'Pause voice message' : 'Play voice message'"
+                [attr.aria-label]="isVoicePlaying ? ('HOME.HERO.PAUSE_VOICE' | translate) : ('HOME.HERO.PLAY_VOICE' | translate)"
               >
                 @if (!isVoicePlaying) {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -66,7 +66,7 @@
                 }
               </button>
               <span class="voice-attachment-time">{{ formatRecordingTime(pendingVoiceDuration) }}</span>
-              <button type="button" class="voice-remove-btn" (click)="clearPendingVoice()" aria-label="Remove voice message">
+              <button type="button" class="voice-remove-btn" (click)="clearPendingVoice()" [attr.aria-label]="'HOME.HERO.REMOVE_VOICE' | translate">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -85,8 +85,8 @@
             class="voice-btn-home d-flex align-items-center justify-content-center"
             [class.is-recording]="isListening"
             (click)="toggleVoice()"
-            [attr.aria-label]="isListening ? 'Stop recording' : 'Start voice input'"
-            title="Voice input"
+            [attr.aria-label]="isListening ? ('HOME.HERO.STOP_RECORDING' | translate) : ('HOME.HERO.START_VOICE' | translate)"
+            [title]="'HOME.HERO.VOICE_INPUT' | translate"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -105,11 +105,11 @@
 
         <!-- Recommendation Pills -->
         <div class="recommendations-container d-flex flex-wrap gap-2 mt-4">
-          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">To Istanbul weekend</button>
-          <button class="rec-pill" (click)="performSearch('London round-trip')">London round-trip</button>
-          <button class="rec-pill" (click)="performSearch('Bangkok April')">Bangkok On April</button>
-          <button class="rec-pill" (click)="performSearch('Business class deals')">Business class deals</button>
-          <button class="rec-pill" (click)="performSearch('To London next week')">To London next week</button>
+          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">{{ 'HOME.HERO.PILL_ISTANBUL' | translate }}</button>
+          <button class="rec-pill" (click)="performSearch('London round-trip')">{{ 'HOME.HERO.PILL_LONDON_RT' | translate }}</button>
+          <button class="rec-pill" (click)="performSearch('Bangkok April')">{{ 'HOME.HERO.PILL_BANGKOK' | translate }}</button>
+          <button class="rec-pill" (click)="performSearch('Business class deals')">{{ 'HOME.HERO.PILL_BUSINESS' | translate }}</button>
+          <button class="rec-pill" (click)="performSearch('To London next week')">{{ 'HOME.HERO.PILL_LONDON_WEEK' | translate }}</button>
         </div>
       </div>
 
@@ -130,7 +130,7 @@
                       <span class="card-country text-uppercase">{{ card.country }}</span>
                       <span class="card-city mt-1">{{ card.city }}</span>
                     </div>
-                    <span class="card-price">from {{ card.price }}</span>
+                    <span class="card-price">{{ 'COMMON.FROM' | translate }} {{ card.price }}</span>
                   </div>
                   <div class="card-right-code text-uppercase d-flex align-items-center justify-content-end">
                     {{ card.code }}
@@ -152,7 +152,7 @@
                       <span class="card-country text-uppercase">{{ getCountryName(card) }}</span>
                       <span class="card-city mt-1">{{ getCityName(card) }}</span>
                     </div>
-                    <span class="card-price">from  {{ getCardPrice(card) }} {{ getCardCurrency(card) }}</span>
+                    <span class="card-price">{{ 'COMMON.FROM' | translate }}  {{ getCardPrice(card) }} {{ getCardCurrency(card) }}</span>
                   </div>
                   <div class="card-right-code text-uppercase d-flex align-items-center justify-content-end">
                     {{ getAirportCode(card) }}

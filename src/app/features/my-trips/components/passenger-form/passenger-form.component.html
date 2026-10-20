@@ -8,7 +8,7 @@
         </svg>
       </div>
       <div>
-        <h6 class="mb-0 font-bold text-dark-title">Traveler Details - {{ passengerLabel }}</h6>
+        <h6 class="mb-0 font-bold text-dark-title">{{ 'FORMS.TRAVELER_DETAILS' | translate:{ label: passengerLabel } }}</h6>
         <!-- <span class="text-xs text-muted">Please fill in details for {{ passengerLabel }}</span> -->
       </div>
     </div>
@@ -18,15 +18,15 @@
   <form *ngIf="!isConfirming" [formGroup]="passengerForm" class="d-flex flex-column gap-3">
     <!-- Gender Selection Segmented Pills -->
     <div class="form-group d-flex flex-column gap-1">
-      <label class="form-label text-xs text-secondary font-semibold mb-1">Gender <span class="text-danger">*</span></label>
+      <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.GENDER' | translate }} <span class="text-danger">*</span></label>
       <div class="gender-segmented-group d-flex p-1 rounded-3 border">
         <label class="gender-pill-option flex-grow-1 text-center py-1.5 px-3 rounded-2 text-xs font-semibold cursor-pointer" [class.active]="passengerForm.get('gender')?.value === 'Mr'">
           <input type="radio" value="Mr" class="d-none" formControlName="gender" />
-          Male
+          {{ 'FORMS.MALE' | translate }}
         </label>
         <label class="gender-pill-option flex-grow-1 text-center py-1.5 px-3 rounded-2 text-xs font-semibold cursor-pointer" [class.active]="passengerForm.get('gender')?.value === 'Mrs'">
           <input type="radio" value="Mrs" class="d-none" formControlName="gender" />
-          Female
+          {{ 'FORMS.FEMALE' | translate }}
         </label>
       </div>
     </div>
@@ -34,36 +34,36 @@
     <!-- First Name & Last Name -->
     <div class="row g-2">
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">First Name <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.FIRST_NAME' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('firstName')">
           <input
             type="text"
             class="border-0 bg-transparent w-100 outline-none text-sm text-dark font-medium"
-            placeholder="First Name"
+            [placeholder]="'FORMS.FIRST_NAME' | translate"
             formControlName="firstName"
           />
         </div>
-        <span *ngIf="isFieldInvalid('firstName')" class="text-xs text-danger mt-1 font-medium">First name is required (letters only).</span>
+        <span *ngIf="isFieldInvalid('firstName')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.FIRST_NAME_ERROR' | translate }}</span>
       </div>
 
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">Last Name <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.LAST_NAME' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('lastName')">
           <input
             type="text"
             class="border-0 bg-transparent w-100 outline-none text-sm text-dark font-medium"
-            placeholder="Last Name"
+            [placeholder]="'FORMS.LAST_NAME' | translate"
             formControlName="lastName"
           />
         </div>
-        <span *ngIf="isFieldInvalid('lastName')" class="text-xs text-danger mt-1 font-medium">Last name is required (letters only).</span>
+        <span *ngIf="isFieldInvalid('lastName')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.LAST_NAME_ERROR' | translate }}</span>
       </div>
     </div>
 
     <!-- Birthday & Passport Number -->
     <div class="row g-2">
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">Birthday Calendar <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.BIRTHDAY' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom d-flex align-items-center px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('birthDate')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -79,27 +79,27 @@
             formControlName="birthDate"
           />
         </div>
-        <span *ngIf="isFieldInvalid('birthDate')" class="text-xs text-danger mt-1 font-medium">Birthday is required.</span>
+        <span *ngIf="isFieldInvalid('birthDate')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.BIRTHDAY_ERROR' | translate }}</span>
       </div>
 
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">Passport Number <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.PASSPORT_NUMBER' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('passportNumber')">
           <input
             type="text"
             class="border-0 bg-transparent w-100 outline-none text-sm text-dark font-medium"
-            placeholder="e.g. A1234567"
+            [placeholder]="'FORMS.PASSPORT_EXAMPLE' | translate"
             formControlName="passportNumber"
           />
         </div>
-        <span *ngIf="isFieldInvalid('passportNumber')" class="text-xs text-danger mt-1 font-medium">Valid passport number is required.</span>
+        <span *ngIf="isFieldInvalid('passportNumber')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.PASSPORT_NUMBER_ERROR' | translate }}</span>
       </div>
     </div>
 
     <!-- Passport Expiry & Issue Country -->
     <div class="row g-2">
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">Passport Expiry Calendar <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.PASSPORT_EXPIRY' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom d-flex align-items-center px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('passportExpiry')">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -114,16 +114,16 @@
             formControlName="passportExpiry"
           />
         </div>
-        <span *ngIf="isFieldInvalid('passportExpiry')" class="text-xs text-danger mt-1 font-medium">Passport expiry date is required.</span>
+        <span *ngIf="isFieldInvalid('passportExpiry')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.PASSPORT_EXPIRY_ERROR' | translate }}</span>
       </div>
 
       <div class="col-12 col-sm-6 form-group">
-        <label class="form-label text-xs text-secondary font-semibold mb-1">Issue Country <span class="text-danger">*</span></label>
+        <label class="form-label text-xs text-secondary font-semibold mb-1">{{ 'FORMS.ISSUE_COUNTRY' | translate }} <span class="text-danger">*</span></label>
         <div class="input-group-custom px-3 py-2 rounded-3 border" [class.border-danger]="isFieldInvalid('issueCountry')">
           <input
             type="text"
             class="border-0 bg-transparent w-100 outline-none text-sm text-dark font-medium"
-            placeholder="Search & Select Country"
+            [placeholder]="'FORMS.SEARCH_COUNTRY' | translate"
             formControlName="issueCountry"
             [matAutocomplete]="autoCountry"
             (input)="filterCountries(countryInput.value)"
@@ -135,14 +135,14 @@
             </mat-option>
           </mat-autocomplete>
         </div>
-        <span *ngIf="isFieldInvalid('issueCountry')" class="text-xs text-danger mt-1 font-medium">Please select a valid issuing country.</span>
+        <span *ngIf="isFieldInvalid('issueCountry')" class="text-xs text-danger mt-1 font-medium">{{ 'FORMS.ISSUE_COUNTRY_ERROR' | translate }}</span>
       </div>
     </div>
 
     <!-- Next Button -->
     <div class="pt-2 d-flex justify-content-end">
       <button type="button" class="btn btn-primary-custom px-4 py-2 text-sm font-semibold rounded-3 d-flex align-items-center gap-2" (click)="onNextClick()">
-        Next
+        {{ 'FORMS.NEXT' | translate }}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="5" y1="12" x2="19" y2="12"></line>
           <polyline points="12 5 19 12 12 19"></polyline>
@@ -156,27 +156,27 @@
     <div class="review-details-box p-3 rounded-3 bg-white border">
       <div class="d-flex flex-column gap-2">
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Full Name:</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.FULL_NAME' | translate }}</span>
           <span class="text-sm font-semibold text-dark">{{ passengerForm.get('firstName')?.value }} {{ passengerForm.get('lastName')?.value }}</span>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Gender:</span>
-          <span class="text-sm font-semibold text-dark">{{ passengerForm.get('gender')?.value === 'Mr' ? 'Male' : 'Female' }}</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.GENDER' | translate }}:</span>
+          <span class="text-sm font-semibold text-dark">{{ passengerForm.get('gender')?.value === 'Mr' ? ('FORMS.MALE' | translate) : ('FORMS.FEMALE' | translate) }}</span>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Birthday:</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.BIRTHDAY_SHORT' | translate }}:</span>
           <span class="text-sm font-semibold text-dark">{{ formattedBirthdayDisplay }}</span>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Passport Number:</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.PASSPORT_NUMBER' | translate }}:</span>
           <span class="text-sm font-semibold text-dark">{{ passengerForm.get('passportNumber')?.value }}</span>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Passport Expiry:</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.PASSPORT_EXPIRY_SHORT' | translate }}:</span>
           <span class="text-sm font-semibold text-dark">{{ formattedExpiryDisplay }}</span>
         </div>
         <div class="d-flex align-items-center justify-content-between">
-          <span class="text-xs text-secondary font-medium">Issue Country:</span>
+          <span class="text-xs text-secondary font-medium">{{ 'FORMS.ISSUE_COUNTRY' | translate }}:</span>
           <span class="text-sm font-semibold text-dark">{{ passengerForm.get('issueCountry')?.value }}</span>
         </div>
       </div>
@@ -188,17 +188,17 @@
         <line x1="12" y1="9" x2="12" y2="13"></line>
         <line x1="12" y1="17" x2="12.01" y2="17"></line>
       </svg>
-      <span class="text-xs font-medium">Please verify all passenger details carefully. Once submitted, passenger information cannot be modified.</span>
+      <span class="text-xs font-medium">{{ 'FORMS.PASSENGER_WARNING' | translate }}</span>
     </div>
 
     <div class="d-flex align-items-center justify-content-between gap-2 pt-1">
       <button type="button" class="btn btn-outline-secondary px-3 py-2 text-xs font-semibold rounded-3" (click)="onEditClick()" [disabled]="hasSubmitted">
-        Edit Details
+        {{ 'FORMS.EDIT_DETAILS' | translate }}
       </button>
       <button type="button" class="btn btn-primary-custom px-4 py-2 text-xs font-semibold rounded-3 d-flex align-items-center gap-1" (click)="onFinalSubmit()" [disabled]="hasSubmitted">
-        <span *ngIf="!hasSubmitted">Confirm & Continue</span>
+        <span *ngIf="!hasSubmitted">{{ 'FORMS.CONFIRM_CONTINUE' | translate }}</span>
         <span *ngIf="hasSubmitted" class="d-flex align-items-center gap-1">
-          Submitted
+          {{ 'FORMS.SUBMITTED' | translate }}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </span>
       </button>

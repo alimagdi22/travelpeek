@@ -1,10 +1,10 @@
 <div class="otp-form-container text-center">
-  <h1 class="welcome-title mb-2">Verify email</h1>
+  <h1 class="welcome-title mb-2">{{ 'AUTH.VERIFY_EMAIL' | translate }}</h1>
   <p class="welcome-subtitle mb-4" *ngIf="email">
-    We sent a verification code to <strong>{{ email }}</strong>. Enter it below to join Peek.
+    {{ 'AUTH.OTP_SENT_TO' | translate:{ email: email } }}
   </p>
   <p class="welcome-subtitle mb-4" *ngIf="!email">
-    We sent a verification code to your email. Enter it below to join Peek.
+    {{ 'AUTH.OTP_SENT' | translate }}
   </p>
 
   <!-- Alert Message Banner -->
@@ -20,7 +20,7 @@
   <form (submit)="onSubmitOtp(); $event.preventDefault();" class="d-flex flex-column gap-3">
     <!-- OTP Code Input -->
     <div class="form-group d-flex flex-column text-start">
-      <label for="otpCode" class="form-label text-center">Verification Code</label>
+      <label for="otpCode" class="form-label text-center">{{ 'AUTH.VERIFICATION_CODE' | translate }}</label>
       <input
         id="otpCode"
         type="text"
@@ -40,12 +40,12 @@
       [disabled]="authService.isLoading || !otpControl.value || !otpControl.value.trim()"
     >
       <span *ngIf="authService.isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      {{ authService.isLoading ? 'Verifying...' : 'Verify & Join' }}
+      {{ authService.isLoading ? ('AUTH.VERIFYING' | translate) : ('AUTH.VERIFY_JOIN' | translate) }}
     </button>
 
     <!-- Resend Code -->
     <p class="signup-prompt mt-2 mb-0">
-      Didn't receive the code? <span class="signup-link" style="cursor: pointer;" (click)="onResendOtp()">Resend code</span>
+      {{ 'AUTH.NO_CODE' | translate }} <span class="signup-link" style="cursor: pointer;" (click)="onResendOtp()">{{ 'AUTH.RESEND_CODE' | translate }}</span>
     </p>
   </form>
 </div>

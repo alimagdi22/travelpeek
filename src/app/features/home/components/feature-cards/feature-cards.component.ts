@@ -9,18 +9,18 @@ import { Component } from '@angular/core';
 export class FeatureCardsComponent {
   features = [
     {
-      title: 'Just type naturally',
-      description: "No forms, no dropdowns. Say 'cheapest flight to Istanbul this weekend' and we'll handle the rest.",
+      titleKey: 'HOME.FEATURES.NATURAL_TITLE',
+      descriptionKey: 'HOME.FEATURES.NATURAL_DESC',
       iconName: 'sparkle'
     },
     {
-      title: 'Always the best price',
-      description: 'We scan hundreds of airlines instantly, then show you the options that actually matter.',
+      titleKey: 'HOME.FEATURES.PRICE_TITLE',
+      descriptionKey: 'HOME.FEATURES.PRICE_DESC',
       iconName: 'price'
     },
     {
-      title: 'Book in seconds',
-      description: "One tap to confirm. Your boarding pass arrives instantly. That's the whole experience.",
+      titleKey: 'HOME.FEATURES.BOOK_TITLE',
+      descriptionKey: 'HOME.FEATURES.BOOK_DESC',
       iconName: 'timer'
     }
   ];

@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, inject, Output, EventEmitter } from '@angular/core';
-import { FlightCheckoutService, FlightResultService, IFlight, flightOfflineService } from 'rp-travel-ui';
+import { FlightCheckoutService, FlightResultService, HomePageService, IFlight, flightOfflineService } from 'rp-travel-ui';
 import { SharedService } from '../../../../shared/shared.service';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-smart-assistant-sidebar',
@@ -14,22 +15,24 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   flightResultService = inject(FlightResultService);
   flightCheckoutService = inject(FlightCheckoutService);
   sharedService = inject(SharedService);
+  homePageService = inject(HomePageService);
+  translate = inject(TranslateService);
   @Output() stopsTriggered = new EventEmitter<any>();
 
   showStopsModal = false;
   selectedLeg: IFlight | null = null;
 
   stopsFilter = [
-    { title: 'Non-Stop', formControlName: 'noStops' },
-    { title: '1 Stop', formControlName: 'oneStop' },
-    { title: '2+ Stops', formControlName: 'twoAndm' },
+    { titleKey: 'ASSISTANT.NON_STOP', formControlName: 'noStops' },
+    { titleKey: 'ASSISTANT.ONE_STOP', formControlName: 'oneStop' },
+    { titleKey: 'ASSISTANT.TWO_PLUS', formControlName: 'twoAndm' },
   ];
 
   scheduleOptions = [
-    { title: 'Morning', icon: '☀️', startTime: '00:00', endTime: '05:59' },
-    { title: 'Noon', icon: '🌤️', startTime: '06:00', endTime: '11:59' },
-    { title: 'Afternoon', icon: '🌅', startTime: '12:00', endTime: '17:59' },
-    { title: 'Night', icon: '🌙', startTime: '18:00', endTime: '23:59' }
+    { titleKey: 'ASSISTANT.MORNING', icon: '☀️', startTime: '00:00', endTime: '05:59' },
+    { titleKey: 'ASSISTANT.NOON', icon: '🌤️', startTime: '06:00', endTime: '11:59' },
+    { titleKey: 'ASSISTANT.AFTERNOON', icon: '🌅', startTime: '12:00', endTime: '17:59' },
+    { titleKey: 'ASSISTANT.NIGHT', icon: '🌙', startTime: '18:00', endTime: '23:59' }
   ];
 
   // 0: Outbound Depart, 1: Outbound Arrive, 2: Return Depart, 3: Return Arrive
@@ -41,7 +44,6 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   private offlineResponseSub: Subscription | null = null;
   private checkoutNotifySub: Subscription | null = null;
   private selectedFlightWaitTimer: ReturnType<typeof setTimeout> | null = null;
-  private recommendedPriceApplied = false;
   private lastLoadedSearchId = '';
   private originalFareAmount = 0;
   isPreparingOfflineServices = false;
@@ -199,7 +201,6 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     }
 
     this.lastLoadedSearchId = searchId;
-    this.recommendedPriceApplied = false;
     this.yesNoValues = {};
     this.hiddenServiceImages = {};
     this.flightCheckoutService.selectedOfflineServices = [];
@@ -207,11 +208,12 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     this.flightCheckoutService.organizedOfllineServices = [];
     this.flightCheckoutService.recommendedOfflineService = undefined;
     this.flightCheckoutService.serviceFees = 0;
+    this.flightCheckoutService.priceWithRecommenedService = 0;
 
     this.offlineResponseSub?.unsubscribe();
     this.offlineResponseSub = this.flightCheckoutService.offlineServicesResponse.subscribe(() => {
       setTimeout(() => {
-        this.applyRecommendedPriceIfNeeded();
+        this.unselectPreselectedOfflineServices();
         this.syncYesNoValues();
       });
     });
@@ -221,20 +223,36 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     this.isPreparingOfflineServices = false;
   }
 
-  private applyRecommendedPriceIfNeeded(): void {
-    const recommended = this.flightCheckoutService.recommendedOfflineService;
-    const selectedFlight = this.flightCheckoutService.selectedFlight;
-    if (!recommended || !selectedFlight || this.recommendedPriceApplied) return;
+  private unselectPreselectedOfflineServices(): void {
+    this.flightCheckoutService.selectedOfflineServices = [];
+    this.flightCheckoutService.recommendedOfflineService = undefined;
+    this.flightCheckoutService.serviceFees = 0;
+    this.flightCheckoutService.priceWithRecommenedService = 0;
+    this.flightCheckoutService.allOfflineServices = (this.flightCheckoutService.allOfflineServices || []).map(
+      (service) => this.clearServiceSelection(service),
+    );
+    this.flightCheckoutService.organizedOfllineServices = (this.flightCheckoutService.organizedOfllineServices || []).map(
+      (service) => this.clearServiceSelection(service),
+    );
+  }
 
-    this.flightCheckoutService.serviceFees += recommended.servicePrice;
-    selectedFlight.airItineraryDTO.itinTotalFare.amount += recommended.servicePrice;
-    this.recommendedPriceApplied = true;
+  private clearServiceSelection(service: flightOfflineService): flightOfflineService {
+    return {
+      ...service,
+      added: false,
+      interaction: false,
+      subServices: (service.subServices || []).map((sub) => ({
+        ...sub,
+        added: false,
+        interaction: false,
+      })),
+    };
   }
 
   private syncYesNoValues(): void {
     (this.flightCheckoutService.allOfflineServices || []).forEach((service) => {
       if (this.normalizeServiceType(service) === 'yes/no') {
-        this.yesNoValues[service.serviceCode] = service.added ? 'yes' : '';
+        this.yesNoValues[service.serviceCode] = this.isServiceSelected(service) ? 'yes' : '';
       }
     });
   }
@@ -244,7 +262,6 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     this.offlineResponseSub?.unsubscribe();
     this.checkoutNotifySub?.unsubscribe();
     this.lastLoadedSearchId = '';
-    this.recommendedPriceApplied = false;
     this.originalFareAmount = 0;
     this.yesNoValues = {};
     this.hiddenServiceImages = {};
@@ -268,7 +285,7 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
   }
 
   isServiceSelected(service: flightOfflineService): boolean {
-    return !!service.added || this.flightCheckoutService.selectedOfflineServices.includes(service.serviceCode);
+    return (this.flightCheckoutService.selectedOfflineServices || []).includes(service.serviceCode);
   }
 
   getServiceImage(service: flightOfflineService): string | null {
@@ -572,6 +589,60 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
       return direct.slice(0, 5);
     }
     return [];
+  }
+
+  get selectedFlightCurrency(): string {
+    return this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.currencyCode
+      || this.selectedServicesCurrency
+      || 'EGP';
+  }
+
+  get totalFareInBase(): number {
+    const itin = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare;
+    return this.convertToBaseAmount(itin?.amount ?? 0, itin?.currencyCode);
+  }
+
+  get totalFareWithGateway(): number {
+    return this.totalFareInBase + this.convertToBaseAmount(this.sharedService.selectedGatewayAmount, 'EGP');
+  }
+
+  getPassengerDisplayedFare(fare: {
+    passengerType?: string;
+    passengerQuantity?: number;
+    flightFaresDTOs?: { fareType?: string; fareAmount?: number; currencyCode?: string }[] | null;
+  } | null): number {
+    const totalFare = fare?.flightFaresDTOs?.find((item) => item.fareType === 'TotalFare');
+    const fareAmount = totalFare?.fareAmount ?? 0;
+    const markup =
+      this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.mValue ?? 0;
+    const quantity = fare?.passengerQuantity || 1;
+    const rawAmount = markup > 0 && fare?.passengerType === 'ADT'
+      ? fareAmount + markup / quantity
+      : fareAmount;
+    return this.convertToBaseAmount(
+      rawAmount,
+      totalFare?.currencyCode || this.selectedFlightCurrency,
+    );
+  }
+
+  getServiceDisplayedPrice(service: { servicePrice?: number; currency?: string } | null): number {
+    return this.convertToBaseAmount(
+      service?.servicePrice ?? 0,
+      service?.currency || this.selectedServicesCurrency,
+    );
+  }
+
+  convertToBaseAmount(price: number, sourceCurrency?: string | null): number {
+    const amount = Number(price);
+    if (!Number.isFinite(amount)) return 0;
+    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
+    if (sourceCode === 'EGP') return amount;
+    const source = this.homePageService.allCurrency.find(
+      (currency) => currency.Currency_Code === sourceCode,
+    );
+    const sourceRate = Number(source?.rate);
+    if (!sourceRate) return amount;
+    return amount / sourceRate;
   }
 
   formatDuration(minutes: number): string {

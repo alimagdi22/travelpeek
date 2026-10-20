@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, ElementRef, inject, OnChanges, SimpleChanges, OnDestroy } from '@angular/core';
 import { FlightCheckoutService, FlightResultService, IFlight } from 'rp-travel-ui';
 import { SharedService } from '../../../../shared/shared.service';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-flight-stops-modal',
@@ -19,6 +20,7 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
   private flightResultService = inject(FlightResultService);
   private flightCheckoutService = inject(FlightCheckoutService);
   private sharedService = inject(SharedService);
+  private translate = inject(TranslateService);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen']) {
@@ -79,9 +81,9 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
   }
 
   private legLabel(index: number): string {
-    if (index === 0) return 'Outbound Flight';
-    if (index === 1) return 'Return Flight';
-    return `Flight ${index + 1}`;
+    if (index === 0) return this.translate.instant('FLIGHTS.OUTBOUND');
+    if (index === 1) return this.translate.instant('FLIGHTS.RETURN');
+    return this.translate.instant('FLIGHTS.OPTION', { n: index + 1 });
   }
 
   onClose() {

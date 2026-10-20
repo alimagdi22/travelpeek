@@ -12,9 +12,9 @@
 
   <!-- Small Legal Disclaimers -->
   <p class="legal-footnote px-3 text-center mb-0">
-    By continuing, you agree to Peek's 
-    <a routerLink="/legal/terms-of-service" class="footnote-link">Terms of Service</a> 
-    and acknowledge you've read our 
-    <a routerLink="/legal/privacy-policy" class="footnote-link">Privacy Policy</a>.
+    {{ 'AUTH.AGREE_PREFIX' | translate }}
+    <a routerLink="/legal/terms-of-service" class="footnote-link">{{ 'AUTH.TERMS' | translate }}</a>
+    {{ 'AUTH.ACKNOWLEDGE' | translate }}
+    <a routerLink="/legal/privacy-policy" class="footnote-link">{{ 'AUTH.PRIVACY' | translate }}</a>.
   </p>
 </main>

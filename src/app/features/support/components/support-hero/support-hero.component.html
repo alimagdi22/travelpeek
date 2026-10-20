@@ -1,8 +1,8 @@
 <section class="support-hero">
   <div class="container text-center">
-    <h1 class="hero-title">How can we help?</h1>
+    <h1 class="hero-title">{{ 'SUPPORT.TITLE' | translate }}</h1>
     <p class="hero-subtitle">
-      Instant answers for your travel plans, AI-guided discovery, and human-led support.
+      {{ 'SUPPORT.SUBTITLE' | translate }}
     </p>
 
     <!-- Search bar -->
@@ -19,7 +19,7 @@
         <input 
           type="text" 
           class="search-input col" 
-          placeholder="Search help articles, bookings, or policies..." 
+          [placeholder]="'SUPPORT.SEARCH_PLACEHOLDER' | translate" 
         />
       </div>
     </div>

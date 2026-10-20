@@ -6,9 +6,9 @@
       <div class="policy-modal-header d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
         <h5 class="policy-modal-title mb-0 d-flex align-items-center gap-2">
           <mat-icon style="color: #004ac6;">flight_takeoff</mat-icon>
-          <span>Flight Itinerary & Stops details</span>
+          <span>{{ 'STOPS.TITLE' | translate }}</span>
         </h5>
-        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="onClose()" aria-label="Close modal">
+        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="onClose()" [attr.aria-label]="'STOPS.CLOSE' | translate">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -28,7 +28,7 @@
               </strong>
             </div>
             <div class="text-end">
-              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Total Duration</span>
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">{{ 'STOPS.TOTAL_DURATION' | translate }}</span>
               <strong style="color: #004ac6; font-size: 14px;">
                 {{ leg.elapsedTime | hourminute: 'en' }}
               </strong>
@@ -55,7 +55,7 @@
                   <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
                     {{ segment.departureTerminalAirport.airportName }}
                     @if (segment.departureTerminalAirport.terminal) {
-                      &bull; Terminal {{ segment.departureTerminalAirport.terminal }}
+                      &bull; {{ 'STOPS.TERMINAL' | translate:{ terminal: segment.departureTerminalAirport.terminal } }}
                     }
                     &bull; {{ segment.departureDate | date: 'EEEE, dd MMM' }}
                   </div>
@@ -79,16 +79,16 @@
 
                   <div class="d-flex justify-content-between align-items-center mt-1" style="font-size: 12px;">
                     <span class="text-secondary">
-                      Cabin Class: {{ segment.flightInfo.cabinClass }}
+                      {{ 'STOPS.CABIN_CLASS' | translate:{ cabin: segment.flightInfo.cabinClass } }}
                     </span>
                     <span class="text-secondary font-medium">
-                      Duration: {{ formatTransitTime(segment.durationPerLeg) }}
+                      {{ 'STOPS.DURATION' | translate:{ duration: formatTransitTime(segment.durationPerLeg) } }}
                     </span>
                   </div>
 
                   @if (segment.operatedAirline && segment.operatedAirline.airlineName !== segment.flightAirline.airlineName) {
                     <div class="text-xs text-muted mt-1" style="font-size: 11px;">
-                      Operated by: {{ segment.operatedAirline.airlineName }}
+                      {{ 'STOPS.OPERATED_BY' | translate:{ airline: segment.operatedAirline.airlineName } }}
                     </div>
                   }
                 </div>
@@ -109,7 +109,7 @@
                   <div class="text-muted text-xs mt-0.5" style="font-size: 12px; line-height: 16px;">
                     {{ segment.arrivalTerminalAirport.airportName }}
                     @if (segment.arrivalTerminalAirport.terminal) {
-                      &bull; Terminal {{ segment.arrivalTerminalAirport.terminal }}
+                      &bull; {{ 'STOPS.TERMINAL' | translate:{ terminal: segment.arrivalTerminalAirport.terminal } }}
                     }
                     &bull; {{ segment.arrivalDate | date: 'EEEE, dd MMM' }}
                   </div>
@@ -121,7 +121,7 @@
                 <div class="timeline-layover my-4 ms-4 p-3 rounded-3 border-start border-warning-subtle bg-warning-subtle d-flex align-items-center gap-2.5" style="border-left-width: 4px !important;">
                   <mat-icon style="color: #d88e00; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">schedule</mat-icon>
                   <span class="text-sm font-semibold" style="color: #664d03; font-size: 13px;">
-                    Layover: {{ formatTransitTime(segment.transitTime) }} in {{ segment.arrivalTerminalAirport.cityName }}
+                    {{ 'STOPS.LAYOVER' | translate:{ time: formatTransitTime(segment.transitTime), city: segment.arrivalTerminalAirport.cityName } }}
                   </span>
                 </div>
               }
@@ -135,7 +135,7 @@
       <div class="policy-modal-footer d-flex align-items-center justify-content-between pt-3 mt-2 border-top">
         <div class="modal-price-info">
           @if (priceAmount) {
-            <span class="text-xs text-muted d-block" style="font-size: 11px; text-transform: uppercase;">Total Price</span>
+            <span class="text-xs text-muted d-block" style="font-size: 11px; text-transform: uppercase;">{{ 'STOPS.TOTAL_PRICE' | translate }}</span>
             <strong style="color: #004ac6; font-size: 18px; font-weight: 700;">
               {{ priceAmount | currency: (currencyCode || 'EGP'): 'symbol': '1.0-0' }}
             </strong>
@@ -143,7 +143,7 @@
         </div>
         <button class="btn btn-select-flight d-flex align-items-center gap-2 px-4 py-2" (click)="onSelectFlight()">
           <mat-icon style="font-size: 18px; width: 18px; height: 18px; line-height: 18px;">check_circle</mat-icon>
-          <span>Select Flight</span>
+          <span>{{ 'STOPS.SELECT' | translate }}</span>
         </button>
       </div>
 

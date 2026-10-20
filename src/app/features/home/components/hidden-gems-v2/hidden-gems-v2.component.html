@@ -2,8 +2,8 @@
   <div class="container px-4">
     <!-- Header with title and Trending Badge -->
     <div class="d-flex align-items-center gap-3 mb-4">
-      <h2 class="section-title-v2 mb-0">Hidden Gems</h2>
-      <span class="trending-badge-v2">Trending</span>
+      <h2 class="section-title-v2 mb-0">{{ 'HOME.GEMS.TITLE' | translate }}</h2>
+      <span class="trending-badge-v2">{{ 'HOME.GEMS.TRENDING' | translate }}</span>
     </div>
 
     <!-- Cards Grid / Slider -->
@@ -24,12 +24,12 @@
       </div>
 
       <!-- Floating Slider Navigation Arrows (Mobile/Tablet only) -->
-      <button class="slider-arrow-btn prev" (click)="scrollSlider(slider, 'left')" aria-label="Previous slide">
+      <button class="slider-arrow-btn prev" (click)="scrollSlider(slider, 'left')" [attr.aria-label]="'HOME.SLIDER.PREV' | translate">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </button>
-      <button class="slider-arrow-btn next" (click)="scrollSlider(slider, 'right')" aria-label="Next slide">
+      <button class="slider-arrow-btn next" (click)="scrollSlider(slider, 'right')" [attr.aria-label]="'HOME.SLIDER.NEXT' | translate">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>

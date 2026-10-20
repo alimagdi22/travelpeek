@@ -21,7 +21,7 @@
             <img src="assets/icons/bags.svg" alt="" title="Bag Icon" class="baggage-icon" />
           }
           <div class="baggage-text" dir="ltr">
-            <p>{{ baggage.baggage }} x Cabin Baggage (7kg)</p>
+            <p>{{ 'confirmation.cabinBaggage' | translate:{ count: baggage.baggage } }}</p>
           </div>
         </div>
       }

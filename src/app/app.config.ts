@@ -1,15 +1,18 @@
 import {
   ApplicationConfig,
   provideZoneChangeDetection,
-  importProvidersFrom,
+  provideAppInitializer,
+  inject,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, HTTP_INTERCEPTORS, withInterceptorsFromDi } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { DatePipe } from '@angular/common';
 
 import { routes } from './app.routes';
 import { TokenInterceptor } from './core/interceptors/token.interceptor';
+import { LanguageService } from './core/services/language.service';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { firebaseConfig } from './core/constants/firebase-key';
@@ -25,7 +28,17 @@ export const appConfig: ApplicationConfig = {
       useClass: TokenInterceptor,
       multi: true,
     },
-    importProvidersFrom(TranslateModule.forRoot()),
+    provideTranslateService({
+      fallbackLang: 'en',
+      loader: provideTranslateHttpLoader({
+        prefix: '/assets/i18n/',
+        suffix: '.json',
+      }),
+    }),
+    provideAppInitializer(() => {
+      const language = inject(LanguageService);
+      return language.init();
+    }),
     DatePipe,
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),

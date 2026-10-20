@@ -1,14 +1,14 @@
 <div class="sidebar-wrapper d-flex flex-column gap-4">
   <!-- Quick Links Block -->
   <div class="quick-links-card">
-    <h3 class="card-title">Quick Links</h3>
+    <h3 class="card-title">{{ 'SUPPORT.QUICK_LINKS' | translate }}</h3>
     
     <div class="links-list d-flex flex-column">
       <!-- Link 1: Track a Refund -->
       <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
-          <img src="/assets/icons/support/take-refund.svg" class="link-icon" alt="Track a Refund" />
-          <span class="link-text">Track a Refund</span>
+          <img src="/assets/icons/support/take-refund.svg" class="link-icon" [attr.alt]="'SUPPORT.TRACK_REFUND' | translate" />
+          <span class="link-text">{{ 'SUPPORT.TRACK_REFUND' | translate }}</span>
         </div>
         <span class="chevron">&#8250;</span>
       </a>
@@ -16,8 +16,8 @@
       <!-- Link 2: Cancel Trip -->
       <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
-          <img src="/assets/icons/support/cancel-trip.svg" class="link-icon" alt="Cancel Trip" />
-          <span class="link-text">Cancel Trip</span>
+          <img src="/assets/icons/support/cancel-trip.svg" class="link-icon" [attr.alt]="'SUPPORT.CANCEL_TRIP' | translate" />
+          <span class="link-text">{{ 'SUPPORT.CANCEL_TRIP' | translate }}</span>
         </div>
         <span class="chevron">&#8250;</span>
       </a>
@@ -25,8 +25,8 @@
       <!-- Link 3: Get Vouchers -->
       <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-3">
-          <img src="/assets/icons/support/get-vouchers.svg" class="link-icon" alt="Get Vouchers" />
-          <span class="link-text">Get Vouchers</span>
+          <img src="/assets/icons/support/get-vouchers.svg" class="link-icon" [attr.alt]="'SUPPORT.GET_VOUCHERS' | translate" />
+          <span class="link-text">{{ 'SUPPORT.GET_VOUCHERS' | translate }}</span>
         </div>
         <span class="chevron">&#8250;</span>
       </a>
@@ -39,12 +39,12 @@
       <img src="/assets/icons/support/contact.svg" class="concierge-svg" alt="Contact Icon" />
     </div>
     
-    <h3 class="concierge-title">Contact Peek Concierge</h3>
+    <h3 class="concierge-title">{{ 'SUPPORT.CONCIERGE' | translate }}</h3>
     
     <p class="concierge-desc">
-      Need specialized help? Our human experts are available 24/7 for complex itinerary changes.
+      {{ 'SUPPORT.CONCIERGE_DESC' | translate }}
     </p>
     
-    <button class="btn-concierge-action w-100">Speak to an Expert</button>
+    <button class="btn-concierge-action w-100">{{ 'SUPPORT.SPEAK_EXPERT' | translate }}</button>
   </div>
 </div>

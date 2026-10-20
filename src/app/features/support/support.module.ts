@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { SupportRoutingModule } from './support-routing.module';
 import { SupportComponent } from './support.component';
@@ -18,6 +19,6 @@ import { SupportFooterBannerComponent } from './components/support-footer-banner
     SupportFaqComponent,
     SupportFooterBannerComponent,
   ],
-  imports: [CommonModule, SupportRoutingModule],
+  imports: [CommonModule, SupportRoutingModule, TranslateModule],
 })
 export class SupportModule {}

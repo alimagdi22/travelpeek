@@ -1,5 +1,6 @@
-import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output, inject } from '@angular/core';
 import { IAirItinerary, IFlight } from 'rp-travel-ui';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-selected-flight',
@@ -8,6 +9,7 @@ import { IAirItinerary, IFlight } from 'rp-travel-ui';
   styleUrl: './selected-flight.component.scss',
 })
 export class SelectedFlightComponent {
+  private translate = inject(TranslateService);
   @Input() itinerary: IAirItinerary | null = null;
   @Input() passengerCountLabel: string = '';
   @Input() showSelectButton = false;
@@ -74,9 +76,9 @@ export class SelectedFlightComponent {
 
   getStopsLabel(flight: IFlight): string {
     const stops = flight?.stopsNum ?? 0;
-    if (stops === 0) return 'Direct Flight';
-    if (stops === 1) return '1 Stop';
-    return `${stops} Stops`;
+    if (stops === 0) return this.translate.instant('FLIGHTS.DIRECT');
+    if (stops === 1) return this.translate.instant('FLIGHTS.ONE_STOP');
+    return this.translate.instant('FLIGHTS.N_STOPS', { count: stops });
   }
 
   getCabinClassLabel(flight: IFlight, itinerary: IAirItinerary): string {

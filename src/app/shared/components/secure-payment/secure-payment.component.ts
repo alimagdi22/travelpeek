@@ -22,8 +22,11 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightResultService = inject(FlightResultService);
 
-  selectedGateway: any = null;
   private paymentLinkFailureSubscription!: Subscription;
+
+  get selectedGateway(): any {
+    return this.sharedService.selectedGateway;
+  }
 
   ngOnInit() {
     this.autoSelectDefaultGateway();
@@ -54,11 +57,7 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   autoSelectDefaultGateway() {
     if (this.gateways && this.gateways.length > 0 && !this.selectedGateway) {
       const paytabs = this.gateways.find(g => this.getGatewayMethod(g).toLowerCase() === 'paytabscc');
-      if (paytabs) {
-        this.selectedGateway = paytabs;
-      } else {
-        this.selectedGateway = this.gateways[0];
-      }
+      this.selectGatewayMethod(paytabs || this.gateways[0]);
     }
   }
 
@@ -78,7 +77,7 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   selectGatewayMethod(gate: any) {
-    this.selectedGateway = gate;
+    this.sharedService.selectGatewayMethod(gate);
   }
 
   get extrasAmount(): number {

@@ -5,12 +5,12 @@
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
-    Back
+    {{ 'AUTH.BACK' | translate }}
   </button>
 
-  <h1 class="welcome-title mb-2 text-center">Join Peek</h1>
+  <h1 class="welcome-title mb-2 text-center">{{ 'AUTH.JOIN_PEEK' | translate }}</h1>
   <p class="welcome-subtitle mb-4 text-center">
-    Create an account to start planning your custom trips.
+    {{ 'AUTH.JOIN_SUBTITLE' | translate }}
   </p>
 
   <!-- Alert Message Banner -->
@@ -27,28 +27,28 @@
     <!-- First Name & Last Name Grid -->
     <div class="row g-2">
       <div class="col-6 d-flex flex-column">
-        <label for="firstName" class="form-label">First name</label>
+        <label for="firstName" class="form-label">{{ 'AUTH.FIRST_NAME' | translate }}</label>
         <input
           id="firstName"
           type="text"
           formControlName="firstName"
           class="login-input"
           [class.is-invalid]="authService.registerForm.get('firstName')?.touched && authService.registerForm.get('firstName')?.invalid"
-          placeholder="John"
+          [placeholder]="'AUTH.FIRST_NAME' | translate"
         />
         <div class="invalid-feedback" *ngIf="authService.registerForm.get('firstName')?.touched && authService.registerForm.get('firstName')?.invalid">
           {{ getFirstNameError() }}
         </div>
       </div>
       <div class="col-6 d-flex flex-column">
-        <label for="lastName" class="form-label">Last name</label>
+        <label for="lastName" class="form-label">{{ 'AUTH.LAST_NAME' | translate }}</label>
         <input
           id="lastName"
           type="text"
           formControlName="lastName"
           class="login-input"
           [class.is-invalid]="authService.registerForm.get('lastName')?.touched && authService.registerForm.get('lastName')?.invalid"
-          placeholder="Doe"
+          [placeholder]="'AUTH.LAST_NAME' | translate"
         />
         <div class="invalid-feedback" *ngIf="authService.registerForm.get('lastName')?.touched && authService.registerForm.get('lastName')?.invalid">
           {{ getLastNameError() }}
@@ -59,14 +59,14 @@
     <!-- Username & Phone Grid -->
     <div class="row g-2">
       <div class="col-6 d-flex flex-column">
-        <label for="username" class="form-label">Username</label>
+        <label for="username" class="form-label">{{ 'AUTH.USERNAME' | translate }}</label>
         <input
           id="username"
           type="text"
           formControlName="username"
           class="login-input"
           [class.is-invalid]="authService.registerForm.get('username')?.touched && authService.registerForm.get('username')?.invalid"
-          placeholder="johndoe"
+          [placeholder]="'AUTH.USERNAME' | translate"
           autocomplete="username"
         />
         <div class="invalid-feedback" *ngIf="authService.registerForm.get('username')?.touched && authService.registerForm.get('username')?.invalid">
@@ -74,14 +74,14 @@
         </div>
       </div>
       <div class="col-6 d-flex flex-column">
-        <label for="userPhoneNumber" class="form-label">Phone number</label>
+        <label for="userPhoneNumber" class="form-label">{{ 'AUTH.PHONE' | translate }}</label>
         <input
           id="userPhoneNumber"
           type="tel"
           formControlName="userPhoneNumber"
           class="login-input"
           [class.is-invalid]="authService.registerForm.get('userPhoneNumber')?.touched && authService.registerForm.get('userPhoneNumber')?.invalid"
-          placeholder="+1234567890"
+          [placeholder]="'AUTH.PHONE' | translate"
           autocomplete="tel"
         />
         <div class="invalid-feedback" *ngIf="authService.registerForm.get('userPhoneNumber')?.touched && authService.registerForm.get('userPhoneNumber')?.invalid">
@@ -92,14 +92,14 @@
 
     <!-- Email Input Group -->
     <div class="form-group d-flex flex-column">
-      <label for="reg-email" class="form-label">Email address</label>
+      <label for="reg-email" class="form-label">{{ 'AUTH.EMAIL' | translate }}</label>
       <input
         id="reg-email"
         type="email"
         formControlName="email"
         class="login-input"
         [class.is-invalid]="authService.registerForm.get('email')?.touched && authService.registerForm.get('email')?.invalid"
-        placeholder="name@example.com"
+        [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate"
         autocomplete="email"
       />
       <div class="invalid-feedback" *ngIf="authService.registerForm.get('email')?.touched && authService.registerForm.get('email')?.invalid">
@@ -110,7 +110,7 @@
     <!-- Password & Confirm Password Grid -->
     <div class="row g-2">
       <div class="col-6 d-flex flex-column">
-        <label for="reg-password" class="form-label">Password</label>
+        <label for="reg-password" class="form-label">{{ 'AUTH.PASSWORD' | translate }}</label>
         <div class="password-input-wrapper position-relative w-100">
           <input
             id="reg-password"
@@ -118,10 +118,10 @@
             formControlName="password"
             class="login-input pe-5"
             [class.is-invalid]="authService.registerForm.get('password')?.touched && authService.registerForm.get('password')?.invalid"
-            placeholder="Password"
+            [placeholder]="'AUTH.PASSWORD' | translate"
             autocomplete="new-password"
           />
-          <button type="button" class="btn-toggle-password" (click)="togglePasswordVisibility()" aria-label="Toggle password visibility">
+          <button type="button" class="btn-toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="'AUTH.TOGGLE_PASSWORD' | translate">
             <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -138,7 +138,7 @@
       </div>
 
       <div class="col-6 d-flex flex-column">
-        <label for="confirmPassword" class="form-label">Confirm password</label>
+        <label for="confirmPassword" class="form-label">{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</label>
         <div class="password-input-wrapper position-relative w-100">
           <input
             id="confirmPassword"
@@ -146,10 +146,10 @@
             formControlName="confirmPassword"
             class="login-input pe-5"
             [class.is-invalid]="(authService.registerForm.get('confirmPassword')?.touched && authService.registerForm.get('confirmPassword')?.invalid) || (authService.registerForm.get('confirmPassword')?.touched && authService.registerForm.hasError('mismatch'))"
-            placeholder="Confirm"
+            [placeholder]="'AUTH.CONFIRM_PLACEHOLDER' | translate"
             autocomplete="new-password"
           />
-          <button type="button" class="btn-toggle-password" (click)="toggleConfirmPasswordVisibility()" aria-label="Toggle password visibility">
+          <button type="button" class="btn-toggle-password" (click)="toggleConfirmPasswordVisibility()" [attr.aria-label]="'AUTH.TOGGLE_PASSWORD' | translate">
             <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
               <circle cx="12" cy="12" r="3"></circle>
@@ -173,12 +173,12 @@
       [disabled]="authService.isLoading || authService.registerForm.invalid"
     >
       <span *ngIf="authService.isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      {{ authService.isLoading ? 'Creating account...' : 'Create account' }}
+      {{ authService.isLoading ? ('AUTH.CREATING_ACCOUNT' | translate) : ('AUTH.CREATE_ACCOUNT' | translate) }}
     </button>
   </form>
 </div>
 
 <!-- Footnote signup -->
 <p class="signup-prompt mt-4 mb-0 text-center">
-  Already have an account? <span class="signup-link" style="cursor: pointer;" (click)="onLogin()">Log in</span>
+  {{ 'AUTH.HAVE_ACCOUNT' | translate }} <span class="signup-link" style="cursor: pointer;" (click)="onLogin()">{{ 'AUTH.LOG_IN' | translate }}</span>
 </p>

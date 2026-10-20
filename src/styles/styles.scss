@@ -11,6 +11,40 @@ body {
   background-color: map.get($background-colors, "primary");
 }
 
+html[dir="rtl"],
+html[dir="rtl"] body {
+  font-family: "Cairo", $font-family-base;
+}
+
+html[dir="rtl"] {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .display-font,
+  .large-text {
+    font-family: "Cairo", $font-family-display, sans-serif;
+  }
+
+  .slider-arrow-btn.prev {
+    left: auto;
+    right: -10px;
+  }
+
+  .slider-arrow-btn.next {
+    right: auto;
+    left: -10px;
+  }
+
+  .country-dropdown,
+  .dropdown-menu.country-dropdown {
+    left: auto !important;
+    right: 0 !important;
+  }
+}
+
 h1,
 h2,
 h3,

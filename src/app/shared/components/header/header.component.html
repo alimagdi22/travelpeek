@@ -4,22 +4,42 @@
       <!-- Brand Logo -->
       <div class="col-auto" [class.d-lg-none]="isMyTrips">
         <div class="brand" (click)="navigateHome()">
-          <img src="assets/images/logo.png" alt="TravelPeek Logo">
+          <img src="assets/images/logo.png" [alt]="'FOOTER.LOGO_ALT' | translate">
         </div>
       </div>
 
       <!-- Navigation Menu (Desktop) -->
       <div class="col d-none d-lg-block">
         <nav class="nav-menu d-flex align-items-center gap-4" [class.ms-5]="!isMyTrips">
-          <a routerLink="/" [class.active]="isExploreActive" class="nav-item">Explore</a>
-          <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="nav-item">My Trips</a>
-          <a routerLink="/support" [class.active]="isSupportActive" class="nav-item">Support</a>
+          <a routerLink="/" [class.active]="isExploreActive" class="nav-item">{{ 'HEADER.EXPLORE' | translate }}</a>
+          <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="nav-item">{{ 'HEADER.MY_TRIPS' | translate }}</a>
+          <a routerLink="/support" [class.active]="isSupportActive" class="nav-item">{{ 'HEADER.SUPPORT' | translate }}</a>
         </nav>
       </div>
 
       <!-- Actions (Desktop, Right Aligned) -->
       <div class="col-auto d-none d-lg-block">
         <div class="header-actions d-flex align-items-center gap-4">
+          <div
+            class="language-selector d-flex align-items-center gap-1"
+            [matMenuTriggerFor]="languageMenu"
+            [attr.aria-label]="'HEADER.LANGUAGE' | translate"
+          >
+            <mat-icon class="language-icon">language</mat-icon>
+            <p>{{ languageService.currentOption.short }}</p>
+          </div>
+          <mat-menu #languageMenu="matMenu">
+            @for (lang of languageService.languages; track lang.code) {
+              <button
+                mat-menu-item
+                (click)="setLanguage(lang.code)"
+                [class.active-lang]="languageService.currentLang() === lang.code"
+              >
+                <span class="lang-short">{{ lang.short }}</span>
+                {{ lang.nativeLabel }}
+              </button>
+            }
+          </mat-menu>
           <div
             class="currency-selector d-flex align-items-center gap-2"
             [matMenuTriggerFor]="currencyMenu"
@@ -61,22 +81,22 @@
             <mat-menu #userMenu="matMenu">
               <button mat-menu-item routerLink="/user-management/user-profile">
                 <mat-icon>person</mat-icon>
-                My Profile
+                {{ 'HEADER.MY_PROFILE' | translate }}
               </button>
               <button mat-menu-item (click)="logout()">
                 <mat-icon>logout</mat-icon>
-                Logout
+                {{ 'HEADER.LOGOUT' | translate }}
               </button>
             </mat-menu>
           } @else {
-            <button class="btn-login" routerLink="/login">Login</button>
+            <button class="btn-login" routerLink="/login">{{ 'HEADER.LOGIN' | translate }}</button>
           }
         </div>
       </div>
 
       <!-- Mobile Menu Button (Hamburger) -->
       <div class="col-auto d-lg-none">
-        <button class="btn-mobile-toggle" (click)="toggleMobileMenu()" aria-label="Toggle navigation">
+        <button class="btn-mobile-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="'HEADER.TOGGLE_NAV' | translate">
           <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
         </button>
       </div>
@@ -89,9 +109,9 @@
 <div class="mobile-drawer" [class.open]="isMobileMenuOpen">
   <div class="drawer-header">
     <div class="brand" (click)="navigateHome(); closeMobileMenu()">
-      <img src="assets/images/logo.png" alt="TravelPeek Logo">
+      <img src="assets/images/logo.png" [alt]="'FOOTER.LOGO_ALT' | translate">
     </div>
-    <button class="btn-close-drawer" (click)="closeMobileMenu()" aria-label="Close menu">
+    <button class="btn-close-drawer" (click)="closeMobileMenu()" [attr.aria-label]="'HEADER.CLOSE_MENU' | translate">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -101,15 +121,15 @@
     <nav class="drawer-nav">
       <a routerLink="/" [class.active]="isExploreActive" class="drawer-nav-item" (click)="closeMobileMenu()">
         <mat-icon class="nav-icon">explore</mat-icon>
-        <span>Explore</span>
+        <span>{{ 'HEADER.EXPLORE' | translate }}</span>
       </a>
       <a routerLink="/my-trips" [class.active]="isMyTripsActive" class="drawer-nav-item" (click)="closeMobileMenu()">
         <mat-icon class="nav-icon">card_travel</mat-icon>
-        <span>My Trips</span>
+        <span>{{ 'HEADER.MY_TRIPS' | translate }}</span>
       </a>
       <a routerLink="/support" [class.active]="isSupportActive" class="drawer-nav-item" (click)="closeMobileMenu()">
         <mat-icon class="nav-icon">help_outline</mat-icon>
-        <span>Support</span>
+        <span>{{ 'HEADER.SUPPORT' | translate }}</span>
       </a>
     </nav>
 
@@ -118,7 +138,7 @@
       <div class="drawer-section">
         <h3 class="section-title d-flex align-items-center gap-2" style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #6c757d; margin-bottom: 12px; letter-spacing: 0.5px; padding: 0 16px;">
           <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px;">history</mat-icon>
-          <span>Recent Searches</span>
+          <span>{{ 'HEADER.RECENT_SEARCHES' | translate }}</span>
         </h3>
 
         @if (isLoggedIn) {
@@ -134,16 +154,16 @@
           <!-- Error retry -->
           @if (!flightResult.searchHistoryLoading && flightResult.searchHistoryError) {
             <div class="text-center py-2" style="padding: 0 16px;">
-              <p class="text-xs text-danger mb-0" style="font-size: 12px;">Failed to load history</p>
+              <p class="text-xs text-danger mb-0" style="font-size: 12px;">{{ 'HEADER.FAILED_HISTORY' | translate }}</p>
               <button class="btn btn-xs btn-link p-0 text-decoration-none" style="font-size: 11px;" (click)="flightResult.getSearchHistory()">
-                Retry
+                {{ 'HEADER.RETRY' | translate }}
               </button>
             </div>
           }
 
           <!-- Empty state -->
           @if (!flightResult.searchHistoryLoading && !flightResult.searchHistoryError && (!searchHistory || searchHistory.length === 0)) {
-            <div class="text-muted text-sm py-2" style="font-size: 13px; padding: 0 16px;">No recent searches.</div>
+            <div class="text-muted text-sm py-2" style="font-size: 13px; padding: 0 16px;">{{ 'HEADER.NO_RECENT' | translate }}</div>
           }
 
           <!-- History items -->
@@ -159,7 +179,7 @@
           }
         } @else {
           <div class="text-muted text-sm py-2" style="font-size: 13px; padding: 0 16px;">
-            Log in to view search history.
+            {{ 'HEADER.LOGIN_FOR_HISTORY' | translate }}
           </div>
         }
       </div>
@@ -167,9 +187,28 @@
 
     <div class="drawer-divider"></div>
 
+    <!-- Language Selector -->
+    <div class="drawer-section">
+      <h3 class="section-title">{{ 'HEADER.LANGUAGE' | translate }}</h3>
+      <div class="language-switcher-mobile">
+        @for (lang of languageService.languages; track lang.code) {
+          <button
+            type="button"
+            class="lang-option"
+            [class.active]="languageService.currentLang() === lang.code"
+            (click)="setLanguage(lang.code)"
+          >
+            {{ lang.nativeLabel }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="drawer-divider"></div>
+
     <!-- Currency Selector -->
     <div class="drawer-section">
-      <h3 class="section-title">Currency</h3>
+      <h3 class="section-title">{{ 'HEADER.CURRENCY' | translate }}</h3>
       <div class="drawer-currency-selector" (click)="toggleCurrencyPopup()">
         <div class="currency-info">
           <img class="flags" [src]="this.homePageService.selectedCurrency['Image_Url']" alt="Currency Flag" />
@@ -197,15 +236,15 @@
         <div class="drawer-account-links">
           <a class="drawer-account-link" routerLink="/user-management/user-profile" (click)="closeMobileMenu()">
             <mat-icon>person</mat-icon>
-            <span>My Profile</span>
+            <span>{{ 'HEADER.MY_PROFILE' | translate }}</span>
           </a>
           <button class="drawer-account-btn-logout" (click)="logout(); closeMobileMenu()">
             <mat-icon>logout</mat-icon>
-            <span>Logout</span>
+            <span>{{ 'HEADER.LOGOUT' | translate }}</span>
           </button>
         </div>
       } @else {
-        <button class="btn-drawer-login" routerLink="/login" (click)="closeMobileMenu()">Login</button>
+        <button class="btn-drawer-login" routerLink="/login" (click)="closeMobileMenu()">{{ 'HEADER.LOGIN' | translate }}</button>
       }
     </div>
   </div>
@@ -215,8 +254,8 @@
 <div class="currency-popup-backdrop" [class.active]="isCurrencyPopupOpen" (click)="closeCurrencyPopup()"></div>
 <div class="currency-popup" [class.open]="isCurrencyPopupOpen">
   <div class="popup-header">
-    <h3>Select Currency</h3>
-    <button class="btn-close-popup" (click)="closeCurrencyPopup()" aria-label="Close currency popup">
+    <h3>{{ 'HEADER.SELECT_CURRENCY' | translate }}</h3>
+    <button class="btn-close-popup" (click)="closeCurrencyPopup()" [attr.aria-label]="'HEADER.CLOSE_CURRENCY' | translate">
       <mat-icon>close</mat-icon>
     </button>
   </div>

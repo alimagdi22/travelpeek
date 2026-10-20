@@ -48,7 +48,7 @@
             <line x1="12" y1="9" x2="12" y2="13"></line>
             <line x1="12" y1="17" x2="12.01" y2="17"></line>
           </svg>
-          <p class="text-sm text-danger font-semibold mb-2">Failed to load conversation history</p>
+          <p class="text-sm text-danger font-semibold mb-2">{{ 'MY_TRIPS.FAILED_CONVERSATION' | translate }}</p>
           <button class="btn btn-sm btn-primary" (click)="retryConversationLoad()">
             Retry
           </button>
@@ -76,14 +76,14 @@
           <!-- System Chat Bubble (With Nested Flight Cards) -->
           @if (msg.sender === "system") {
             <div class="message-with-sender is-agent">
-              <div class="sender-avatar agent-avatar" aria-label="TravelPeek assistant">
+              <div class="sender-avatar agent-avatar" [attr.aria-label]="'MY_TRIPS.ASSISTANT_LABEL' | translate">
                 <img src="/assets/icons/mytrips/ai-star.svg" alt="TravelPeek Logo" />
               </div>
               <div class="system-bubble-wrapper w-100 d-flex flex-column gap-2 align-items-start">
               @if (msg.isFlightSelection) {
                 <div class="system-text-bubble p-3 px-4 rounded-4 shadow-sm w-100 d-flex flex-column gap-3" [class.animating]="msg.isAnimating">
                   @if (msg.itineraries && msg.itineraries.length > 0) {
-                    <p class="mb-0 system-intro-text">The selected flight is:</p>
+                    <p class="mb-0 system-intro-text">{{ 'MY_TRIPS.SELECTED_FLIGHT' | translate }}</p>
 
                     <app-selected-flight
                       [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
@@ -151,10 +151,10 @@
                     @if (msg.showPassportReview) {
                       <div class="booking-prompt-actions d-flex gap-3 flex-wrap mt-2">
                         <button class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="confirmPassportDetails(msg)" [disabled]="msg.actionsDisabled">
-                          Confirm
+                          {{ 'MY_TRIPS.CONFIRM' | translate }}
                         </button>
                         <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="editPassportDetails(msg)" [disabled]="msg.actionsDisabled">
-                          Edit
+                          {{ 'MY_TRIPS.EDIT' | translate }}
                         </button>
                       </div>
                     }
@@ -184,7 +184,7 @@
             class="message-row system-row d-flex flex-column align-items-start"
           >
             <div class="message-with-sender is-agent">
-              <div class="sender-avatar agent-avatar" aria-label="TravelPeek assistant">
+              <div class="sender-avatar agent-avatar" [attr.aria-label]="'MY_TRIPS.ASSISTANT_LABEL' | translate">
                 <img src="/assets/icons/mytrips/ai-star.svg" alt="TravelPeek Logo" />
               </div>
             <div
@@ -222,7 +222,7 @@
                [class.filter-pill-active]="isDirectFlightsOnlyActive()"
                (click)="toggleDirectFlightsOnly()"
              >
-               <span class="pill-icon">🛑</span> Fly non-stop only
+               <span class="pill-icon">🛑</span> {{ 'MY_TRIPS.FLY_NONSTOP' | translate }}
              </button>
 
              <!-- 2. Refundable Flights Only Filter Pill -->
@@ -232,7 +232,7 @@
                [class.filter-pill-active]="isRefundableOnlyActive()"
                (click)="toggleRefundableOnly()"
              >
-               <span class="pill-icon">🔄</span> Keep safe with refundable
+               <span class="pill-icon">🔄</span> {{ 'MY_TRIPS.REFUNDABLE' | translate }}
              </button>
 
              <!-- 3. Top Airline Filter Pill -->
@@ -242,7 +242,7 @@
                [class.filter-pill-active]="isTopAirlineActive()"
                (click)="toggleTopAirline()"
              >
-               <span class="pill-icon">✈️</span> Fly {{ getTopAirlineName() }} only
+               <span class="pill-icon">✈️</span> {{ 'MY_TRIPS.FLY_AIRLINE' | translate:{ airline: getTopAirlineName() } }}
              </button>
 
              <!-- 4. Depart Schedule Filter Pills -->
@@ -253,7 +253,7 @@
                [class.filter-pill-active]="isDepartScheduleActive(option.startTime, option.endTime)"
                (click)="toggleDepartSchedule(option.startTime, option.endTime)"
              >
-               <span class="pill-icon">{{ option.icon }}</span> {{ option.title }} depart
+               <span class="pill-icon">{{ option.icon }}</span> {{ 'MY_TRIPS.DEPART' | translate:{ title: (option.titleKey | translate) } }}
              </button>
 
              <!-- 5. Travel Insurance Pill -->
@@ -284,27 +284,27 @@
                  <span class="voice-recorder-dot" [class.is-live]="isListening"></span>
                  <div class="d-flex flex-column min-w-0">
                    <span class="voice-recorder-title">
-                     {{ isListening ? 'Listening...' : 'Voice input' }}
+                     {{ isListening ? ('MY_TRIPS.LISTENING' | translate) : ('MY_TRIPS.VOICE_INPUT' | translate) }}
                    </span>
                    <span class="voice-recorder-subtitle">
-                     {{ isListening ? (voicePreview || 'Speak now — English or Arabic') : 'Tap the mic and speak' }}
+                     {{ isListening ? (voicePreview || ('MY_TRIPS.SPEAK_NOW' | translate)) : ('MY_TRIPS.TAP_MIC' | translate) }}
                    </span>
                  </div>
                </div>
                <div class="d-flex align-items-center gap-2">
                  @if (!isListening) {
-                   <button type="button" class="voice-record-btn" (click)="startVoice()" aria-label="Start listening">
+                   <button type="button" class="voice-record-btn" (click)="startVoice()" [attr.aria-label]="'MY_TRIPS.START_LISTENING' | translate">
                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                        <path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"></path>
                        <path d="M19 11a1 1 0 0 0-2 0 5 5 0 0 1-10 0 1 1 0 0 0-2 0 7 7 0 0 0 6 6.92V20H9a1 1 0 0 0 0 2h6a1 1 0 0 0 0-2h-2v-2.08A7 7 0 0 0 19 11z"></path>
                      </svg>
                    </button>
                  } @else {
-                   <button type="button" class="voice-stop-btn" (click)="stopVoiceRecording()" aria-label="Stop listening">
+                   <button type="button" class="voice-stop-btn" (click)="stopVoiceRecording()" [attr.aria-label]="'MY_TRIPS.STOP_LISTENING' | translate">
                      <span></span>
                    </button>
                  }
-                 <button type="button" class="voice-close-btn" (click)="closeVoiceRecorder()" aria-label="Cancel voice input">
+                 <button type="button" class="voice-close-btn" (click)="closeVoiceRecorder()" [attr.aria-label]="'MY_TRIPS.CANCEL_VOICE' | translate">
                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
                      <line x1="6" y1="6" x2="18" y2="18"></line>
                      <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -321,7 +321,7 @@
              <button
                class="btn-new-chat-circle border-0 d-flex align-items-center justify-content-center rounded-circle"
                (click)="startNewChat()"
-               title="Start New Chat"
+               [title]="'MY_TRIPS.START_NEW_CHAT' | translate"
              >
                <svg
                  width="20"
@@ -356,7 +356,7 @@
                <!-- Input Textarea (Responsive to full text on mobile) -->
                <textarea
                  class="chat-input-field-v2 flex-grow-1 border-0 bg-transparent px-3 py-1 align-self-center"
-                 placeholder="Describe your dream trip... I'll help you plan it."
+                 [placeholder]="'MY_TRIPS.PLACEHOLDER' | translate"
                  [(ngModel)]="newMessage"
                  (keydown)="onInputKeydown($event)"
                  (input)="adjustTextareaHeight($event.target)"
@@ -369,8 +369,8 @@
                  class="voice-btn-v2 d-flex align-items-center justify-content-center p-2 bg-transparent border-0"
                  [class.is-recording]="isListening"
                  (click)="toggleVoiceRecorder()"
-                 [attr.aria-label]="isListening ? 'Stop voice input' : 'Start voice input'"
-                 title="Voice input"
+                 [attr.aria-label]="isListening ? ('MY_TRIPS.STOP_VOICE' | translate) : ('MY_TRIPS.START_VOICE' | translate)"
+                 [title]="'MY_TRIPS.VOICE_INPUT' | translate"
                >
                  <svg
                    width="20"
@@ -394,8 +394,8 @@
                  type="button"
                  class="attachment-btn-v2 d-flex align-items-center justify-content-center p-2 bg-transparent border-0 me-2"
                  (click)="fileInput.click()"
-                 aria-label="Upload passport"
-                 title="Upload passport"
+                 [attr.aria-label]="'MY_TRIPS.UPLOAD_PASSPORT' | translate"
+                 [title]="'MY_TRIPS.UPLOAD_PASSPORT' | translate"
                >
                  <svg
                    width="20"
@@ -466,9 +466,9 @@
       <div class="policy-modal-header d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
         <h5 class="policy-modal-title mb-0 d-flex align-items-center gap-2">
           <mat-icon style="color: #004ac6;">info</mat-icon>
-          <span>Cancellation & Date Change Policies</span>
+          <span>{{ 'POLICY.TITLE' | translate }}</span>
         </h5>
-        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="closePolicyModal()" aria-label="Close modal">
+        <button class="btn-close-modal border-0 bg-transparent p-1 d-flex align-items-center justify-content-center" (click)="closePolicyModal()" [attr.aria-label]="'COMMON.CLOSE' | translate">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -478,13 +478,13 @@
         @if (isLoadingPolicy) {
           <div class="d-flex flex-column align-items-center justify-content-center py-5">
             <mat-spinner [diameter]="40" [strokeWidth]="4"></mat-spinner>
-            <span class="text-muted mt-3" style="font-size: 14px;">Retrieving fare rules...</span>
+            <span class="text-muted mt-3" style="font-size: 14px;">{{ 'POLICY.LOADING' | translate }}</span>
           </div>
         } @else {
           <!-- Option Summary -->
           <div class="option-summary mb-3 p-3 rounded-3 bg-light d-flex align-items-center justify-content-between">
             <div>
-              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Flight Option</span>
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">{{ 'POLICY.FLIGHT_OPTION' | translate }}</span>
               <strong style="color: #0b1c30; font-size: 14px;">
                 @for (sector of getSectors(selectedItineraryForPolicy!); track $index) {
                   {{ sector }}{{ !$last ? ' / ' : '' }}
@@ -492,7 +492,7 @@
               </strong>
             </div>
             <div class="text-end">
-              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">Total Price</span>
+              <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">{{ 'POLICY.TOTAL_PRICE' | translate }}</span>
               <strong style="color: #004ac6; font-size: 16px;">
                 {{ getTotalPrice(selectedItineraryForPolicy!) | exchange: 'value' | number: "1.0-0" }}
                 <span style="font-size: 12px;">{{ getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}</span>
@@ -504,7 +504,7 @@
           <div class="policy-section mb-4">
             <h6 class="section-heading d-flex align-items-center gap-2 mb-3" style="font-weight: 700; color: #0b1c30; font-size: 14px;">
               <mat-icon style="color: #dc3545; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">cancel</mat-icon>
-              <span>Cancellation & Refund Policy</span>
+              <span>{{ 'POLICY.CANCEL_REFUND' | translate }}</span>
             </h6>
 
             <div class="policy-details-list d-flex flex-column gap-2">
@@ -513,32 +513,32 @@
                   <div class="penalty-row p-3 rounded-3 border d-flex flex-column gap-2 bg-white">
                     <div class="d-flex align-items-center justify-content-between">
                       <span class="sector-badge px-2 py-0.5 rounded text-xs font-semibold bg-light text-secondary" style="font-size: 11px;">
-                        Sector: {{ penalty.sector || 'All Sectors' }}
+                        {{ 'POLICY.SECTOR' | translate:{ sector: penalty.sector || ('POLICY.ALL_SECTORS' | translate) } }}
                       </span>
                       <span class="refund-status-pill px-2 py-0.5 rounded text-xs font-bold"
                             [ngClass]="selectedItineraryForPolicy!.isRefundable ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
                             style="font-size: 11px;">
-                        {{ selectedItineraryForPolicy!.isRefundable ? 'Refundable' : 'Non-Refundable' }}
+                        {{ selectedItineraryForPolicy!.isRefundable ? ('FLIGHTS.REFUNDABLE' | translate) : ('FLIGHTS.NON_REFUNDABLE' | translate) }}
                       </span>
                     </div>
 
                     @if (selectedItineraryForPolicy!.isRefundable) {
                       <div class="d-flex justify-content-between align-items-center mt-1">
-                        <span class="text-sm text-muted" style="font-size: 13px;">Cancellation Penalty Fee</span>
+                        <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.CANCEL_FEE' | translate }}</span>
                         <strong class="text-dark" style="font-size: 13px;">
                           {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
                           {{ 'EGP' | exchange: 'code' }}
                         </strong>
                       </div>
                     } @else {
-                      <span class="text-sm text-danger mt-1" style="font-size: 13px;">This ticket is non-refundable. Cancellation will result in a 100% penalty.</span>
+                      <span class="text-sm text-danger mt-1" style="font-size: 13px;">{{ 'POLICY.NON_REFUNDABLE' | translate }}</span>
                     }
                   </div>
                 }
               } @else {
                 <div class="penalty-row p-3 rounded-3 border bg-white">
                   <span class="text-sm text-muted" style="font-size: 13px;">
-                    {{ selectedItineraryForPolicy!.isRefundable ? 'Refundable with standard airline terms.' : 'This ticket is non-refundable.' }}
+                    {{ selectedItineraryForPolicy!.isRefundable ? ('POLICY.REFUNDABLE_STANDARD' | translate) : ('POLICY.NON_REFUNDABLE_SHORT' | translate) }}
                   </span>
                 </div>
               }
@@ -548,7 +548,7 @@
                 <div class="admin-charge-row p-3 rounded-3 border bg-light d-flex justify-content-between align-items-center">
                   <span class="text-sm text-muted d-flex align-items-center gap-1.5" style="font-size: 13px;">
                     <mat-icon style="font-size: 16px; width: 16px; height: 16px; line-height: 16px; color: #6c757d;">info_outline</mat-icon>
-                    <span>Agency Admin Fee</span>
+                    <span>{{ 'POLICY.ADMIN_FEE' | translate }}</span>
                   </span>
                   <strong class="text-dark" style="font-size: 13px;">
                     {{ convertPenaltyToBaseAmount(adminCharges[0].price, adminCharges[0].curency) | exchange: 'value' | number: '1.0-0' }}
@@ -563,7 +563,7 @@
           <div class="policy-section mb-2">
             <h6 class="section-heading d-flex align-items-center gap-2 mb-3" style="font-weight: 700; color: #0b1c30; font-size: 14px;">
               <mat-icon style="color: #ffc107; font-size: 20px; width: 20px; height: 20px; line-height: 20px;">update</mat-icon>
-              <span>Date Change / Reissue Policy</span>
+              <span>{{ 'POLICY.DATE_CHANGE' | translate }}</span>
             </h6>
 
             <div class="policy-details-list d-flex flex-column gap-2">
@@ -572,12 +572,12 @@
                   <div class="penalty-row p-3 rounded-3 border d-flex flex-column gap-2 bg-white">
                     <div class="d-flex align-items-center justify-content-between">
                       <span class="sector-badge px-2 py-0.5 rounded text-xs font-semibold bg-light text-secondary" style="font-size: 11px;">
-                        Sector: {{ penalty.sector || 'All Sectors' }}
+                        {{ 'POLICY.SECTOR' | translate:{ sector: penalty.sector || ('POLICY.ALL_SECTORS' | translate) } }}
                       </span>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-1">
-                      <span class="text-sm text-muted" style="font-size: 13px;">Change Penalty Fee</span>
+                      <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.CHANGE_FEE' | translate }}</span>
                       <strong class="text-dark" style="font-size: 13px;">
                         {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
                         {{ 'EGP' | exchange: 'code' }}
@@ -587,7 +587,7 @@
                 }
               } @else {
                 <div class="penalty-row p-3 rounded-3 border bg-white">
-                  <span class="text-sm text-muted" style="font-size: 13px;">Standard airline date change policies apply.</span>
+                  <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.STANDARD_CHANGE' | translate }}</span>
                 </div>
               }
             </div>
@@ -595,7 +595,7 @@
 
           <!-- Disclaimer Note -->
           <p class="text-muted mt-3 mb-0" style="font-size: 11px; line-height: 16px; font-style: italic; border-top: 1px solid #eee; padding-top: 12px;">
-            * In addition to airline fees, fare difference may apply for date changes. Reissues and refunds are subject to airline approval.
+            {{ 'POLICY.DISCLAIMER' | translate }}
           </p>
         }
       </div>

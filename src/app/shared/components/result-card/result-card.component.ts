@@ -1,5 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
 import { IAirItinerary, IFlight } from 'rp-travel-ui';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-result-card',
@@ -8,6 +9,7 @@ import { IAirItinerary, IFlight } from 'rp-travel-ui';
   styleUrl: './result-card.component.scss',
 })
 export class ResultCardComponent {
+  private translate = inject(TranslateService);
   @Input() itinerary!: IAirItinerary;
 
   get outboundFlight(): IFlight | null {
@@ -62,8 +64,8 @@ export class ResultCardComponent {
 
   getStopsLabel(flight: IFlight): string {
     const stops = flight?.stopsNum ?? 0;
-    if (stops === 0) return 'Non-stop';
-    if (stops === 1) return '1 Stop';
-    return `${stops} Stops`;
+    if (stops === 0) return this.translate.instant('FLIGHTS.DIRECT');
+    if (stops === 1) return this.translate.instant('FLIGHTS.ONE_STOP');
+    return this.translate.instant('FLIGHTS.N_STOPS', { count: stops });
   }
 }

@@ -22,6 +22,10 @@ export class TokenInterceptor implements HttpInterceptor {
       }));
     }
 
+    if (req.url.includes('/assets/i18n/')) {
+      return next.handle(req);
+    }
+
     const isBackendUrl = req.url.startsWith('/') ||
       req.url.includes('round-pixel.net') ||
       req.url.includes('flytoall.com') ||

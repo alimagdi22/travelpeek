@@ -1,17 +1,17 @@
 <div class="legal-document">
   <!-- Breadcrumbs -->
   <nav class="legal-breadcrumbs mb-3">
-    <span class="crumb">Support</span>
+    <span class="crumb">{{ 'COMMON.SUPPORT' | translate }}</span>
     <span class="separator">&rsaquo;</span>
-    <span class="crumb">Legal</span>
+    <span class="crumb">{{ 'LEGAL.CRUMB_LEGAL' | translate }}</span>
     <span class="separator">&rsaquo;</span>
-    <span class="crumb active">Terms of Service</span>
+    <span class="crumb active">{{ 'LEGAL.TERMS' | translate }}</span>
   </nav>
 
   <!-- Document Header -->
   <header class="doc-header mb-4">
-    <h1 class="doc-title">Terms of Service</h1>
-    <p class="doc-subtitle">Last updated: May 24, 2024</p>
+    <h1 class="doc-title">{{ 'LEGAL.TERMS' | translate }}</h1>
+    <p class="doc-subtitle">{{ 'LEGAL.LAST_UPDATED' | translate }}</p>
   </header>
 
   <!-- Document Body Content -->
@@ -38,15 +38,15 @@
       <ul class="checklist-list d-flex flex-column gap-3 py-2">
         <li class="checklist-item d-flex align-items-start gap-3">
           <img src="/assets/icons/privacy/correct.svg" class="check-svg" alt="Check Icon" />
-          <span class="check-text">You must be at least 18 years old to create an account and book travel.</span>
+          <span class="check-text">{{ 'LEGAL.AGE' | translate }}</span>
         </li>
         <li class="checklist-item d-flex align-items-start gap-3">
           <img src="/assets/icons/privacy/correct.svg" class="check-svg" alt="Check Icon" />
-          <span class="check-text">You agree not to use automated systems or software to extract data from the Services for commercial purposes ("screen scraping").</span>
+          <span class="check-text">{{ 'LEGAL.NO_SCRAPE' | translate }}</span>
         </li>
         <li class="checklist-item d-flex align-items-start gap-3">
           <img src="/assets/icons/privacy/correct.svg" class="check-svg" alt="Check Icon" />
-          <span class="check-text">You will comply with all applicable local, state, and international laws regarding travel and commerce.</span>
+          <span class="check-text">{{ 'LEGAL.COMPLY' | translate }}</span>
         </li>
       </ul>
 
@@ -68,24 +68,24 @@
       <!-- Grid-like Table System -->
       <div class="custom-table mt-4">
         <div class="table-row table-header d-flex align-items-center">
-          <div class="table-col col-4">ACTION TYPE</div>
-          <div class="table-col col-5">RESPONSIBILITY</div>
-          <div class="table-col col-3 text-end">FEES</div>
+          <div class="table-col col-4">{{ 'LEGAL.ACTION_TYPE' | translate }}</div>
+          <div class="table-col col-5">{{ 'LEGAL.RESPONSIBILITY' | translate }}</div>
+          <div class="table-col col-3 text-end">{{ 'LEGAL.FEES' | translate }}</div>
         </div>
         <div class="table-row d-flex align-items-center">
-          <div class="table-col col-4 highlight-text">Flight Search</div>
+          <div class="table-col col-4 highlight-text">{{ 'LEGAL.FLIGHT_SEARCH' | translate }}</div>
           <div class="table-col col-5">Peek AI</div>
-          <div class="table-col col-3 text-end">Free</div>
+          <div class="table-col col-3 text-end">{{ 'COMMON.FREE' | translate }}</div>
         </div>
         <div class="table-row d-flex align-items-center">
-          <div class="table-col col-4 highlight-text">Booking Confirmation</div>
-          <div class="table-col col-5">Third-party Airline</div>
-          <div class="table-col col-3 text-end">Varies</div>
+          <div class="table-col col-4 highlight-text">{{ 'LEGAL.BOOKING_CONFIRMATION' | translate }}</div>
+          <div class="table-col col-5">{{ 'LEGAL.THIRD_PARTY' | translate }}</div>
+          <div class="table-col col-3 text-end">{{ 'LEGAL.VARIES' | translate }}</div>
         </div>
         <div class="table-row d-flex align-items-center">
-          <div class="table-col col-4 highlight-text">Support Concierge</div>
-          <div class="table-col col-5">Peek Support</div>
-          <div class="table-col col-3 text-end">Included</div>
+          <div class="table-col col-4 highlight-text">{{ 'LEGAL.SUPPORT_CONCIERGE' | translate }}</div>
+          <div class="table-col col-5">{{ 'LEGAL.PEEK_SUPPORT' | translate }}</div>
+          <div class="table-col col-3 text-end">{{ 'LEGAL.INCLUDED' | translate }}</div>
         </div>
       </div>
     </section>
@@ -101,21 +101,21 @@
 
   <!-- Article Feedback Section -->
   <footer class="doc-footer d-flex align-items-center justify-content-between mt-5 pt-4">
-    <span class="feedback-prompt">Was this article helpful?</span>
+    <span class="feedback-prompt">{{ 'LEGAL.HELPFUL' | translate }}</span>
     <div class="feedback-actions d-flex align-items-center gap-2">
       <button class="btn-feedback d-flex align-items-center gap-2">
         <!-- Thumbs Up Icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
         </svg>
-        Yes
+        {{ 'COMMON.YES' | translate }}
       </button>
       <button class="btn-feedback d-flex align-items-center gap-2">
         <!-- Thumbs Down Icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm12-3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/>
         </svg>
-        No
+        {{ 'COMMON.NO' | translate }}
       </button>
     </div>
   </footer>

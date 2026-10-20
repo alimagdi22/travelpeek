@@ -2,11 +2,11 @@
   <div class="container px-4">
     <div class="newsletter-card-v2 d-flex flex-column align-items-center text-center p-5 rounded-4">
       <!-- Title -->
-      <h2 class="newsletter-title-v2 mb-2">Never miss a hidden gem.</h2>
+      <h2 class="newsletter-title-v2 mb-2">{{ 'HOME.NEWSLETTER.TITLE' | translate }}</h2>
 
       <!-- Subtitle -->
       <p class="newsletter-subtitle-v2 mb-4">
-        Join 50,000+ travelers getting hand-picked flight deals and secret destination guides twice a week.
+        {{ 'HOME.NEWSLETTER.SUBTITLE' | translate }}
       </p>
 
       <!-- Form Container -->
@@ -16,15 +16,15 @@
             #emailInput 
             type="email" 
             class="newsletter-input-v2" 
-            placeholder="Enter your email" 
+            [placeholder]="'HOME.NEWSLETTER.EMAIL_PLACEHOLDER' | translate" 
             required />
-          <button type="submit" class="btn-subscribe-v2">Subscribe</button>
+          <button type="submit" class="btn-subscribe-v2">{{ 'HOME.NEWSLETTER.SUBSCRIBE' | translate }}</button>
         </form>
       </div>
 
       <!-- Disclaimer under it -->
       <p class="disclaimer-text-v2 mt-4 mb-0">
-        No spam. Ever. Unsubscribe anytime.
+        {{ 'HOME.NEWSLETTER.DISCLAIMER' | translate }}
       </p>
     </div>
   </div>

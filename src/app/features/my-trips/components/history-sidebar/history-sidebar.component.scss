@@ -12,6 +12,11 @@
   overflow: hidden;
   border-right: 1px solid #eaeaea;
 
+  :host-context([dir="rtl"]) & {
+    border-right: none;
+    border-left: 1px solid #eaeaea;
+  }
+
   .sidebar-header {
     height: 9.3%;
     // box-sizing: border-box;

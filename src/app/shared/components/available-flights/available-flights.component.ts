@@ -2,6 +2,7 @@ import { Component, inject, Input, Output, EventEmitter, DestroyRef } from '@ang
 import { FlightCheckoutService, FlightResultService, IAirItinerary, IFlight } from 'rp-travel-ui';
 import { SharedService } from '../../shared.service';
 import { Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-available-flights',
@@ -16,6 +17,7 @@ export class AvailableFlightsComponent {
   flightResultService = inject(FlightResultService);
   flightCheckoutService = inject(FlightCheckoutService);
   sharedService = inject(SharedService);
+  private translate = inject(TranslateService);
 
   getOutboundFlight(itinerary: IAirItinerary): IFlight | null {
     return itinerary?.allJourney?.flights?.[0] ?? null;
@@ -66,9 +68,9 @@ export class AvailableFlightsComponent {
 
   getStopsLabel(flight: IFlight): string {
     const stops = flight?.stopsNum ?? 0;
-    if (stops === 0) return 'Direct Flight';
-    if (stops === 1) return '1 Stop';
-    return `${stops} Stops`;
+    if (stops === 0) return this.translate.instant('FLIGHTS.DIRECT');
+    if (stops === 1) return this.translate.instant('FLIGHTS.ONE_STOP');
+    return this.translate.instant('FLIGHTS.N_STOPS', { count: stops });
   }
 
   getCabinClassLabel(flight: IFlight, itinerary: IAirItinerary): string {

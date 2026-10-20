@@ -6,20 +6,20 @@
       <line x1="1" y1="10" x2="23" y2="10"></line>
       <circle cx="6" cy="15" r="2"></circle>
     </svg>
-    <h2 class="header-title mb-0">Secure Payment</h2>
+    <h2 class="header-title mb-0">{{ 'FLIGHTS.SECURE_PAYMENT' | translate }}</h2>
   </div>
 
   <!-- Total Amount Row -->
   <div class="amount-box d-flex flex-column gap-2 p-3 px-4 mb-4">
     <div class="d-flex align-items-center justify-content-between">
-      <span class="amount-label text-muted">Flight fare</span>
+      <span class="amount-label text-muted">{{ 'FLIGHTS.FLIGHT_FARE' | translate }}</span>
       <span class="amount-line-value">{{ flightFareAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
     </div>
 
     @if (extrasAmount > 0) {
       <div class="d-flex align-items-start justify-content-between gap-3">
         <span class="amount-label text-muted">
-          Extra services
+          {{ 'FLIGHTS.EXTRA_SERVICES' | translate }}
           @if (selectedExtraServices.length) {
             <span class="extras-names d-block">
               @for (service of selectedExtraServices; track service.serviceCode; let last = $last) {
@@ -33,14 +33,14 @@
     }
 
     <div class="amount-total d-flex align-items-center justify-content-between pt-2">
-      <span class="amount-label text-muted">Total Amount</span>
+      <span class="amount-label text-muted">{{ 'FLIGHTS.TOTAL_AMOUNT' | translate }}</span>
       <span class="amount-value">{{ displayAmount | number: "1.0-0" }} <span class="currency">{{ currency }}</span></span>
     </div>
   </div>
 
   <!-- Select Payment Method Selection -->
   <div class="payment-method-section mb-4">
-    <span class="section-label d-block mb-2.5">SELECT PAYMENT METHOD</span>
+    <span class="section-label d-block mb-2.5">{{ 'FLIGHTS.SELECT_METHOD' | translate }}</span>
     <div class="payment-buttons d-flex gap-3 flex-wrap">
       @for (gate of gateways; track $index) {
         <button 
@@ -61,13 +61,13 @@
   <!-- Inline feedback messages -->
   @if (payLaterSuccess === true) {
     <div class="alert alert-success text-center p-3 mb-4 rounded-3 border-0">
-      Booking completed successfully! Reference: <strong>{{ flightCheckoutService.HG }}</strong>
+      {{ 'FLIGHTS.BOOKING_SUCCESS' | translate }} <strong>{{ flightCheckoutService.HG }}</strong>
     </div>
   }
 
   @if (flightCheckoutService.paymentError || flightCheckoutService.selectedFlightError) {
     <div class="alert alert-danger text-center p-3 mb-4 rounded-3 border-0">
-      Booking failed. Please try again.
+      {{ 'FLIGHTS.BOOKING_FAILED' | translate }}
     </div>
   }
 
@@ -79,9 +79,9 @@
   >
     @if (saveBookingLoader) {
       <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      Processing...
+      {{ 'FLIGHTS.PROCESSING' | translate }}
     } @else {
-      Complete Payment
+      {{ 'FLIGHTS.COMPLETE_PAYMENT' | translate }}
     }
   </button>
 
@@ -92,7 +92,7 @@
       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
     </svg>
     <span class="footer-text">
-      Your payment is secure and encrypted. We use industry-standard security protocols to protect your data.
+      {{ 'FLIGHTS.PAYMENT_SECURE' | translate }}
     </span>
   </div>
 </div>

@@ -14,13 +14,13 @@
         }
       </div>
       @if(hasSelectedFlight){
-        <span class="panel-title mb-0">Your Journey, Your Way</span>
+        <span class="panel-title mb-0">{{ 'ASSISTANT.JOURNEY' | translate }}</span>
       }@else {
-        <span class="panel-title mb-0">Smart Assistant</span>
+        <span class="panel-title mb-0">{{ 'ASSISTANT.TITLE' | translate }}</span>
       }
     </div>
 
-    <button class="btn-sidebar-toggle border-0 bg-transparent p-1 ms-auto" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? 'Expand Smart Assistant' : 'Collapse Smart Assistant'">
+    <button class="btn-sidebar-toggle border-0 bg-transparent p-1 ms-auto" (click)="toggleSidebar()" [title]="isSidebarCollapsed ? ('ASSISTANT.EXPAND' | translate) : ('ASSISTANT.COLLAPSE' | translate)">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [style.transform]="isSidebarCollapsed ? 'none' : 'rotate(180deg)'">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
         <line x1="15" y1="3" x2="15" y2="21"></line>
@@ -35,26 +35,26 @@
 
   <!-- Collapsed State Content -->
   <div class="sidebar-content-collapsed flex-grow-1 d-flex flex-column align-items-center gap-3 py-3" *ngIf="isSidebarCollapsed">
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Smart Filters">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.SMART_FILTERS' | translate">
       <span>🔍</span>
     </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="AI Recommendation">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.AI_RECOMMENDATION' | translate">
       <span>⭐</span>
     </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Flight Insights">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.FLIGHT_INSIGHTS' | translate">
       <span>📊</span>
     </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Compare Flights">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.COMPARE' | translate">
       <span>⚖</span>
     </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Fare Alerts">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.FARE_ALERTS' | translate">
       <span>💰</span>
     </button>
-    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Travel Assistant">
+    <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.TRAVEL_ASSISTANT' | translate">
       <span>✈</span>
     </button>
     @if (hasSelectedFlight) {
-      <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" title="Extra Services">
+      <button class="collapsed-icon-btn rounded-circle border-0 d-flex align-items-center justify-content-center" (click)="toggleSidebar()" [title]="'ASSISTANT.EXTRA_SERVICES' | translate">
         <span>✨</span>
       </button>
     }
@@ -63,7 +63,7 @@
 
 <!-- Mobile Floating Lightbulb Action Button (Visible ONLY when flights exist) -->
 <div class="mobile-assistant-fab-wrapper d-lg-none">
-  <button type="button" class="mobile-fab-btn shadow-lg" (click)="toggleMobileDrawer()" title="Smart Assistant Filters">
+  <button type="button" class="mobile-fab-btn shadow-lg" (click)="toggleMobileDrawer()" [title]="'ASSISTANT.FAB' | translate">
     @if(hasSelectedFlight){
       <img src="/assets/icons/mytrips/bag-plus.svg" class="plus-bag" alt="">
     }@else {
@@ -90,10 +90,10 @@
         <div class="d-flex align-items-center gap-2">
           @if(hasSelectedFlight){
             <img src="/assets/icons/mytrips/personalize.svg" class="personalize" alt="">
-            <h4 class="mb-0 fw-bold text-dark fs-5">Your Journey, Your Way</h4>
+            <h4 class="mb-0 fw-bold text-dark fs-5">{{ 'ASSISTANT.JOURNEY' | translate }}</h4>
           }@else {
             <span class="fs-4">💡</span>
-            <h4 class="mb-0 fw-bold text-dark fs-5">Smart Assistant & Filters</h4>
+            <h4 class="mb-0 fw-bold text-dark fs-5">{{ 'ASSISTANT.TITLE_FILTERS' | translate }}</h4>
           }
         </div>
         <button type="button" class="btn-close-drawer border-0 bg-transparent p-1 fs-5 text-muted" (click)="closeMobileDrawer()">
@@ -109,7 +109,7 @@
       <!-- Footer Button -->
       <div class="drawer-footer pt-3 mt-2 border-top">
         <button type="button" class="btn btn-primary w-100 py-2.5 rounded-3 fw-bold border-0" (click)="closeMobileDrawer()">
-          {{ hasSelectedFlight ? 'Done' : 'Apply & View Results' }}
+          {{ hasSelectedFlight ? ('COMMON.DONE' | translate) : ('ASSISTANT.APPLY' | translate) }}
         </button>
       </div>
 
@@ -124,9 +124,9 @@
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-2">
         <span class="section-icon">✨</span>
-        <h3 class="section-title section-title-mobile mb-0">Enhance Your Travel Experience</h3>
+        <h3 class="section-title section-title-mobile mb-0">{{ 'ASSISTANT.ENHANCE' | translate }}</h3>
       </div>
-      <p class="offline-intro mb-0">Add optional extras to your booking. Selected services are added to your payment total.</p>
+      <p class="offline-intro mb-0">{{ 'ASSISTANT.OFFLINE_INTRO' | translate }}</p>
     </div>
 
     @if (isOfflineServicesLoading) {
@@ -150,7 +150,7 @@
       </div>
     } @else if (!offlineServices.length) {
       <div class="section-card">
-        <p class="offline-empty mb-0">No extra services are available for this flight.</p>
+        <p class="offline-empty mb-0">{{ 'ASSISTANT.NO_EXTRAS' | translate }}</p>
       </div>
     } @else {
       @for (service of offlineServices; track service.serviceCode) {
@@ -168,7 +168,7 @@
                 }
                 <div class="flex-grow-1">
                   <h4 class="offline-service-name mb-0">{{ service.parentService || service.serviceName }}</h4>
-                  <p class="offline-service-hint mb-0">Choose one support option</p>
+                  <p class="offline-service-hint mb-0">{{ 'ASSISTANT.CHOOSE_ONE' | translate }}</p>
                 </div>
               </div>
 
@@ -184,7 +184,8 @@
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
                       <span>{{ service.serviceName }}</span>
                       <span class="offline-service-price">
-                        {{ service.servicePrice | number: '1.0-0' }} {{ service.currency }}
+                        {{ getServiceDisplayedPrice(service) | exchange: 'value' | number: '1.0-0' }}
+                        {{ 'EGP' | exchange: 'code' }}
                       </span>
                     </span>
                     @if (hasHtmlDescription(service.serviceDescription)) {
@@ -206,7 +207,8 @@
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
                       <span>{{ altService.serviceName }}</span>
                       <span class="offline-service-price">
-                        {{ altService.servicePrice | number: '1.0-0' }} {{ altService.currency }}
+                        {{ getServiceDisplayedPrice(altService) | exchange: 'value' | number: '1.0-0' }}
+                        {{ 'EGP' | exchange: 'code' }}
                       </span>
                     </span>
                     @if (hasHtmlDescription(altService.serviceDescription)) {
@@ -235,15 +237,16 @@
                   <h4 class="offline-service-name mb-0">
                     {{ service.serviceName }}
                     @if (service.recommended) {
-                      <span class="recommended-badge">Recommended</span>
+                      <span class="recommended-badge">{{ 'ASSISTANT.RECOMMENDED' | translate }}</span>
                     }
                   </h4>
                   <span class="offline-service-price text-nowrap">
-                    {{ service.servicePrice | number: '1.0-0' }} {{ service.currency }}
+                    {{ getServiceDisplayedPrice(service) | exchange: 'value' | number: '1.0-0' }}
+                    {{ 'EGP' | exchange: 'code' }}
                   </span>
                 </div>
                 @if (service.perPassenger) {
-                  <p class="offline-service-hint mb-0">Charged per passenger</p>
+                  <p class="offline-service-hint mb-0">{{ 'ASSISTANT.PER_PASSENGER' | translate }}</p>
                 }
               </div>
             </div>
@@ -263,7 +266,7 @@
                   [checked]="isServiceSelected(service)"
                   (change)="toggleCheckboxService(service, $any($event.target).checked)"
                 >
-                <span>{{ formatPlainDescription(service.serviceDescription) || 'Add this service' }}</span>
+                <span>{{ formatPlainDescription(service.serviceDescription) || ('ASSISTANT.ADD_SERVICE' | translate) }}</span>
               </label>
             }
 
@@ -277,7 +280,7 @@
                     [checked]="yesNoValues[service.serviceCode] === 'yes'"
                     (change)="setYesNoService(service, 'yes')"
                   >
-                  <span>{{ service.acceptText || 'Yes, add this service' }}</span>
+                  <span>{{ service.acceptText || ('ASSISTANT.YES_ADD' | translate) }}</span>
                 </label>
                 <label class="offline-choice-row" [class.selected]="yesNoValues[service.serviceCode] === 'no'">
                   <input
@@ -287,7 +290,7 @@
                     [checked]="yesNoValues[service.serviceCode] === 'no'"
                     (change)="setYesNoService(service, 'no')"
                   >
-                  <span>{{ service.declineText || 'No, thanks' }}</span>
+                  <span>{{ service.declineText || ('ASSISTANT.NO_THANKS' | translate) }}</span>
                 </label>
               </div>
             }
@@ -299,7 +302,7 @@
                 [class.added]="isServiceSelected(service)"
                 (click)="toggleAddButtonService(service)"
               >
-                {{ isServiceSelected(service) ? 'Remove' : 'Add' }}
+                {{ isServiceSelected(service) ? ('COMMON.REMOVE' | translate) : ('COMMON.ADD' | translate) }}
               </button>
             }
           </div>
@@ -307,33 +310,129 @@
       }
 
       <div class="offline-selected-summary">
-        <div class="d-flex align-items-center justify-content-between gap-2">
-          <span>Selected extras</span>
-          <strong>{{ selectedServicesTotal | number: '1.0-0' }} {{ selectedServicesCurrency }}</strong>
+        <div class="d-flex flex-column align-items-center justify-content-between gap-2">
+          @if (flightCheckoutService.selectedFlight?.airItineraryDTO?.passengerFareBreakDownDTOs; as passengerFares) {
+            @for (fare of passengerFares; track fare) {
+              <ng-container [ngSwitch]="fare.passengerType">
+                <div class="ticket-details d-flex align-items-center justify-content-between w-100 mb-2">
+                  <p class="mb-0">
+                    {{
+                      fare.passengerType === 'ADT'
+                        ? ('checkout.BreakDown.passengerType.adultFare' | translate)
+                        : fare.passengerType === 'CNN' || fare.passengerType === 'CHD'
+                          ? ('checkout.BreakDown.passengerType.childFare' | translate)
+                          : ('checkout.BreakDown.passengerType.infantFare' | translate)
+                    }}
+                    <!-- Adult Fare: -->
+                  </p>
+                  <p class="mb-0">
+                    {{ 'EGP' | exchange: 'code' }}
+                    {{ getPassengerDisplayedFare(fare) | exchange: 'value' | number: '1.0-0' }}
+                    x {{ fare.passengerQuantity }}
+                  </p>
+                </div>
+                @if (fare.flightFaresDTOs) {
+                  @for (fareDto of fare.flightFaresDTOs; track fareDto) {
+                    <!-- @if (fareDto.fareType === 'BaseFare') {
+                      <div class="ticket-details">
+                        @if (
+                          (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount &&
+                          (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount !== fareDto.fareAmount
+                        ) {
+                          <p class="fare">{{ 'checkout.BreakDown.fareType.baseFare' | translate }}</p>
+                          <p>{{ (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount |exchange:'value'}}</p>
+                        } @else {
+                          <p class="fare">{{ 'checkout.BreakDown.fareType.baseFare' | translate }}</p>
+                          <p>{{ fareDto.fareAmount |exchange:'value'}}</p>
+                        }
+                      </div>
+                    }
+                    @if (fareDto.fareType === 'TotalTax') {
+                      <div class="ticket-details">
+                        <p class="fare">{{ 'checkout.BreakDown.fareType.totalTax' | translate }}</p>
+                        <p>{{ fareDto.fareAmount | exchange:'value'}}</p>
+                      </div>
+                    } -->
+                  }
+                }
+              </ng-container>
+            }
+          }
         </div>
-        <p class="offline-selected-count mb-0">{{ selectedServicesCount }} service{{ selectedServicesCount === 1 ? '' : 's' }} added to payment</p>
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+          <span>{{ 'ASSISTANT.SELECTED_EXTRAS' | translate }}</span>
+          <p class="mb-0">
+            {{ convertToBaseAmount(selectedServicesTotal, selectedServicesCurrency) | exchange: 'value' | number: '1.0-0' }}
+            {{ 'EGP' | exchange: 'code' }}
+          </p>
+        </div>
+        @if (flightCheckoutService.selectedFlight && flightCheckoutService.selectedFlight.airItineraryDTO && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue > 0) {
+          <div class="ticket-details d-flex align-items-center justify-content-between w-100 mb-2">
+            <p class="fare">{{ 'COMMON.DISCOUNT' | translate }}</p>
+            <p>
+              (
+              {{ convertToBaseAmount(flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue, selectedFlightCurrency) | exchange: 'value' | number: '1.0-0' }}
+              {{ 'EGP' | exchange: 'code' }}
+              )
+            </p>
+          </div>
+        }
+
+        @if (hasSelectedFlight) {
+          <div class="ticket-details d-flex align-items-center justify-content-between w-100 mb-2">
+            <strong class="fare">{{ 'COMMON.TOTAL' | translate }}</strong>
+            <strong>
+              @if (sharedService.selectedGatewayAmount > 0) {
+                {{ totalFareWithGateway | exchange: 'value' | number: '1.0-0' }}
+              } @else {
+                {{ totalFareInBase | exchange: 'value' | number: '1.0-0' }}
+              }
+              {{ 'EGP' | exchange: 'code' }}
+            </strong>
+          </div>
+        }
+        <p class="offline-selected-count mb-0">{{ (selectedServicesCount === 1 ? 'ASSISTANT.SERVICES_ADDED' : 'ASSISTANT.SERVICES_ADDED_PLURAL') | translate:{ count: selectedServicesCount } }}</p>
       </div>
     }
+  </ng-container>
+
+
+  <!-- 🛑 Stops Filter -->
+  <ng-container *ngIf="!hasSelectedFlight && (isAssistantSearchLoading || (showAssistantFlightUi && flightResultService.filterForm))">
+    <div class="section-card">
+      <div class="section-header d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon">🛑</span>
+        <h3 class="section-title mb-0">{{ 'ASSISTANT.STOPS' | translate }}</h3>
+      </div>
+      <div class="badge-container d-flex flex-wrap gap-2 align-items-center">
+        @if (isAssistantSearchLoading || !flightResultService.filterForm) {
+          <div class="stops-badge-loader d-flex align-items-center justify-content-center">
+            <mat-spinner [diameter]="22" [strokeWidth]="3"></mat-spinner>
+            <span class="visually-hidden">{{ 'COMMON.LOADING' | translate }}</span>
+          </div>
+        } @else {
+          @for (stop of stopsFilter; track stop.formControlName) {
+            <button
+              type="button"
+              class="badge-filter border-0"
+              [class.filter-active]="flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
+              [class.filter-default]="!flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
+              (click)="toggleStopControl(stop.formControlName)"
+            >
+              {{ stop.titleKey | translate }}
+            </button>
+          }
+        }
+      </div>
+    </div>
   </ng-container>
 
   <!-- IF SEARCH IS LOADING: keep assistant open with skeletons -->
   <ng-container *ngIf="!hasSelectedFlight && isAssistantSearchLoading">
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">🛑</span>
-        <h3 class="section-title mb-0">Stops</h3>
-      </div>
-      <div class="assistant-skeleton-pills d-flex flex-wrap gap-2">
-        <span class="offline-skeleton-bar pill"></span>
-        <span class="offline-skeleton-bar pill short-pill"></span>
-        <span class="offline-skeleton-bar pill"></span>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">⭐</span>
-        <h3 class="section-title mb-0">AI Recommendation</h3>
+        <h3 class="section-title mb-0">{{ 'ASSISTANT.AI_RECOMMENDATION' | translate }}</h3>
       </div>
       <div class="offline-skeleton-card">
         <span class="offline-skeleton-bar line"></span>
@@ -345,7 +444,7 @@
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">📊</span>
-        <h3 class="section-title mb-0">Flight Insights</h3>
+        <h3 class="section-title mb-0">{{ 'ASSISTANT.FLIGHT_INSIGHTS' | translate }}</h3>
       </div>
       <div class="insights-chart-box d-flex flex-column gap-2">
         <div class="chart-bars d-flex justify-content-between align-items-end h-70px px-2 gap-1">
@@ -362,7 +461,7 @@
     <div class="section-card">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">⚖</span>
-        <h3 class="section-title mb-0">Compare Flights</h3>
+        <h3 class="section-title mb-0">{{ 'ASSISTANT.COMPARE' | translate }}</h3>
       </div>
       <div class="offline-skeleton-card">
         <span class="offline-skeleton-bar line"></span>
@@ -373,37 +472,12 @@
     </div>
   </ng-container>
 
-  <!-- IF FILTERS ARE LOADED (ACTIVE FLIGHT SEARCH RESULTS OR PREVIOUS SNAPSHOT) -->
-  <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && showAssistantFlightUi && flightResultService.filterForm" [formGroup]="flightResultService.filterForm">
-
-    <!-- 🛑 Stops Filter -->
-    <div class="section-card" formGroupName="stopsForm">
-      <div class="section-header d-flex align-items-center gap-2 mb-3">
-        <span class="section-icon">🛑</span>
-        <h3 class="section-title mb-0">Stops</h3>
-      </div>
-      <div class="badge-container d-flex flex-wrap gap-2">
-        @for (stop of stopsFilter; track stop.title) {
-          <button
-            type="button"
-            class="badge-filter border-0"
-            [class.filter-active]="flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
-            [class.filter-default]="!flightResultService.filterForm.get('stopsForm')?.get(stop.formControlName)?.value"
-            (click)="toggleStopControl(stop.formControlName)"
-          >
-            {{ stop.title }}
-          </button>
-        }
-      </div>
-    </div>
-  </ng-container>
-
   <ng-container *ngIf="!hasSelectedFlight && !isAssistantSearchLoading && recommendationText" >
     <!-- ⭐ AI Recommendation (Contextual) -->
     <div class="section-card recommendation-card" [class.is-clickable]="!!recommendedFlight" (click)="openStopsModal(recommendedFlight)">
       <div class="section-header d-flex align-items-center gap-2 mb-3">
         <span class="section-icon">⭐</span>
-        <h3 class="section-title mb-0">AI Recommendation</h3>
+        <h3 class="section-title mb-0">{{ 'ASSISTANT.AI_RECOMMENDATION' | translate }}</h3>
       </div>
       <div class="ai-recommendation-box p-3 rounded-3">
         <p class="recommendation-text mb-0"  [innerHTML]="recommendationText">
@@ -418,7 +492,7 @@
   <div class="section-card">
     <div class="section-header d-flex align-items-center gap-2 mb-3">
       <span class="section-icon">📊</span>
-      <h3 class="section-title mb-0">Flight Insights</h3>
+      <h3 class="section-title mb-0">{{ 'ASSISTANT.FLIGHT_INSIGHTS' | translate }}</h3>
     </div>
     <div class="insights-chart-box d-flex flex-column gap-2">
       <div class="chart-bars d-flex justify-content-between align-items-end h-70px px-2 gap-1">
@@ -428,7 +502,7 @@
         <div class="bar bar-normal" style="height: 70%;"></div>
         <div class="bar bar-normal" style="height: 50%;"></div>
       </div>
-      <p class="chart-caption text-center mb-0 mt-1">Price Trend: Normal for August</p>
+      <p class="chart-caption text-center mb-0 mt-1">{{ 'ASSISTANT.PRICE_TREND' | translate }}</p>
     </div>
   </div>
 
@@ -436,20 +510,20 @@
   <div class="section-card" *ngIf="getComparisonFlights().length > 0">
     <div class="section-header d-flex align-items-center gap-2 mb-3">
       <span class="section-icon">⚖</span>
-      <h3 class="section-title mb-0">Compare Flights</h3>
+      <h3 class="section-title mb-0">{{ 'ASSISTANT.COMPARE' | translate }}</h3>
     </div>
     <div class="comparison-table-wrapper border rounded-3 overflow-hidden">
       <table class="table comparison-table mb-0">
         <thead>
           <tr>
-            <th>Option</th>
-            <th>Duration</th>
-            <th>Price</th>
+            <th>{{ 'COMMON.OPTION' | translate }}</th>
+            <th>{{ 'COMMON.DURATION' | translate }}</th>
+            <th>{{ 'COMMON.PRICE' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @for (flight of getComparisonFlights(); track flight.sequenceNum; let i = $index) {
-            <tr class="clickable-row" (click)="openStopsModal(flight)" title="Click to view itinerary & stops details">
+            <tr class="clickable-row" (click)="openStopsModal(flight)" [title]="'ASSISTANT.VIEW_ITINERARY' | translate">
               <td class="metric-label">
                 <img [src]="flight.allJourney.flights[0].flightAirline.airlineLogo" class="airline-logo" alt="airlineLogo" >
                 <span class="ms-2">
@@ -471,14 +545,14 @@
   <div class="section-card">
     <div class="section-header d-flex align-items-center gap-2 mb-3">
       <span class="section-icon">💰</span>
-      <h3 class="section-title mb-0">Fare Alerts</h3>
+      <h3 class="section-title mb-0">{{ 'ASSISTANT.FARE_ALERTS' | translate }}</h3>
     </div>
     <button class="btn-track-prices btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2 py-2 rounded-3 border-0">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
       </svg>
-      Track Price Changes
+      {{ 'ASSISTANT.TRACK_PRICES' | translate }}
     </button>
   </div>
 
@@ -486,16 +560,16 @@
   <div class="section-card">
     <div class="section-header d-flex align-items-center gap-2 mb-3">
       <span class="section-icon">✈</span>
-      <h3 class="section-title mb-0">Travel Assistant</h3>
+      <h3 class="section-title mb-0">{{ 'ASSISTANT.TRAVEL_ASSISTANT' | translate }}</h3>
     </div>
     <ul class="travel-checklist list-unstyled d-flex flex-column gap-2 mb-0">
       <li class="d-flex align-items-start gap-2">
         <span class="check-icon text-success">✔</span>
-        <span class="check-text">Visa-free for your passport</span>
+        <span class="check-text">{{ 'ASSISTANT.VISA_FREE' | translate }}</span>
       </li>
       <li class="d-flex align-items-start gap-2">
         <span class="check-icon text-warning">⚠</span>
-        <span class="check-text">PCR might be required</span>
+        <span class="check-text">{{ 'ASSISTANT.PCR' | translate }}</span>
       </li>
     </ul>
   </div>

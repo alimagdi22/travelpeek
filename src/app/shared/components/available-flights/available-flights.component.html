@@ -6,7 +6,7 @@
       alt="Available Flights"
       class="header-icon"
     />
-    <h2 class="header-title mb-0">Available Flights</h2>
+    <h2 class="header-title mb-0">{{ 'FLIGHTS.AVAILABLE' | translate }}</h2>
     <hr />
   </div>
 
@@ -23,7 +23,7 @@
         <div
           class="option-header d-flex align-items-center justify-content-between mb-3"
         >
-          <span class="option-title">Option {{ idx + 1 }}</span>
+          <span class="option-title">{{ 'FLIGHTS.OPTION' | translate:{ n: idx + 1 } }}</span>
           <div
             class="airline-pill d-flex align-items-center gap-1 px-3 py-1 rounded-pill"
           >
@@ -62,7 +62,7 @@
                     [class.has-return]="getReturnFlight(itinerary) !== null"
                   ></div>
                 </div>
-                <span class="leg-title">Outbound Flight</span>
+                <span class="leg-title">{{ 'FLIGHTS.OUTBOUND' | translate }}</span>
               </div>
 
               <!-- Leg Details -->
@@ -75,11 +75,7 @@
                     alt="from/to"
                   />
                   <span class="detail-text main-route">
-                    From {{ getDeptCity(outbound) }} ({{
-                      getDeptCode(outbound)
-                    }}) to {{ getArrCity(outbound) }} ({{
-                      getArrCode(outbound)
-                    }})
+                    {{ 'FLIGHTS.FROM_TO' | translate:{ from: getDeptCity(outbound), fromCode: getDeptCode(outbound), to: getArrCity(outbound), toCode: getArrCode(outbound) } }}
                   </span>
                 </div>
 
@@ -92,7 +88,7 @@
                       alt="departure"
                     />
                     <span class="detail-text text-muted">
-                      Departure:
+                      {{ 'FLIGHTS.DEPARTURE' | translate }}
                       <strong class="time-value text-dark">{{
                         getDeptDate(outbound) | date: "hh:mm a, EEE d MMMM yyyy"
                       }}</strong>
@@ -106,7 +102,7 @@
                         alt="arrival"
                       />
                       <span class="detail-text text-muted">
-                        Arrival:
+                        {{ 'FLIGHTS.ARRIVAL' | translate }}
                         <strong class="time-value text-dark">{{
                           getArrDate(outbound)
                             | date: "hh:mm a, EEE d MMMM yyyy"
@@ -149,7 +145,7 @@
                         class="detail-icon"
                         alt="weight"
                       />
-                      <span class="meta-text">weight: {{ weight }}</span>
+                      <span class="meta-text">{{ 'FLIGHTS.WEIGHT' | translate:{ weight: weight } }}</span>
                     </div>
                   }
                 </div>
@@ -171,7 +167,7 @@
                     class="leg-icon"
                   />
                 </div>
-                <span class="leg-title">Return Flight</span>
+                <span class="leg-title">{{ 'FLIGHTS.RETURN' | translate }}</span>
               </div>
 
               <!-- Leg Details -->
@@ -184,8 +180,7 @@
                     alt="from/to"
                   />
                   <span class="detail-text main-route">
-                    From {{ getDeptCity(returnF) }} ({{ getDeptCode(returnF) }})
-                    to {{ getArrCity(returnF) }} ({{ getArrCode(returnF) }})
+                    {{ 'FLIGHTS.FROM_TO' | translate:{ from: getDeptCity(returnF), fromCode: getDeptCode(returnF), to: getArrCity(returnF), toCode: getArrCode(returnF) } }}
                   </span>
                 </div>
 
@@ -200,7 +195,7 @@
                       alt="departure"
                     />
                     <span class="detail-text text-muted">
-                      Departure:
+                      {{ 'FLIGHTS.DEPARTURE' | translate }}
                       <strong class="time-value text-dark">{{
                         getDeptDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
                       }}</strong>
@@ -214,7 +209,7 @@
                         alt="arrival"
                       />
                       <span class="detail-text text-muted">
-                        Arrival:
+                        {{ 'FLIGHTS.ARRIVAL' | translate }}
                         <strong class="time-value text-dark">{{
                           getArrDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
                         }}</strong>
@@ -256,7 +251,7 @@
                         class="detail-icon"
                         alt="weight"
                       />
-                      <span class="meta-text">weight: {{ weight }}</span>
+                      <span class="meta-text">{{ 'FLIGHTS.WEIGHT' | translate:{ weight: weight } }}</span>
                     </div>
                   }
                 </div>
@@ -270,7 +265,7 @@
           class="option-footer d-flex align-items-center justify-content-between mt-3 pt-3"
         >
           <div class="price-section d-flex flex-column">
-            <span class="price-label">Total Price</span>
+            <span class="price-label">{{ 'FLIGHTS.TOTAL_PRICE' | translate }}</span>
             <span class="price-value"
               >{{ getTotalPrice(itinerary) | exchange : 'value'| number: "1.0-0" }}
               <span class="currency-code">{{
@@ -279,11 +274,11 @@
             </span>
           </div>
           <div class="policy-badges-container">
-            <span class="refundability" [ngClass]="itinerary.isRefundable ? 'text-success':'text-danger'">{{itinerary.isRefundable ? "Refundable" : "Non-Refundable"}}</span>
-            <span class="cancel-policy" (click)="policyTriggered.emit(itinerary)">Cancelation Policy</span>
+            <span class="refundability" [ngClass]="itinerary.isRefundable ? 'text-success':'text-danger'">{{ itinerary.isRefundable ? ('FLIGHTS.REFUNDABLE' | translate) : ('FLIGHTS.NON_REFUNDABLE' | translate) }}</span>
+            <span class="cancel-policy" (click)="policyTriggered.emit(itinerary)">{{ 'FLIGHTS.CANCEL_POLICY' | translate }}</span>
           </div>
           <button class="btn btn-select-flight font-semibold" (click)="selectFlight(itinerary)">
-            Select Flight
+            {{ 'FLIGHTS.SELECT' | translate }}
           </button>
         </div>
       </div>
@@ -294,7 +289,7 @@
       }
     } @empty {
       <div class="text-center py-4 text-muted font-medium" style="font-size: 14px;">
-        No flights match your selected filters. Please adjust your active filter pills.
+        {{ 'FLIGHTS.NO_MATCH' | translate }}
       </div>
     }
   </div>

@@ -7,10 +7,10 @@
   <form [formGroup]="profileForm">
     <div class="custom-radio-group">
       <div>
-        <label class="form-label">First Name</label>
+        <label class="form-label">{{ 'FORMS.FIRST_NAME' | translate }}</label>
 
         <div class="custom-input-container">
-          <input type="text" placeholder="First Name" formControlName="firstName" class="login-input" />
+          <input type="text" [placeholder]="'FORMS.FIRST_NAME' | translate" formControlName="firstName" class="login-input" />
         </div>
 
         @if (profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched) {
@@ -35,10 +35,10 @@
       </div>
 
       <div>
-        <label class="form-label">Last Name</label>
+        <label class="form-label">{{ 'FORMS.LAST_NAME' | translate }}</label>
 
         <div class="custom-input-container">
-          <input type="text" placeholder="Last Name" formControlName="lastName" class="login-input" />
+          <input type="text" [placeholder]="'FORMS.LAST_NAME' | translate" formControlName="lastName" class="login-input" />
         </div>
 
         @if (profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched) {
@@ -65,9 +65,9 @@
 
     <div class="custom-radio-group">
       <div>
-        <label class="form-label">Email</label>
+        <label class="form-label">{{ 'PROFILE.EMAIL' | translate }}</label>
         <div class="custom-input-container">
-          <input type="text" placeholder="Email" [value]="email" disabled class="login-input" />
+          <input type="text" [placeholder]="'PROFILE.EMAIL' | translate" [value]="email" disabled class="login-input" />
         </div>
       </div>
     </div>
@@ -75,12 +75,12 @@
 
   <div class="actions">
     <button type="button" class="btn-change-password-toggle" (click)="isChangePasswordShowed = true">
-      Change Password
+      {{ 'PROFILE.CHANGE_PASSWORD' | translate }}
     </button>
 
     <button type="button" class="btn-save" (click)="onSubmit()" [disabled]="isLoading || !profileForm.touched">
       @if (!isLoading) {
-        Save
+        {{ 'COMMON.SAVE' | translate }}
       } @else {
         <mat-spinner diameter="20" color="primary" />
       }
@@ -97,28 +97,28 @@
   <form [formGroup]="changePasswordForm">
     <div class="custom-radio-group">
       <div [ngStyle]="{ flexBasis: '100%' }">
-        <label class="form-label">Email</label>
+        <label class="form-label">{{ 'PROFILE.EMAIL' | translate }}</label>
         <div class="custom-input-container">
-          <input type="text" placeholder="Email" [value]="email" disabled class="login-input" />
+          <input type="text" [placeholder]="'PROFILE.EMAIL' | translate" [value]="email" disabled class="login-input" />
         </div>
       </div>
 
       <div [ngStyle]="{ flexBasis: '100%' }">
-        <label class="form-label">Current Password</label>
+        <label class="form-label">{{ 'PROFILE.CURRENT_PASSWORD' | translate }}</label>
         <div class="custom-input-container">
           <input type="password" formControlName="oldPassword" class="login-input" />
         </div>
       </div>
 
       <div>
-        <label class="form-label">New Password</label>
+        <label class="form-label">{{ 'AUTH.NEW_PASSWORD' | translate }}</label>
         <div class="custom-input-container">
           <input type="password" formControlName="newPassword" autocomplete="new-password" class="login-input" />
         </div>
       </div>
 
       <div>
-        <label class="form-label">Confirm New Password</label>
+        <label class="form-label">{{ 'PROFILE.CONFIRM_NEW_PASSWORD' | translate }}</label>
         <div class="custom-input-container">
           <input type="password" formControlName="confirmPassword" autocomplete="new-password" class="login-input" />
         </div>
@@ -128,12 +128,12 @@
 
   <div class="actions">
     <button type="button" class="btn-change-password-toggle" (click)="isChangePasswordShowed = false">
-      Cancel
+      {{ 'COMMON.CANCEL' | translate }}
     </button>
 
     <button type="button" class="btn-save" (click)="onChangePassword()" [disabled]="isLoading">
       @if (!isLoading) {
-        Save
+        {{ 'COMMON.SAVE' | translate }}
       } @else {
         <mat-spinner diameter="20" color="primary" />
       }

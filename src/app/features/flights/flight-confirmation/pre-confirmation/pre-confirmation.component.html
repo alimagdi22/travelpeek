@@ -7,11 +7,11 @@
       <div class="main-text mb-3">{{ paymentError }}</div>
       <div class="support-container">
         <div class="contact-text">
-          Contact our customer support via the
-          <a routerLink="/support">Help Center</a>.
+          {{ 'confirmation.CONTACT_SUPPORT' | translate }}
+          <a routerLink="/support">{{ 'confirmation.HELP_CENTER' | translate }}</a>.
         </div>
         <div class="searchBtn">
-          <button type="button" id="faieldPayment" (click)="NavigateToHome()">New search</button>
+          <button type="button" id="faieldPayment" (click)="NavigateToHome()">{{ 'confirmation.NEW_SEARCH' | translate }}</button>
         </div>
       </div>
 
@@ -29,7 +29,7 @@
           *{{ 'confirmation.paymentTrackID' | translate }} : {{ paymentinfo.paymentTrackID }}
         </p>
         <p *ngIf="paymentinfo.paymentTrackID" class="col-12 paymentInfo">
-          *Date of Issue: {{ myDate | date: 'short' }}
+          *{{ 'confirmation.DATE_OF_ISSUE' | translate }} {{ myDate | date: 'short' }}
         </p>
       </ng-container>
     </div>

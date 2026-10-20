@@ -1,5 +1,5 @@
 <div class="topics-wrapper">
-  <h2 class="section-title">Topics by Category</h2>
+  <h2 class="section-title">{{ 'SUPPORT.TOPICS' | translate }}</h2>
 
   <div class="row g-4">
     <!-- Card 1: Manage Bookings -->
@@ -9,13 +9,13 @@
           <img
             src="/assets/icons/support/manage-bookings.svg"
             class="topic-svg"
-            alt="Manage Bookings"
+            [attr.alt]="'SUPPORT.MANAGE' | translate"
           />
         </div>
         <div class="topic-details">
-          <h3 class="topic-name">Manage Bookings</h3>
+          <h3 class="topic-name">{{ 'SUPPORT.MANAGE' | translate }}</h3>
           <p class="topic-desc">
-            Modify dates, add travelers, or upgrade your flight class.
+            {{ 'SUPPORT.MANAGE_DESC' | translate }}
           </p>
         </div>
       </div>
@@ -28,13 +28,13 @@
           <img
             src="/assets/icons/support/peel-ai.svg"
             class="topic-svg"
-            alt="Peek AI Help"
+            [attr.alt]="'SUPPORT.AI_HELP' | translate"
           />
         </div>
         <div class="topic-details">
-          <h3 class="topic-name">Peek AI Help</h3>
+          <h3 class="topic-name">{{ 'SUPPORT.AI_HELP' | translate }}</h3>
           <p class="topic-desc">
-            Learn how to use AI discovery for smarter itinerary planning.
+            {{ 'SUPPORT.AI_HELP_DESC' | translate }}
           </p>
         </div>
       </div>
@@ -47,13 +47,13 @@
           <img
             src="/assets/icons/support/payments-refunds.svg"
             class="topic-svg"
-            alt="Payments & Refunds"
+            [attr.alt]="'SUPPORT.PAYMENTS' | translate"
           />
         </div>
         <div class="topic-details">
-          <h3 class="topic-name">Payments & Refunds</h3>
+          <h3 class="topic-name">{{ 'SUPPORT.PAYMENTS' | translate }}</h3>
           <p class="topic-desc">
-            Billing cycles, refund status, and secure payment methods.
+            {{ 'SUPPORT.PAYMENTS_DESC' | translate }}
           </p>
         </div>
       </div>
@@ -66,13 +66,13 @@
           <img
             src="/assets/icons/support/account-setting.svg"
             class="topic-svg"
-            alt="Account Settings"
+            [attr.alt]="'SUPPORT.ACCOUNT' | translate"
           />
         </div>
         <div class="topic-details">
-          <h3 class="topic-name">Account Settings</h3>
+          <h3 class="topic-name">{{ 'SUPPORT.ACCOUNT' | translate }}</h3>
           <p class="topic-desc">
-            Privacy controls, security settings, and personal details.
+            {{ 'SUPPORT.ACCOUNT_DESC' | translate }}
           </p>
         </div>
       </div>

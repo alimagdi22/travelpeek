@@ -5,12 +5,12 @@
       <line x1="19" y1="12" x2="5" y2="12"></line>
       <polyline points="12 19 5 12 12 5"></polyline>
     </svg>
-    Back
+    {{ 'AUTH.BACK' | translate }}
   </button>
 
-  <h1 class="welcome-title mb-2 text-center">Welcome back</h1>
+  <h1 class="welcome-title mb-2 text-center">{{ 'AUTH.WELCOME_BACK' | translate }}</h1>
   <p class="welcome-subtitle mb-4 text-center">
-    Enter your details to log in to your account.
+    {{ 'AUTH.ENTER_DETAILS' | translate }}
   </p>
 
   <!-- Alert Message Banner -->
@@ -26,14 +26,14 @@
   <form [formGroup]="authService.loginForm" (ngSubmit)="onSubmitForm()" class="d-flex flex-column gap-3">
     <!-- Email Input Group -->
     <div class="form-group d-flex flex-column">
-      <label for="email" class="form-label">Email address</label>
+      <label for="email" class="form-label">{{ 'AUTH.EMAIL' | translate }}</label>
       <input
         id="email"
         type="email"
         formControlName="email"
         class="login-input"
         [class.is-invalid]="authService.loginForm.get('email')?.touched && authService.loginForm.get('email')?.invalid"
-        placeholder="name@example.com"
+        [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate"
         autocomplete="email"
       />
       <div class="invalid-feedback" *ngIf="authService.loginForm.get('email')?.touched && authService.loginForm.get('email')?.invalid">
@@ -44,8 +44,8 @@
     <!-- Password Input Group -->
     <div class="form-group d-flex flex-column mb-2">
       <div class="d-flex justify-content-between align-items-center mb-1">
-        <label for="password" class="form-label mb-0">Password</label>
-        <a class="forgot-password-link" routerLink="/login/forgot-password">Forgot password?</a>
+        <label for="password" class="form-label mb-0">{{ 'AUTH.PASSWORD' | translate }}</label>
+        <a class="forgot-password-link" routerLink="/login/forgot-password">{{ 'AUTH.FORGOT_PASSWORD' | translate }}</a>
       </div>
       <div class="password-input-wrapper position-relative w-100">
         <input
@@ -54,10 +54,10 @@
           formControlName="password"
           class="login-input pe-5"
           [class.is-invalid]="authService.loginForm.get('password')?.touched && authService.loginForm.get('password')?.invalid"
-          placeholder="Enter your password"
+          [placeholder]="'AUTH.ENTER_PASSWORD' | translate"
           autocomplete="current-password"
         />
-        <button type="button" class="btn-toggle-password" (click)="togglePasswordVisibility()" aria-label="Toggle password visibility">
+        <button type="button" class="btn-toggle-password" (click)="togglePasswordVisibility()" [attr.aria-label]="'AUTH.TOGGLE_PASSWORD' | translate">
           <!-- Eye open icon (show password) -->
           <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -82,12 +82,12 @@
       [disabled]="authService.isLoading || authService.loginForm.invalid"
     >
       <span *ngIf="authService.isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      {{ authService.isLoading ? 'Logging in...' : 'Log in' }}
+      {{ authService.isLoading ? ('AUTH.LOGGING_IN' | translate) : ('AUTH.LOG_IN' | translate) }}
     </button>
   </form>
 </div>
 
 <!-- Footnote signup -->
 <p class="signup-prompt mt-4 mb-0 text-center">
-  Don't have an account? <span class="signup-link" style="cursor: pointer;" (click)="onJoinPeek()">Join Peek</span>
+  {{ 'AUTH.NO_ACCOUNT' | translate }} <span class="signup-link" style="cursor: pointer;" (click)="onJoinPeek()">{{ 'AUTH.JOIN_PEEK' | translate }}</span>
 </p>

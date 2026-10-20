@@ -8,6 +8,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Message } from '../../core/models/message.interface';
 import { PassengerFormData, PassengerFormPrefill } from './components/passenger-form/passenger-form.component';
 import * as countries from 'world-countries';
+import { TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -66,6 +67,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
   homePageService = inject(HomePageService);
+  private translate = inject(TranslateService);
   private sanitizer = inject(DomSanitizer);
   private zone = inject(NgZone);
   private subscription = new Subscription();
@@ -336,36 +338,36 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   defaultSearchLoadingMessages: string[] = [
-    'Searching best flight options...',
-    'Analyzing itinerary & live fares...',
-    'Checking real-time availability...',
-    'Crafting your travel response...'
+    'MY_TRIPS.SEARCH_1',
+    'MY_TRIPS.SEARCH_2',
+    'MY_TRIPS.SEARCH_3',
+    'MY_TRIPS.SEARCH_4'
   ];
 
   contactLoadingMessages: string[] = [
-    'Processing your contact details...',
-    'Verifying email & phone number...',
-    'Saving contact information...',
-    'Preparing traveler details...'
+    'MY_TRIPS.CONTACT_1',
+    'MY_TRIPS.CONTACT_2',
+    'MY_TRIPS.CONTACT_3',
+    'MY_TRIPS.CONTACT_4'
   ];
 
   passengerLoadingMessages: string[] = [
-    'Processing passenger information...',
-    'Verifying passport & traveler details...',
-    'Updating booking records...',
-    'Preparing reservation details...'
+    'MY_TRIPS.PASSENGER_1',
+    'MY_TRIPS.PASSENGER_2',
+    'MY_TRIPS.PASSENGER_3',
+    'MY_TRIPS.PASSENGER_4'
   ];
 
   passportScanLoadingMessages: string[] = [
-    'Scanning passport document...',
-    'Extracting traveler details via OCR...',
-    'Verifying passport information...'
+    'MY_TRIPS.PASSPORT_1',
+    'MY_TRIPS.PASSPORT_2',
+    'MY_TRIPS.PASSPORT_3'
   ];
 
   paymentLoadingMessages: string[] = [
-    'Connecting to secure payment gateway...',
-    'Preparing checkout details...',
-    'Verifying payment options...'
+    'MY_TRIPS.PAYMENT_1',
+    'MY_TRIPS.PAYMENT_2',
+    'MY_TRIPS.PAYMENT_3'
   ];
 
   activeLoadingMessages: string[] = [];
@@ -374,7 +376,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
   get currentLoadingMessage(): string {
     const list = this.activeLoadingMessages.length > 0 ? this.activeLoadingMessages : this.defaultSearchLoadingMessages;
-    return list[this.currentLoadingMessageIndex] || 'AI Assistant is thinking...';
+    return this.translate.instant(list[this.currentLoadingMessageIndex] || 'MY_TRIPS.LOADING_THINKING');
   }
 
   startLoadingMessageCycle(messages?: string[]) {
@@ -387,11 +389,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   humanLoadingMessages: string[] = [
-    "Thinking...",
-    "Gathering information for you...",
-    "Crafting a response...",
-    "Just a moment, putting this together...",
-    "Almost ready..."
+    'MY_TRIPS.HUMAN_1',
+    'MY_TRIPS.HUMAN_2',
+    'MY_TRIPS.HUMAN_3',
+    'MY_TRIPS.HUMAN_4',
+    'MY_TRIPS.HUMAN_5'
   ];
 
   showSlowLoadingMessage: boolean = false;
@@ -423,13 +425,13 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
     this.slowLoadingTimer = setTimeout(() => {
       if (this.isChatLoading) {
-        this.slowLoadingMessage = this.humanLoadingMessages[0];
+        this.slowLoadingMessage = this.translate.instant(this.humanLoadingMessages[0]);
         this.showSlowLoadingMessage = true;
 
         this.slowLoadingInterval = setInterval(() => {
           if (this.isChatLoading) {
             this.currentSlowMessageIndex = (this.currentSlowMessageIndex + 1) % this.humanLoadingMessages.length;
-            this.slowLoadingMessage = this.humanLoadingMessages[this.currentSlowMessageIndex];
+            this.slowLoadingMessage = this.translate.instant(this.humanLoadingMessages[this.currentSlowMessageIndex]);
           }
         }, 4000);
       }
@@ -471,7 +473,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   canLeavePage(): boolean {
-    return window.confirm('Are you sure you want to leave? Your current chat will be lost.');
+    return window.confirm(this.translate.instant('MY_TRIPS.LEAVE_CONFIRM'));
   }
 
   resetFlightServiceState() {
@@ -600,6 +602,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         contactDetails: null,
         travellers: {}
       };
+      this.sharedService.clearSelectedGateway();
     }
   }
 
@@ -626,7 +629,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.didShowFollowUpClientMessage = false;
     this.sharedService.addMessage({
       sender: 'system',
-      text: 'Hello! I am your AI travel assistant. Where would you like to travel today?',
+      text: this.translate.instant('MY_TRIPS.WELCOME'),
     });
   }
 
@@ -811,12 +814,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   startVoice() {
     this.voiceRecorderError = '';
     if (typeof window === 'undefined' || typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_NOT_SUPPORTED');
       this.isVoiceRecorderOpen = true;
       return;
     }
     if (typeof MediaRecorder === 'undefined') {
-      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_NOT_SUPPORTED');
       this.isVoiceRecorderOpen = true;
       return;
     }
@@ -897,7 +900,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.releaseMediaStream();
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      this.voiceRecorderError = 'Allow microphone access to use voice input.';
+      this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_MIC_ALLOW');
       this.isListening = false;
       this.restartSpeechRecognition = false;
       this.isVoiceRecorderOpen = true;
@@ -912,7 +915,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     if (!this.startMediaRecorder(this.mediaStream)) {
       this.releaseMediaStream();
       this.isListening = false;
-      this.voiceRecorderError = 'Voice recording is not supported in this browser.';
+      this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_NOT_SUPPORTED');
       this.isVoiceRecorderOpen = true;
       return;
     }
@@ -1206,7 +1209,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
           try {
             await firstValueFrom(
-              this.sharedService.saveMessage(newId, 'Assistant', 'Hello! I am your AI travel assistant. Where would you like to travel today?')
+              this.sharedService.saveMessage(newId, 'Assistant', this.translate.instant('MY_TRIPS.WELCOME'))
             );
           } catch (e) {
             console.error('Error saving greeting:', e);
@@ -2559,10 +2562,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
   // ── Depart Schedule Filter Helper Methods ──
   departScheduleOptions = [
-    { title: 'Morning', icon: '🌅', startTime: '00:00', endTime: '05:59' },
-    { title: 'Noon', icon: '☀️', startTime: '06:00', endTime: '11:59' },
-    { title: 'Afternoon', icon: '🌇', startTime: '12:00', endTime: '17:59' },
-    { title: 'Night', icon: '🌙', startTime: '18:00', endTime: '23:59' },
+    { titleKey: 'ASSISTANT.MORNING', icon: '🌅', startTime: '00:00', endTime: '05:59' },
+    { titleKey: 'ASSISTANT.NOON', icon: '☀️', startTime: '06:00', endTime: '11:59' },
+    { titleKey: 'ASSISTANT.AFTERNOON', icon: '🌇', startTime: '12:00', endTime: '17:59' },
+    { titleKey: 'ASSISTANT.NIGHT', icon: '🌙', startTime: '18:00', endTime: '23:59' },
   ];
 
   toggleDepartSchedule(startTime: string, endTime: string) {

@@ -4,9 +4,9 @@
       <!-- Left side: brand and copyright (Desktop) -->
       <div class="col-md-auto d-flex flex-column align-items-center align-items-md-start gap-1">
         <div class="brand" routerLink="/">
-          <img src="assets/images/logo.png" alt="TravelPeek Logo">
+          <img src="assets/images/logo.png" [alt]="'FOOTER.LOGO_ALT' | translate">
         </div>
-        <span class="copyright d-none d-md-block">© 2024 Peek AI Travel. All rights reserved.</span>
+        <span class="copyright d-none d-md-block">{{ 'FOOTER.COPYRIGHT' | translate }}</span>
       </div>
 
       <!-- Right side: footer nav links -->
@@ -16,29 +16,29 @@
             routerLink="/legal/privacy-policy"
             routerLinkActive="active"
             class="footer-link"
-            >Privacy Policy</a
+            >{{ 'FOOTER.PRIVACY' | translate }}</a
           >
           <a
             routerLink="/legal/terms-of-service"
             routerLinkActive="active"
             class="footer-link"
-            >Terms of Service</a
+            >{{ 'FOOTER.TERMS' | translate }}</a
           >
           <a
             routerLink="/legal/cookie-policy"
             routerLinkActive="active"
             class="footer-link"
-            >Cookies</a
+            >{{ 'FOOTER.COOKIES' | translate }}</a
           >
           <a routerLink="/support" routerLinkActive="active" class="footer-link"
-            >Contact</a
+            >{{ 'FOOTER.CONTACT' | translate }}</a
           >
         </nav>
       </div>
 
       <!-- Bottom copyright (Mobile only) -->
       <div class="col-12 d-block d-md-none text-center mt-2">
-        <span class="copyright">© 2024 Peek AI Travel. All rights reserved.</span>
+        <span class="copyright">{{ 'FOOTER.COPYRIGHT' | translate }}</span>
       </div>
     </div>
   </div>

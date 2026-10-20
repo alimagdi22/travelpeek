@@ -15,6 +15,10 @@
     height: 100%;
   }
 }
+
+:host-context([dir="rtl"]) .header {
+  font-family: "Cairo", vars.$font-family-base;
+}
 .currency {
   font-size: 14px;
 }
@@ -84,7 +88,8 @@
   }
 }
 
-.currency-selector {
+.currency-selector,
+.language-selector {
   font-size: 14px;
   font-weight: 500;
   color: #6c757d;
@@ -108,6 +113,58 @@
   p {
     width: 30px;
     margin: 0;
+  }
+}
+
+.language-selector {
+  p {
+    width: auto;
+    min-width: 24px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+  }
+
+  .language-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+    color: inherit;
+  }
+}
+
+.lang-short {
+  display: inline-block;
+  min-width: 28px;
+  font-weight: 700;
+  color: vars.$color-primary;
+}
+
+.language-switcher-mobile {
+  display: flex;
+  gap: 8px;
+
+  .lang-option {
+    flex: 1;
+    border: 1px solid #e9ecef;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: rgba(vars.$color-primary, 0.25);
+      color: vars.$color-primary;
+    }
+
+    &.active {
+      border-color: vars.$color-primary;
+      background: rgba(vars.$color-primary, 0.08);
+      color: vars.$color-primary;
+    }
   }
 }
 
@@ -255,6 +312,17 @@
 
   .drawer-header { padding: 0 20px; }
   .drawer-body { padding: 24px 20px; }
+}
+
+:host-context([dir="rtl"]) .mobile-drawer {
+  right: auto;
+  left: 0;
+  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.08);
+  transform: translateX(-100%);
+
+  &.open {
+    transform: translateX(0);
+  }
 }
 
 // Currency Popup specific structure
@@ -502,7 +570,7 @@
     width: 100%;
     color: #dc3545;
     cursor: pointer;
-    text-align: left;
+    text-align: start;
 
     &:hover {
       background-color: rgba(220, 53, 69, 0.08);

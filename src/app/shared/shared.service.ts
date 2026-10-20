@@ -26,6 +26,23 @@ export class SharedService {
     travellers: {}
   };
 
+  selectedGateway: any = null;
+
+  selectGatewayMethod(gate: any) {
+    this.selectedGateway = gate || null;
+  }
+
+  clearSelectedGateway() {
+    this.selectedGateway = null;
+  }
+
+  get selectedGatewayAmount(): number {
+    const gate = this.selectedGateway;
+    if (!gate) return 0;
+    const amount = gate.Amount ?? gate.amount;
+    return typeof amount === 'number' ? amount : Number(amount) || 0;
+  }
+
   private lastSmartAssistantSnapshot: {
     comparisonFlights: any[];
     recommendationSummary: string;

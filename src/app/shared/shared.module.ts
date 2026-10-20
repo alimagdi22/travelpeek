@@ -25,6 +25,7 @@ import { ScrollRevealDirective } from './directives/scroll-reveal.directive';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
 import { DatePipe } from '@angular/common';
+import { FareFilterPipe } from './pipes/fare-filter.pipe';
 const AngularMaterialModules = [
   MatProgressSpinnerModule,
   MatIconModule,
@@ -55,10 +56,12 @@ const SharedDirectives = [
   TypewriterDirective,
   ScrollRevealDirective,
 ];
-// const SharedPipes = [];
+const SharedPipes = [
+  FareFilterPipe,
+];
 
 @NgModule({
-  declarations: [...SharedComponents],
+  declarations: [...SharedComponents, ...SharedPipes],
   imports: [
     CommonModule,
     ...AngularMaterialModules,
@@ -71,6 +74,7 @@ const SharedDirectives = [
   exports: [
     ...SharedComponents,
     ...SharedDirectives,
+    ...SharedPipes,
     ...AngularMaterialModules,
     TranslateModule,
     RpTravelUiModule,

@@ -21,18 +21,18 @@
       
       <div class="tickets-list" *ngFor="let ticket of trip.ticketNumber | slice: 0 : 3">
         <p class="flight-card__right__top__info text-muted mb-1">
-          {{ ticket.ticketNumber ? 'Ticket # ' + ticket.ticketNumber : '' }}
+          {{ ticket.ticketNumber ? ('PROFILE.TICKET_NUM' | translate:{ n: ticket.ticketNumber }) : '' }}
         </p>
       </div>
       
       <p class="flight-card__right__top__btn text-primary font-weight-bold mb-0 mt-2" style="cursor: pointer;" *ngIf="trip.ticketNumber.length > 3" (click)="trigger = true">
-        Click to show more tickets...
+        {{ 'PROFILE.MORE_TICKETS' | translate }}
       </p>
     </div>
 
     <div class="flight-card__right__down mt-3 pt-3 border-top d-flex justify-content-between">
       <div>
-        <p class="flight-card__right__down__sub-title text-muted mb-1 small">{{ trip.airline }} Booking Ref</p>
+        <p class="flight-card__right__down__sub-title text-muted mb-1 small">{{ 'PROFILE.AIRLINE_BOOKING_REF' | translate:{ airline: trip.airline } }}</p>
         <p class="flight-card__right__down__sub-info font-weight-bold text-dark mb-0">{{ trip.bookingRef }}</p>
       </div>
     </div>

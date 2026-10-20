@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, PLATFORM_ID, HostBinding } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -9,6 +9,7 @@ import {
 } from 'rp-travel-ui';
 import { Subscription } from 'rxjs';
 import { CURRENCY_DEFAULT } from '../../../core/constants/default-currency';
+import { AppLanguage, LanguageService } from '../../../core/services/language.service';
 import { SharedService } from '../../shared.service';
 
 @Component({
@@ -31,6 +32,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   subscription = new Subscription();
   profileService = inject(UserProfileService);
   sharedService = inject(SharedService);
+  languageService = inject(LanguageService);
   successLogin = false;
   public selectedCurrency: currencyModel = CURRENCY_DEFAULT;
   isMobileMenuOpen = false;
@@ -123,6 +125,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.router.url.startsWith('/explore') ||
       this.router.url === ''
     );
+  }
+
+  setLanguage(lang: AppLanguage) {
+    this.languageService.setLanguage(lang);
   }
 
   updateCurrency(currency: currencyModel) {
