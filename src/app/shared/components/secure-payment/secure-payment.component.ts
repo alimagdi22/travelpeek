@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, inject, OnInit, OnChanges, OnDestroy } from '@angular/core';
 import { SharedService } from '../../shared.service';
-import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, IAirItinerary } from 'rp-travel-ui';
+import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, HomePageService, IAirItinerary } from 'rp-travel-ui';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -21,6 +21,7 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   flightCheckoutService = inject(FlightCheckoutService);
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightResultService = inject(FlightResultService);
+  private homePageService = inject(HomePageService);
 
   private paymentLinkFailureSubscription!: Subscription;
 
@@ -106,6 +107,50 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
       return selectedAmount + markup;
     }
     return this.amount + this.extrasAmount + markup;
+  }
+
+  get fareCurrency(): string {
+    return this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.currencyCode
+      || this.currency
+      || 'EGP';
+  }
+
+  get extrasCurrency(): string {
+    return this.flightCheckoutService.allOfflineServices?.[0]?.currency
+      || this.fareCurrency;
+  }
+
+  get flightFareInBase(): number {
+    return this.convertToBaseAmount(this.flightFareAmount, this.fareCurrency);
+  }
+
+  get extrasInBase(): number {
+    return this.convertToBaseAmount(this.extrasAmount, this.extrasCurrency);
+  }
+
+  get displayAmountInBase(): number {
+    const markup = this.selectedGateway ? this.getGatewayAmount(this.selectedGateway) : 0;
+    const selectedAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount;
+    if (typeof selectedAmount === 'number') {
+      return this.convertToBaseAmount(selectedAmount, this.fareCurrency)
+        + this.convertToBaseAmount(markup, 'EGP');
+    }
+    return this.convertToBaseAmount(this.amount, this.currency)
+      + this.extrasInBase
+      + this.convertToBaseAmount(markup, 'EGP');
+  }
+
+  convertToBaseAmount(price: number, sourceCurrency?: string | null): number {
+    const amount = Number(price);
+    if (!Number.isFinite(amount)) return 0;
+    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
+    if (sourceCode === 'EGP') return amount;
+    const source = this.homePageService.allCurrency.find(
+      (currency) => currency.Currency_Code === sourceCode,
+    );
+    const sourceRate = Number(source?.rate);
+    if (!sourceRate) return amount;
+    return amount / sourceRate;
   }
 
   get payLaterSuccess() {

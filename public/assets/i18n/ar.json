@@ -70,18 +70,57 @@
       "PILL_BUSINESS": "عروض درجة رجال الأعمال",
       "PILL_LONDON_WEEK": "إلى لندن الأسبوع القادم"
     },
+    "SEARCH": {
+      "FROM_TO_ON": "أريد السفر من {{from}} إلى {{to}} في {{date}}"
+    },
+    "CITIES": {
+      "ISTANBUL": "إسطنبول",
+      "DUBAI": "دبي",
+      "CAIRO": "القاهرة",
+      "PARIS": "باريس",
+      "LONDON": "لندن",
+      "TOKYO": "طوكيو",
+      "ROME": "روما",
+      "NEW_YORK": "نيويورك",
+      "BANGKOK": "بانكوك",
+      "BARCELONA": "برشلونة",
+      "AMSTERDAM": "أمستردام",
+      "SINGAPORE": "سنغافورة",
+      "MADRID": "مدريد",
+      "KUALA_LUMPUR": "كوالالمبور",
+      "CAPPADOCIA": "كابادوكيا",
+      "SANTORINI": "سانتوريني",
+      "KYOTO": "كيوتو",
+      "MALDIVES": "المالديف",
+      "SEYCHELLES": "سيشل"
+    },
+    "COUNTRIES": {
+      "TURKEY": "تركيا",
+      "UNITED_KINGDOM": "المملكة المتحدة",
+      "JAPAN": "اليابان",
+      "THAILAND": "تايلاند"
+    },
     "CURATED": {
       "TITLE": "مختارة لك",
-      "VIEW_ALL": "عرض الكل ‹"
+      "VIEW_ALL": "عرض الكل ‹",
+      "ISTANBUL_DATES": "٢٤-٢٨ أكتوبر",
+      "LONDON_DATES": "١٢-١٦ نوفمبر",
+      "TOKYO_DATES": "٥-١٥ ديسمبر",
+      "BANGKOK_DATES": "٢٠-٢٧ نوفمبر"
     },
     "GEMS": {
       "TITLE": "جواهر مخفية",
-      "TRENDING": "الأكثر رواجًا"
+      "TRENDING": "الأكثر رواجًا",
+      "CAPPADOCIA_TAGLINE": "خيار بتقييم عالٍ",
+      "SANTORINI_TAGLINE": "إطلالات من على المنحدرات",
+      "KYOTO_TAGLINE": "الحي التاريخي"
     },
     "BEACH": {
       "TITLE": "وجهات شاطئية",
       "SEE_ALL": "عرض الكل ‹",
-      "STARTING_AT": "يبدأ من"
+      "STARTING_AT": "يبدأ من",
+      "MALDIVES_DESC": "مياه صافية وفيلات خاصة.",
+      "SEYCHELLES_DESC": "طبيعة بكر ورمال بيضاء."
     },
     "NEWSLETTER": {
       "TITLE": "لا تفوّت أي جوهرة مخفية.",
@@ -123,6 +162,7 @@
     "STOP_VOICE": "إيقاف الإدخال الصوتي",
     "LISTENING": "جارٍ الاستماع...",
     "SELECTED_FLIGHT": "الرحلة المحددة هي:",
+    "WEGO_FLIGHT_FAILED": "تعذر تحميل الرحلة المحددة. يرجى المحاولة مرة أخرى.",
     "FAILED_CONVERSATION": "تعذر تحميل سجل المحادثة",
     "ASSISTANT_LABEL": "مساعد TravelPeek",
     "START_LISTENING": "بدء الاستماع",

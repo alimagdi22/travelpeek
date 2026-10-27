@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { SharedService } from '../../../../shared/shared.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { SharedService } from '../../../../shared/shared.service';
 export class HiddenGemsV2Component {
   router = inject(Router);
   sharedService = inject(SharedService);
+  private translate = inject(TranslateService);
   searchQuery: string = '';
   scrollSlider(element: HTMLElement, direction: string) {
     const card = element.querySelector('.slider-item');
@@ -25,34 +27,36 @@ export class HiddenGemsV2Component {
 
   gems = [
     {
-      name: 'Cappadocia',
-      tagline: 'High rating choice',
+      nameKey: 'HOME.CITIES.CAPPADOCIA',
+      taglineKey: 'HOME.GEMS.CAPPADOCIA_TAGLINE',
       icon: '⭐',
       image: '/assets/images/home/hidden-gems/cappadocia.png',
     },
     {
-      name: 'Santorini',
-      tagline: 'Cliff side views',
+      nameKey: 'HOME.CITIES.SANTORINI',
+      taglineKey: 'HOME.GEMS.SANTORINI_TAGLINE',
       icon: '🏖️',
       image: '/assets/images/home/hidden-gems/santorini.png',
     },
     {
-      name: 'Kyoto',
-      tagline: 'Historic district',
+      nameKey: 'HOME.CITIES.KYOTO',
+      taglineKey: 'HOME.GEMS.KYOTO_TAGLINE',
       icon: '🏮',
       image: '/assets/images/home/hidden-gems/kyoto.png',
     },
   ];
 
-  navigateToMytrips(query?: any) {
-    let q = query || this.searchQuery;
-    if (!q) return;
+  navigateToMytrips(gem?: { nameKey: string }) {
+    if (!gem?.nameKey) return;
     const date = new Date();
     date.setDate(date.getDate() + 7);
-
-    const result = date.toDateString().slice(0, 10);
-    q = `i want to travel from Dubai to ${q.name} on ${result}`;
-    this.sharedService.setSearchQuery(q.trim());
+    const locale = this.translate.currentLang === 'ar' ? 'ar-EG' : 'en-US';
+    const query = this.translate.instant('HOME.SEARCH.FROM_TO_ON', {
+      from: this.translate.instant('HOME.CITIES.DUBAI'),
+      to: this.translate.instant(gem.nameKey),
+      date: date.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' }),
+    });
+    this.sharedService.setSearchQuery(query.trim());
     this.router.navigate(['my-trips']);
   }
 }

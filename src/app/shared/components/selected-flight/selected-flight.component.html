@@ -289,9 +289,7 @@
       <span class="price-label">{{ 'FLIGHTS.TOTAL_PRICE' | translate }}</span>
       <span class="price-value"
         >{{ getTotalPrice(itinerary) | exchange : 'value'| number: "1.0-0" }}
-        <span class="currency-code">{{
-          getCurrencyCode(itinerary) | exchange : 'code'
-        }}</span>
+        <span class="currency-code">{{ 'EGP' | exchange : 'code' }}</span>
       </span>
     </div>
     @if (showSelectButton) {

@@ -1,8 +1,10 @@
 import { Component, inject, NgZone, OnInit, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { SharedService } from '../../../../shared/shared.service';
 import { HomePageService } from 'rp-travel-ui';
+import { LanguageService } from '../../../../core/services/language.service';
 
 @Component({
   selector: 'app-hero-section',
@@ -14,6 +16,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   router = inject(Router);
   sharedService = inject(SharedService);
   homePageService = inject(HomePageService);
+  private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
   platformId = inject(PLATFORM_ID);
   private zone = inject(NgZone);
   isBrowser = isPlatformBrowser(this.platformId);
@@ -41,29 +45,32 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   private discardNextRecording = false;
 
   cards = [
-    { city: 'Bangkok', country: 'Thailand', code: 'BKK', price: 'AED 890' },
-    { city: 'London', country: 'United Kingdom', code: 'LHR', price: 'AED 1,240' },
-    { city: 'Istanbul', country: 'Turkey', code: 'IST', price: 'AED 750' }
+    { cityKey: 'HOME.CITIES.BANGKOK', countryKey: 'HOME.COUNTRIES.THAILAND', code: 'BKK', price: 'AED 890' },
+    { cityKey: 'HOME.CITIES.LONDON', countryKey: 'HOME.COUNTRIES.UNITED_KINGDOM', code: 'LHR', price: 'AED 1,240' },
+    { cityKey: 'HOME.CITIES.ISTANBUL', countryKey: 'HOME.COUNTRIES.TURKEY', code: 'IST', price: 'AED 750' }
   ];
 
-  cities: string[] = [
-    'Istanbul',
-    'Dubai',
-    'Cairo',
-    'Paris',
-    'London',
-    'Tokyo',
-    'Rome',
-    'New York',
-    'Bangkok',
-    'Barcelona',
-    'Amsterdam',
-    'Singapore',
-    'Madrid',
-    'Kuala Lumpur'
+  cityKeys: string[] = [
+    'HOME.CITIES.ISTANBUL',
+    'HOME.CITIES.DUBAI',
+    'HOME.CITIES.CAIRO',
+    'HOME.CITIES.PARIS',
+    'HOME.CITIES.LONDON',
+    'HOME.CITIES.TOKYO',
+    'HOME.CITIES.ROME',
+    'HOME.CITIES.NEW_YORK',
+    'HOME.CITIES.BANGKOK',
+    'HOME.CITIES.BARCELONA',
+    'HOME.CITIES.AMSTERDAM',
+    'HOME.CITIES.SINGAPORE',
+    'HOME.CITIES.MADRID',
+    'HOME.CITIES.KUALA_LUMPUR'
   ];
+
+  get currentCityName(): string {
+    return this.translate.instant(this.cityKeys[this.currentCityIndex]);
+  }
   currentCityIndex = 0;
-  placeholderText: string = 'Cheapest flights to Istanbul';
 
   activeIndex = 0;
   private intervalId: any;
@@ -97,8 +104,7 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
 
   startPlaceholderRotation() {
     this.placeholderIntervalId = setInterval(() => {
-      this.currentCityIndex = (this.currentCityIndex + 1) % this.cities.length;
-      this.placeholderText = `Cheapest flights to ${this.cities[this.currentCityIndex]}`;
+      this.currentCityIndex = (this.currentCityIndex + 1) % this.cityKeys.length;
     }, 1000);
   }
 
@@ -124,9 +130,17 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     const flight = card?.cheapestAirItinerary?.allJourney?.flights?.[0];
     const dto = flight?.flightDTO;
     if (dto && dto.length > 0) {
-      return dto[dto.length - 1]?.arrivalTerminalAirport?.en;
+      return this.getLocalizedAirport(dto[dto.length - 1]?.arrivalTerminalAirport);
     }
     return null;
+  }
+
+  private getLocalizedAirport(airport: any) {
+    if (!airport) return null;
+    const localized = this.languageService.currentLang() === 'ar'
+      ? (airport.ar || airport.en)
+      : (airport.en || airport.ar);
+    return localized || airport;
   }
 
   getCountryName(card: any): string {
@@ -156,20 +170,21 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   onCardClick(card: any) {
     if (!card) return;
 
-    // Extract departure city name
-    const departureAirport = card?.cheapestAirItinerary?.allJourney?.flights?.[0]?.flightDTO?.[0]?.departureTerminalAirport?.en;
+    const departureAirport = this.getLocalizedAirport(
+      card?.cheapestAirItinerary?.allJourney?.flights?.[0]?.flightDTO?.[0]?.departureTerminalAirport,
+    );
     const deptCity = departureAirport?.cityName;
-
-    // Extract arrival city name
     const arrivalAirport = this.getArrivalAirport(card);
     const arrCity = arrivalAirport?.cityName;
-
-    // Extract arrivalDate
     const arrivalDate = card?.cheapestAirItinerary?.arrivalDate;
 
     if (deptCity && arrCity && arrivalDate) {
       const dateOnly = arrivalDate.split('T')[0];
-      const query = `i want to travel from ${deptCity} to ${arrCity} on ${dateOnly}`;
+      const query = this.translate.instant('HOME.SEARCH.FROM_TO_ON', {
+        from: deptCity,
+        to: arrCity,
+        date: dateOnly,
+      });
       this.performSearch(query);
     }
   }
@@ -197,6 +212,10 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
 
     this.sharedService.setSearchQuery(q.trim());
     this.router.navigate(['/my-trips']);
+  }
+
+  searchTranslated(key: string) {
+    this.performSearch(this.translate.instant(key));
   }
 
   private submitHomeSearch() {
@@ -376,7 +395,7 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     const recognition = new Recognition();
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = /[\u0600-\u06FF]/.test(`${this.typedBeforeVoice} ${this.searchQuery}`) ? 'ar-SA' : 'en-US';
+    recognition.lang = this.languageService.currentLang() === 'ar' ? 'ar-SA' : 'en-US';
     recognition.maxAlternatives = 1;
     recognition.onresult = (event: any) => {
       this.speechErrorCount = 0;

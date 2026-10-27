@@ -9,6 +9,8 @@ import { Message } from '../../core/models/message.interface';
 import { PassengerFormData, PassengerFormPrefill } from './components/passenger-form/passenger-form.component';
 import * as countries from 'world-countries';
 import { TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { LanguageService, AppLanguage } from '../../core/services/language.service';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -68,9 +70,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   profileService = inject(UserProfileService);
   homePageService = inject(HomePageService);
   private translate = inject(TranslateService);
+  private languageService = inject(LanguageService);
+  private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
   private zone = inject(NgZone);
   private subscription = new Subscription();
+  private wegoSelectionInProgress = false;
+  private wegoLandingStarted = false;
+  private wegoNotifySub: Subscription | null = null;
   private filterFormSub: Subscription | null = null;
   private systemAnimationQueue: Message[] = [];
   private isSystemAnimating = false;
@@ -190,7 +197,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sharedService.selectedItinerary$.subscribe((itinerary) => {
         if (itinerary) {
           this.showStopsModal = false;
-          this.handleFlightSelection(itinerary);
+          if (this.sharedService.hasWegoClickId()) {
+            this.startWegoSelectedFlightFlow(itinerary);
+          } else {
+            this.handleFlightSelection(itinerary);
+          }
         }
       }),
     );
@@ -269,6 +280,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.loadSearchHistory();
     }
 
+    this.captureWegoParams(this.route.snapshot.queryParamMap);
+    this.subscription.add(
+      this.route.queryParamMap.subscribe((params) => this.captureWegoParams(params)),
+    );
+
     const pendingVoice = this.sharedService.consumePendingVoiceSearch();
     const query = this.sharedService.getSearchQuery();
     if (pendingVoice.file) {
@@ -281,6 +297,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sendMessage(query);
     } else {
       this.initializeChat();
+    }
+
+    if (this.sharedService.hasWegoClickId() && this.hasWegoFlightParams() && !this.wegoLandingStarted) {
+      this.wegoLandingStarted = true;
+      this.startWegoSelectedFlightFlow();
     }
   }
   get isLoggedIn(): boolean {
@@ -404,7 +425,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private isCurrentlyLoading: boolean = false;
 
   get isChatLoading(): boolean {
-    return !!(this.flightResultService?.loading || this.isTyping);
+    return !!(this.flightResultService?.loading || this.isTyping || this.wegoSelectionInProgress);
   }
 
   ngDoCheck(): void {
@@ -462,6 +483,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.clearHumanLoadingCycle();
     this.stopLoadingMessageCycle();
     this.stopVoice({ cancel: true });
+    this.wegoNotifySub?.unsubscribe();
     this.subscription.unsubscribe();
     this.resetFlightServiceState();
   }
@@ -634,6 +656,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   async sendMessage(text: string) {
+    if (this.wegoSelectionInProgress || this.isChatLoading) return;
     if (!text.trim()) return;
 
     this.systemAnimationQueue = [];
@@ -1478,15 +1501,17 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   selectRecommendedFlight(itinerary: IAirItinerary) {
-    const searchId = this.getPersistedFlightSearchId();
-    if (searchId) {
-      this.flightCheckoutService.getSelectedFlightData(
-        searchId,
-        itinerary.sequenceNum,
-        itinerary.pKey,
-        true,
-        itinerary.pcc,
-      );
+    if (!this.sharedService.hasWegoClickId()) {
+      const searchId = this.getPersistedFlightSearchId();
+      if (searchId) {
+        this.flightCheckoutService.getSelectedFlightData(
+          searchId,
+          itinerary.sequenceNum,
+          itinerary.pKey,
+          true,
+          itinerary.pcc,
+        );
+      }
     }
     this.sharedService.setSelectedItinerary(itinerary);
   }
@@ -1500,7 +1525,127 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sharedService.getSavedFlightSearchResponseAi()?.searchCriteria ||
       this.flightResultService.responseAi?.searchCriteria ||
       this.flightResultService.response?.searchCriteria ||
+      this.flightCheckoutService.selectedFlight?.searchCriteria ||
       null
+    );
+  }
+
+  private captureWegoParams(params: ParamMap): void {
+    const clickId = (params.get('wego_click_id') || '').trim();
+    const sid = (params.get('sid') || '').trim();
+    const [searchId, pcc] = sid.split('_');
+    this.sharedService.setWegoParams({
+      wego_click_id: clickId,
+      sid,
+      searchId: searchId || '',
+      pcc: pcc || '',
+      sequenceNum: params.get('sequenceNum') ? Number(params.get('sequenceNum')) : undefined,
+      pkey: params.get('pkey') || params.get('providerKey') || '',
+      utm_source: params.get('utm_source') || '',
+      utm_medium: params.get('utm_medium') || '',
+    });
+
+    if (!clickId || typeof sessionStorage === 'undefined') {
+      return;
+    }
+    try {
+      sessionStorage.setItem('wego_click_id', clickId);
+      localStorage.setItem('click_id', clickId);
+    } catch {
+      // Ignore storage access errors.
+    }
+  }
+
+  private hasWegoFlightParams(): boolean {
+    const wego = this.sharedService.wegoParams;
+    return !!(wego?.searchId && wego.sequenceNum != null && !Number.isNaN(wego.sequenceNum) && wego.pkey);
+  }
+
+  private resolveWegoFlightParams(itinerary?: IAirItinerary | null): {
+    searchId: string;
+    sequenceNum: number;
+    providerKey: string;
+    pcc: string;
+  } | null {
+    const wego = this.sharedService.wegoParams;
+    if (wego?.searchId && wego.sequenceNum != null && !Number.isNaN(wego.sequenceNum) && wego.pkey) {
+      return {
+        searchId: wego.searchId,
+        sequenceNum: wego.sequenceNum,
+        providerKey: String(wego.pkey),
+        pcc: wego.pcc || '',
+      };
+    }
+    if (!itinerary) return null;
+    const searchId = this.getPersistedFlightSearchId() || wego?.searchId || '';
+    if (!searchId || itinerary.sequenceNum == null || !itinerary.pKey) return null;
+    return {
+      searchId,
+      sequenceNum: itinerary.sequenceNum,
+      providerKey: String(itinerary.pKey),
+      pcc: itinerary.pcc || wego?.pcc || '',
+    };
+  }
+
+  private applyWegoSelectedLanguage(language?: string | null): void {
+    const lang = String(language || '').toLowerCase();
+    if (lang === 'en' || lang === 'ar') {
+      this.languageService.setLanguage(lang as AppLanguage);
+    }
+  }
+
+  private persistWegoSearchCriteria(selected: any): void {
+    if (!selected?.searchCriteria) return;
+    this.sharedService.saveFlightSearchResponseAi({
+      searchCriteria: selected.searchCriteria,
+      airItineraries: selected.airItineraryDTO ? [selected.airItineraryDTO] : [],
+    });
+  }
+
+  private startWegoSelectedFlightFlow(itinerary?: IAirItinerary | null): void {
+    if (this.wegoSelectionInProgress) return;
+
+    const params = this.resolveWegoFlightParams(itinerary);
+    if (!params) {
+      if (itinerary) this.handleFlightSelection(itinerary);
+      return;
+    }
+
+    this.wegoSelectionInProgress = true;
+    this.isTyping = true;
+    this.wegoNotifySub?.unsubscribe();
+    this.wegoNotifySub = this.flightCheckoutService.notify.subscribe((status) => {
+      if (status !== 1 && status !== 3) return;
+      this.wegoNotifySub?.unsubscribe();
+      this.wegoNotifySub = null;
+
+      const selected = this.flightCheckoutService.selectedFlight;
+      const selectedItinerary = selected?.airItineraryDTO;
+      if (status === 3 || !selectedItinerary || selected?.status === 'Invalid') {
+        this.wegoSelectionInProgress = false;
+        this.isTyping = false;
+        this.sharedService.addMessage({
+          sender: 'system',
+          text: this.translate.instant('MY_TRIPS.WEGO_FLIGHT_FAILED'),
+        });
+        return;
+      }
+
+      this.applyWegoSelectedLanguage(selected.searchCriteria?.language);
+      this.persistWegoSearchCriteria(selected);
+      this.isSmartAssistantVisible = true;
+      this.sharedService.setSelectedItinerary(selectedItinerary);
+      this.handleFlightSelection(selectedItinerary);
+      this.wegoSelectionInProgress = false;
+      this.isTyping = false;
+    });
+
+    this.flightCheckoutService.getSelectedFlightData(
+      params.searchId,
+      params.sequenceNum,
+      params.providerKey,
+      true,
+      params.pcc,
     );
   }
 
@@ -1690,6 +1835,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.flightCheckoutService.selectedFlightError = false;
       this.flightCheckoutService.payLaterSuccess = null;
     }
+    this.isSmartAssistantVisible = true;
     this.initializePassengerList();
     const passengerLabel = this.getPassengersCountLabel();
     this.selectedItinerary = itinerary;
@@ -1735,7 +1881,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.sharedService.addMessage({
       sender: 'system',
       text: '',
-      itineraries: [itinerary],
+      itineraries: [JSON.parse(JSON.stringify(itinerary))],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
     });

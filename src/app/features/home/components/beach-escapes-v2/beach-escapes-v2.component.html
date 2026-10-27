@@ -16,14 +16,14 @@
         <div *ngFor="let escape of escapes" class="col-lg-6 col-md-12 slider-item" (click)="navigateToMytrips(escape)">
           <div class="escape-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
-            <img [src]="escape.image" [alt]="escape.name" class="card-bg-v2" />
+            <img [src]="escape.image" [alt]="escape.nameKey | translate" class="card-bg-v2" />
 
             <!-- Gradient Overlay & Content Row -->
             <div class="card-overlay-v2 d-flex align-items-end justify-content-between p-4 p-md-5">
               <!-- Left Info -->
               <div class="escape-info-v2 text-white">
-                <h3 class="escape-name-v2 mb-2">{{ escape.name }}</h3>
-                <p class="escape-desc-v2 mb-0">{{ escape.description }}</p>
+                <h3 class="escape-name-v2 mb-2">{{ escape.nameKey | translate }}</h3>
+                <p class="escape-desc-v2 mb-0">{{ escape.descriptionKey | translate }}</p>
               </div>
 
               <!-- Right Price Card Overlay -->

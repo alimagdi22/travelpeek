@@ -105,19 +105,21 @@ export class AvailableFlightsComponent {
   }
 
   selectFlight(itinerary: IAirItinerary) {
-    const searchId =
-      this.sharedService.getSavedFlightSearchId() ||
-      this.flightResultService.responseAi?.searchCriteria?.searchId ||
-      this.flightResultService.response?.searchCriteria?.searchId ||
-      '';
-    if (searchId) {
-      this.flightCheckoutService.getSelectedFlightData(
-        searchId,
-        itinerary.sequenceNum,
-        itinerary.pKey,
-        true,
-        itinerary.pcc,
-      );
+    if (!this.sharedService.hasWegoClickId()) {
+      const searchId =
+        this.sharedService.getSavedFlightSearchId() ||
+        this.flightResultService.responseAi?.searchCriteria?.searchId ||
+        this.flightResultService.response?.searchCriteria?.searchId ||
+        '';
+      if (searchId) {
+        this.flightCheckoutService.getSelectedFlightData(
+          searchId,
+          itinerary.sequenceNum,
+          itinerary.pKey,
+          true,
+          itinerary.pcc,
+        );
+      }
     }
     this.sharedService.setSelectedItinerary(itinerary);
   }

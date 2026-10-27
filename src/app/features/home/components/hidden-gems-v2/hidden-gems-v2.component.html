@@ -12,12 +12,12 @@
         <div *ngFor="let gem of gems" class="col-lg-4 col-md-6 col-sm-12 slider-item"  (click)="navigateToMytrips(gem)">
           <div class="gem-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
-            <img [src]="gem.image" [alt]="gem.name" class="card-bg-v2" />
+            <img [src]="gem.image" [alt]="gem.nameKey | translate" class="card-bg-v2" />
 
             <!-- Gradient Overlay -->
             <div class="card-overlay-v2 d-flex flex-column justify-content-end">
-              <h3 class="gem-name-v2 mb-1">{{ gem.name }}</h3>
-              <p class="gem-tagline-v2 mb-0">{{ gem.icon }} {{ gem.tagline }}</p>
+              <h3 class="gem-name-v2 mb-1">{{ gem.nameKey | translate }}</h3>
+              <p class="gem-tagline-v2 mb-0">{{ gem.icon }} {{ gem.taglineKey | translate }}</p>
             </div>
           </div>
         </div>

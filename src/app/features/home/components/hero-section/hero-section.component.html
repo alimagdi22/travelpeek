@@ -41,7 +41,7 @@
           <input
             type="text"
             class="search-input col"
-            [placeholder]="'HOME.HERO.PLACEHOLDER' | translate:{ city: cities[currentCityIndex] }"
+            [placeholder]="'HOME.HERO.PLACEHOLDER' | translate:{ city: currentCityName }"
             [(ngModel)]="searchQuery"
             (keydown.enter)="onSearchKeydown()"
           />
@@ -105,11 +105,11 @@
 
         <!-- Recommendation Pills -->
         <div class="recommendations-container d-flex flex-wrap gap-2 mt-4">
-          <button class="rec-pill" (click)="performSearch('Istanbul weekend')">{{ 'HOME.HERO.PILL_ISTANBUL' | translate }}</button>
-          <button class="rec-pill" (click)="performSearch('London round-trip')">{{ 'HOME.HERO.PILL_LONDON_RT' | translate }}</button>
-          <button class="rec-pill" (click)="performSearch('Bangkok April')">{{ 'HOME.HERO.PILL_BANGKOK' | translate }}</button>
-          <button class="rec-pill" (click)="performSearch('Business class deals')">{{ 'HOME.HERO.PILL_BUSINESS' | translate }}</button>
-          <button class="rec-pill" (click)="performSearch('To London next week')">{{ 'HOME.HERO.PILL_LONDON_WEEK' | translate }}</button>
+          <button class="rec-pill" (click)="searchTranslated('HOME.HERO.PILL_ISTANBUL')">{{ 'HOME.HERO.PILL_ISTANBUL' | translate }}</button>
+          <button class="rec-pill" (click)="searchTranslated('HOME.HERO.PILL_LONDON_RT')">{{ 'HOME.HERO.PILL_LONDON_RT' | translate }}</button>
+          <button class="rec-pill" (click)="searchTranslated('HOME.HERO.PILL_BANGKOK')">{{ 'HOME.HERO.PILL_BANGKOK' | translate }}</button>
+          <button class="rec-pill" (click)="searchTranslated('HOME.HERO.PILL_BUSINESS')">{{ 'HOME.HERO.PILL_BUSINESS' | translate }}</button>
+          <button class="rec-pill" (click)="searchTranslated('HOME.HERO.PILL_LONDON_WEEK')">{{ 'HOME.HERO.PILL_LONDON_WEEK' | translate }}</button>
         </div>
       </div>
 
@@ -120,15 +120,15 @@
             @for (card of cards; track card.code; let idx = $index) {
               <div
                 [class]="'stacked-card ' + getCardClass(idx)"
-                (click)="performSearch(card.city)"
+                (click)="searchTranslated(card.cityKey)"
                 style="cursor: pointer;"
               >
                 <div class="card-glow"></div>
                 <div class="card-inner d-flex justify-content-between align-items-stretch h-100 w-100">
                   <div class="card-left-info d-flex flex-column justify-content-between h-100">
                     <div class="d-flex flex-column">
-                      <span class="card-country text-uppercase">{{ card.country }}</span>
-                      <span class="card-city mt-1">{{ card.city }}</span>
+                      <span class="card-country text-uppercase">{{ card.countryKey | translate }}</span>
+                      <span class="card-city mt-1">{{ card.cityKey | translate }}</span>
                     </div>
                     <span class="card-price">{{ 'COMMON.FROM' | translate }} {{ card.price }}</span>
                   </div>

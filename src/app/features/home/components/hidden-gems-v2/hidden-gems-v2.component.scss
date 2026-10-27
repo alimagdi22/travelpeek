@@ -197,3 +197,7 @@
     &.next { right: -10px; }
   }
 }
+
+:host-context([dir="rtl"]) .gem-card-v2 .card-overlay-v2 {
+  padding: 13% 18% !important;
+}

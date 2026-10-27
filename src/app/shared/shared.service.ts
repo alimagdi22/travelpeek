@@ -28,6 +28,33 @@ export class SharedService {
 
   selectedGateway: any = null;
 
+  wegoParams: {
+    wego_click_id?: string;
+    sid?: string;
+    searchId?: string;
+    pcc?: string;
+    sequenceNum?: number;
+    pkey?: string;
+    utm_source?: string;
+    utm_medium?: string;
+  } | null = null;
+
+  setWegoParams(params: SharedService['wegoParams']) {
+    this.wegoParams = params;
+  }
+
+  getWegoClickId(): string {
+    return String(this.wegoParams?.wego_click_id || '').trim();
+  }
+
+  hasWegoClickId(): boolean {
+    return !!this.getWegoClickId();
+  }
+
+  clearWegoParams() {
+    this.wegoParams = null;
+  }
+
   selectGatewayMethod(gate: any) {
     this.selectedGateway = gate || null;
   }

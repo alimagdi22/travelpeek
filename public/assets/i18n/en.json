@@ -70,18 +70,57 @@
       "PILL_BUSINESS": "Business class deals",
       "PILL_LONDON_WEEK": "To London next week"
     },
+    "SEARCH": {
+      "FROM_TO_ON": "I want to travel from {{from}} to {{to}} on {{date}}"
+    },
+    "CITIES": {
+      "ISTANBUL": "Istanbul",
+      "DUBAI": "Dubai",
+      "CAIRO": "Cairo",
+      "PARIS": "Paris",
+      "LONDON": "London",
+      "TOKYO": "Tokyo",
+      "ROME": "Rome",
+      "NEW_YORK": "New York",
+      "BANGKOK": "Bangkok",
+      "BARCELONA": "Barcelona",
+      "AMSTERDAM": "Amsterdam",
+      "SINGAPORE": "Singapore",
+      "MADRID": "Madrid",
+      "KUALA_LUMPUR": "Kuala Lumpur",
+      "CAPPADOCIA": "Cappadocia",
+      "SANTORINI": "Santorini",
+      "KYOTO": "Kyoto",
+      "MALDIVES": "Maldives",
+      "SEYCHELLES": "Seychelles"
+    },
+    "COUNTRIES": {
+      "TURKEY": "Turkey",
+      "UNITED_KINGDOM": "United Kingdom",
+      "JAPAN": "Japan",
+      "THAILAND": "Thailand"
+    },
     "CURATED": {
       "TITLE": "Curated for you",
-      "VIEW_ALL": "View all ›"
+      "VIEW_ALL": "View all ›",
+      "ISTANBUL_DATES": "OCT 24-28",
+      "LONDON_DATES": "NOV 12-16",
+      "TOKYO_DATES": "DEC 5-15",
+      "BANGKOK_DATES": "NOV 20-27"
     },
     "GEMS": {
       "TITLE": "Hidden Gems",
-      "TRENDING": "Trending"
+      "TRENDING": "Trending",
+      "CAPPADOCIA_TAGLINE": "High rating choice",
+      "SANTORINI_TAGLINE": "Cliff side views",
+      "KYOTO_TAGLINE": "Historic district"
     },
     "BEACH": {
       "TITLE": "Beach Escapes",
       "SEE_ALL": "See all ›",
-      "STARTING_AT": "Starting at"
+      "STARTING_AT": "Starting at",
+      "MALDIVES_DESC": "Crystal clear waters and private villas.",
+      "SEYCHELLES_DESC": "Untouched nature and white sands."
     },
     "NEWSLETTER": {
       "TITLE": "Never miss a hidden gem.",
@@ -123,6 +162,7 @@
     "STOP_VOICE": "Stop voice input",
     "LISTENING": "Listening...",
     "SELECTED_FLIGHT": "The selected flight is:",
+    "WEGO_FLIGHT_FAILED": "Failed to load the selected flight. Please try again.",
     "FAILED_CONVERSATION": "Failed to load conversation history",
     "ASSISTANT_LABEL": "TravelPeek assistant",
     "START_LISTENING": "Start listening",

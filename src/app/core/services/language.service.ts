@@ -35,6 +35,9 @@ export class LanguageService {
     this.currentLang.set(lang);
     this.applyDocumentDirection(lang);
     this.translate.addLangs(this.languages.map((l) => l.code));
+    if (!this.isBrowser) {
+      return Promise.resolve();
+    }
     this.translate.setFallbackLang(DEFAULT_LANG);
     return firstValueFrom(this.translate.use(lang))
       .then(() => undefined)

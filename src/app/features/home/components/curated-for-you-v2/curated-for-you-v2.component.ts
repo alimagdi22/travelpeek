@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { SharedService } from '../../../../shared/shared.service';
 
 @Component({
@@ -11,6 +12,7 @@ import { SharedService } from '../../../../shared/shared.service';
 export class CuratedForYouV2Component {
   router = inject(Router);
   sharedService = inject(SharedService);
+  private translate = inject(TranslateService);
   searchQuery: string = '';
   scrollSlider(element: HTMLElement, direction: string) {
     const card = element.querySelector('.slider-item');
@@ -25,39 +27,42 @@ export class CuratedForYouV2Component {
 
   destinations = [
     {
-      name: 'Istanbul',
-      country: 'Turkey',
-      dates: 'OCT 24-28',
+      nameKey: 'HOME.CITIES.ISTANBUL',
+      countryKey: 'HOME.COUNTRIES.TURKEY',
+      datesKey: 'HOME.CURATED.ISTANBUL_DATES',
       price: 'AED 620',
       image: '/assets/images/home/curted/istanbul.png',
     },
     {
-      name: 'London',
-      country: 'United Kingdom',
-      dates: 'NOV 12-16',
+      nameKey: 'HOME.CITIES.LONDON',
+      countryKey: 'HOME.COUNTRIES.UNITED_KINGDOM',
+      datesKey: 'HOME.CURATED.LONDON_DATES',
       price: 'AED 1,248',
       image: '/assets/images/home/curted/london.png',
     },
     {
-      name: 'Tokyo',
-      country: 'Japan',
-      dates: 'DEC 5-15',
+      nameKey: 'HOME.CITIES.TOKYO',
+      countryKey: 'HOME.COUNTRIES.JAPAN',
+      datesKey: 'HOME.CURATED.TOKYO_DATES',
       price: 'AED 2,350',
       image: '/assets/images/home/curted/tokyo.png',
     },
     {
-      name: 'Bangkok',
-      country: 'Thailand',
-      dates: 'NOV 20-27',
+      nameKey: 'HOME.CITIES.BANGKOK',
+      countryKey: 'HOME.COUNTRIES.THAILAND',
+      datesKey: 'HOME.CURATED.BANGKOK_DATES',
       price: 'AED 975',
       image: '/assets/images/home/curted/bangkok.png',
     },
   ];
-  navigateToMytrips(query?: any) {
-    let q = query || this.searchQuery;
-    if (!q ) return;
-    q = `i want to travel from Dubai to ${q.name} on ${q.dates}`
-    this.sharedService.setSearchQuery(q.trim());
+  navigateToMytrips(dest?: { nameKey: string; datesKey: string }) {
+    if (!dest?.nameKey) return;
+    const query = this.translate.instant('HOME.SEARCH.FROM_TO_ON', {
+      from: this.translate.instant('HOME.CITIES.DUBAI'),
+      to: this.translate.instant(dest.nameKey),
+      date: this.translate.instant(dest.datesKey),
+    });
+    this.sharedService.setSearchQuery(query.trim());
     this.router.navigate(['my-trips']);
   }
 }

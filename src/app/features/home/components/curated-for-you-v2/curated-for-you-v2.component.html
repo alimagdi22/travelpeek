@@ -16,15 +16,15 @@
         <div *ngFor="let dest of destinations" class="col-xl-3 col-lg-6 col-md-6 col-sm-12 slider-item" (click)="navigateToMytrips(dest)">
           <div class="destination-card-v2 position-relative overflow-hidden rounded-4">
             <!-- Card Background Image -->
-            <img [src]="dest.image" [alt]="dest.name" class="card-bg-v2" />
+            <img [src]="dest.image" [alt]="dest.nameKey | translate" class="card-bg-v2" />
 
             <!-- Price Tag Badge (Top Right) -->
             <div class="price-tag-v2">{{ dest.price }}</div>
 
             <!-- Gradient Overlay -->
             <div class="card-overlay-v2 d-flex flex-column justify-content-end p-4">
-              <h3 class="destination-name-v2 mb-1">{{ dest.name }}</h3>
-              <p class="destination-meta-v2 mb-0">{{ dest.country }} &bull; {{ dest.dates }}</p>
+              <h3 class="destination-name-v2 mb-1">{{ dest.nameKey | translate }}</h3>
+              <p class="destination-meta-v2 mb-0">{{ dest.countryKey | translate }} &bull; {{ dest.datesKey | translate }}</p>
             </div>
           </div>
         </div>

@@ -26,6 +26,16 @@ export class TokenInterceptor implements HttpInterceptor {
       return next.handle(req);
     }
 
+    if (this.isBrowser && req.url.includes('/api/GetSelectedFlight') && !req.url.includes('wegoClickId=')) {
+      const clickId = localStorage.getItem('click_id') || sessionStorage.getItem('wego_click_id') || '';
+      if (clickId) {
+        const separator = req.url.includes('?') ? '&' : '?';
+        req = req.clone({
+          url: `${req.url}${separator}wegoClickId=${encodeURIComponent(clickId)}`,
+        });
+      }
+    }
+
     const isBackendUrl = req.url.startsWith('/') ||
       req.url.includes('round-pixel.net') ||
       req.url.includes('flytoall.com') ||

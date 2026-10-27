@@ -3,8 +3,11 @@ import { ComponentFixture, TestBed, fakeAsync, tick, discardPeriodicTasks } from
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { of, Subject } from 'rxjs';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, HomePageService, UserProfileService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
+import { LanguageService } from '../../core/services/language.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MyTripsComponent } from './my-trips.component';
 
 describe('MyTripsComponent search results (mocked API)', () => {
@@ -116,11 +119,18 @@ describe('MyTripsComponent search results (mocked API)', () => {
       getSavedFlightSearchResponseAi: () => null,
       getSavedFlightSearchId: () => '',
       clearSavedFlightSearchResponseAi: jasmine.createSpy('clearSavedFlightSearchResponseAi'),
+      wegoParams: null,
+      setWegoParams: jasmine.createSpy('setWegoParams').and.callFake((params: any) => {
+        sharedService.wegoParams = params;
+      }),
+      getWegoClickId: () => sharedService.wegoParams?.wego_click_id || '',
+      hasWegoClickId: () => !!sharedService.wegoParams?.wego_click_id,
+      clearWegoParams: jasmine.createSpy('clearWegoParams'),
     };
 
     await TestBed.configureTestingModule({
       declarations: [MyTripsComponent],
-      imports: [FormsModule],
+      imports: [FormsModule, TranslateModule.forRoot()],
       providers: [
         { provide: FlightResultService, useValue: flightResultService },
         { provide: SharedService, useValue: sharedService },
@@ -142,6 +152,28 @@ describe('MyTripsComponent search results (mocked API)', () => {
             serviceFees: 0,
             selectedFlight: null,
             getSelectedFlightData: jasmine.createSpy('getSelectedFlightData'),
+            notify: new Subject<number>(),
+          },
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: convertToParamMap({}) },
+            queryParamMap: of(convertToParamMap({})),
+          },
+        },
+        {
+          provide: LanguageService,
+          useValue: {
+            setLanguage: jasmine.createSpy('setLanguage'),
+          },
+        },
+        {
+          provide: TranslateService,
+          useValue: {
+            instant: (key: string) => key,
+            use: jasmine.createSpy('use'),
+            currentLang: 'en',
           },
         },
         {
