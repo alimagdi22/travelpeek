@@ -11,6 +11,7 @@ import * as countries from 'world-countries';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { LanguageService, AppLanguage } from '../../core/services/language.service';
+import { SmartAssistantSidebarComponent } from './components/smart-assistant-sidebar/smart-assistant-sidebar.component';
 @Component({
   selector: 'app-my-trips',
   standalone: false,
@@ -19,6 +20,7 @@ import { LanguageService, AppLanguage } from '../../core/services/language.servi
 })
 export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, DoCheck {
   @ViewChild('suggestionsSlider') suggestionsSliderRef?: ElementRef<HTMLElement>;
+  @ViewChild('smartAssistantSidebar') smartAssistantSidebar?: SmartAssistantSidebarComponent;
   private swiperInitialized = false;
 
   readonly isMyTrips: boolean = true;
@@ -86,6 +88,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private searchGeneration = 0;
   private lastSearchItineraries: any[] = [];
   isSmartAssistantVisible = false;
+
+  openMobileSmartAssistant() {
+    this.smartAssistantSidebar?.toggleMobileDrawer();
+  }
   selectedItinerary: IAirItinerary | null = null;
   isEnteringNamesManually = false;
   isEnteringContactDetails = false;

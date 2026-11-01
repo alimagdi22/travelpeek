@@ -729,54 +729,7 @@
 
 /* ── Mobile Floating Action Button (FAB) & Bottom Sheet Overlay ── */
 .mobile-assistant-fab-wrapper {
-  position: fixed;
-  bottom: 22%;
-  right: 20px;
-  z-index: 1049;
-  animation: fabPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-
-  .mobile-fab-btn {
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #004ac6, #1d4ed8);
-    border: none;
-    color: #ffffff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0, 74, 198, 0.45);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-    &:active {
-      transform: scale(0.92);
-    }
-
-    @media(max-width:768px){
-      background: #44b50c;
-    }
-  }
-
-  .fab-glow-ring {
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    border: 2px solid rgba(0, 74, 198, 0.5);
-    animation: fabPulseRing 2s infinite ease-in-out;
-    pointer-events: none;
-  }
-
-  .fab-icon-box {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    filter: drop-shadow(0 0 6px rgba(255, 230, 100, 0.9));
-    animation: fabLightbulbGlow 2s infinite ease-in-out;
-  }
+  display: none !important;
 }
 
 @keyframes fabPopIn {
