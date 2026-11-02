@@ -28,6 +28,14 @@ export const routes: Routes = [
     },
   },
   {
+    path: 'contact-us',
+    loadChildren: () =>
+      import('./features/contact-us/contact-us.module').then((m) => m.ContactUsModule),
+    data: {
+      seo: SEO_METADATA['contactUs'],
+    },
+  },
+  {
     path: 'my-trips',
     loadChildren: () =>
       import('./features/my-trips/my-trips.module').then((m) => m.MyTripsModule),

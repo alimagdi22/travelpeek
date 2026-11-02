@@ -26,6 +26,13 @@ export const SEO_METADATA: Record<string, SeoConfig> = {
     ogTitle: 'Terms & Conditions & Privacy Policy - Travelpeek',
     ogDescription: 'legal Read the terms of service, privacy policy, and legal agreements for Travelpeek.',
   },
+  contactUs: {
+    title: 'Contact Us - Travelpeek',
+    description: 'Get in touch with the Travelpeek team for booking help, account questions, and travel support.',
+    keywords: 'contact, travelpeek, support, whatsapp',
+    ogTitle: 'Contact Us - Travelpeek',
+    ogDescription: 'Get in touch with the Travelpeek team for booking help, account questions, and travel support.',
+  },
   myTrips: {
     title: 'My Trips - Travelpeek',
     description: 'my-trips View and manage your booked trips and itineraries on Travelpeek.',

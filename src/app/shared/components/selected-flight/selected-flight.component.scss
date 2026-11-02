@@ -57,6 +57,14 @@
   }
 }
 
+.policy-badges-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  margin-top: 3%;
+}
+
+
 .flight-legs-container {
   .flight-leg {
     .leg-header {
@@ -158,6 +166,10 @@
     color: #5c6479;
     font-weight: 500;
 
+    .select-stops-label {
+      text-decoration: underline;
+    }
+
     .meta-text {
       color: #5c6479;
       font-weight: 500;
@@ -167,6 +179,31 @@
         font-weight: 600;
       }
     }
+  }
+}
+
+.stops-trigger {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    .select-stops-label {
+      color: #0039a6 !important;
+      text-decoration: underline;
+    }
+  }
+}
+
+.cancel-policy {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #004ac6 !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    color: #0039a6 !important;
+    opacity: 0.85;
   }
 }
 
@@ -241,6 +278,24 @@
   }
   .mobile-details{
     flex-direction: column !important;
+  }
+
+  .policy-badges-container {
+    width: 100%;
+    justify-content: space-between !important;
+    background-color: rgba(11, 28, 48, 0.03);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed rgba(11, 28, 48, 0.06);
+    margin-top: 4px;
+    margin-bottom: 4px;
+
+    .refundability {
+      margin-top: 0 !important;
+    }
+    .cancel-policy {
+      margin-top: 0 !important;
+    }
   }
 }
 

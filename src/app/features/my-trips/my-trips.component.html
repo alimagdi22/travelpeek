@@ -27,13 +27,13 @@
       <div class="chat-messages-container d-flex flex-column gap-4 p-4">
         <!-- Chat Skeleton Loader -->
         <div *ngIf="flightResultService.conversationsLoading" class="chat-skeleton-loader d-flex flex-column gap-4 w-100">
-          <div class="skeleton-message-row user-row d-flex justify-content-end">
+          <div class="skeleton-message-row user-row d-flex justify-content-start">
             <div class="skeleton-bubble user-skeleton-bubble rounded-4 shadow-sm"></div>
           </div>
           <div class="skeleton-message-row system-row d-flex justify-content-start">
             <div class="skeleton-bubble system-skeleton-bubble rounded-4 shadow-sm"></div>
           </div>
-          <div class="skeleton-message-row user-row d-flex justify-content-end">
+          <div class="skeleton-message-row user-row d-flex justify-content-start">
             <div class="skeleton-bubble user-skeleton-bubble rounded-4 shadow-sm" style="width: 40%"></div>
           </div>
           <div class="skeleton-message-row system-row d-flex justify-content-start">
@@ -64,11 +64,11 @@
           <!-- User Chat Bubble -->
           @if (msg.sender === "user") {
             <div class="message-with-sender is-user">
-              <div class="user-bubble p-3 px-4 rounded-4 shadow-sm">
-                <p class="mb-0 text-content">{{ msg.text }}</p>
-              </div>
               <div class="sender-avatar user-avatar" [attr.aria-label]="'User'">
                 {{ userInitials }}
+              </div>
+              <div class="user-bubble p-3 px-4 rounded-4 shadow-sm">
+                <p class="mb-0 text-content">{{ msg.text }}</p>
               </div>
             </div>
           }
@@ -88,6 +88,8 @@
                     <app-selected-flight
                       [itinerary]="msg.itineraries ? msg.itineraries[0] : null"
                       [passengerCountLabel]="msg.passengerCountLabel || ''"
+                      (stopsTriggered)="openStopsModal($event.itinerary, $event.index)"
+                      (policyTriggered)="openCancelPolicy($event)"
                     ></app-selected-flight>
                   }
 
@@ -104,14 +106,14 @@
                           <line x1="12" y1="18" x2="12" y2="12"></line>
                           <polyline points="9 15 12 12 15 15"></polyline>
                         </svg>
-                        Upload Passport
+                        {{ 'MY_TRIPS.UPLOAD_PASSPORT' | translate }}
                       </button>
                       <button class="btn btn-secondary d-flex align-items-center gap-2 px-3 py-2 rounded-3 border-0 font-medium" (click)="enterNamesManually()" [disabled]="msg.actionsDisabled">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                           <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        Enter Names Manually
+                        {{ 'MY_TRIPS.ENTER_NAMES_MANUALLY' | translate }}
                       </button>
                     </div>
                   }
@@ -372,11 +374,13 @@
 
                <!-- Input Textarea (Responsive to full text on mobile) -->
                <textarea
+                 #chatInput
                  class="chat-input-field-v2 flex-grow-1 border-0 bg-transparent px-3 py-1 align-self-center"
                  [placeholder]="'MY_TRIPS.PLACEHOLDER' | translate"
                  [(ngModel)]="newMessage"
                  (keydown)="onInputKeydown($event)"
                  (input)="adjustTextareaHeight($event.target)"
+                 (blur)="onChatInputBlur($event)"
                  rows="1"
                ></textarea>
 
@@ -434,8 +438,12 @@
                <button
                  type="button"
                  class="send-btn-v2 d-flex align-items-center justify-content-center border-0 rounded-circle"
+                 tabindex="-1"
+                 [class.is-busy]="isChatLoading"
+                 [attr.aria-disabled]="isChatLoading"
+                 (pointerdown)="$event.preventDefault()"
+                 (mousedown)="$event.preventDefault()"
                  (click)="submitChat()"
-                 [disabled]="isChatLoading"
                >
                  <svg
                    width="18"
@@ -513,8 +521,8 @@
             <div class="text-end">
               <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">{{ 'POLICY.TOTAL_PRICE' | translate }}</span>
               <strong style="color: #004ac6; font-size: 16px;">
-                {{ getTotalPrice(selectedItineraryForPolicy!) | exchange: 'value' | number: "1.0-0" }}
-                <span style="font-size: 12px;">{{ getCurrencyCode(selectedItineraryForPolicy!) | exchange: 'code' }}</span>
+                {{ policyTotalPrice | exchange: 'value' | number: "1.0-0" }}
+                <span style="font-size: 12px;">{{ policyCurrencyCode | exchange: 'code' }}</span>
               </strong>
             </div>
           </div>
@@ -535,13 +543,13 @@
                         {{ 'POLICY.SECTOR' | translate:{ sector: penalty.sector || ('POLICY.ALL_SECTORS' | translate) } }}
                       </span>
                       <span class="refund-status-pill px-2 py-0.5 rounded text-xs font-bold"
-                            [ngClass]="selectedItineraryForPolicy!.isRefundable ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
+                            [ngClass]="policyIsRefundable ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
                             style="font-size: 11px;">
-                        {{ selectedItineraryForPolicy!.isRefundable ? ('FLIGHTS.REFUNDABLE' | translate) : ('FLIGHTS.NON_REFUNDABLE' | translate) }}
+                        {{ policyIsRefundable ? ('FLIGHTS.REFUNDABLE' | translate) : ('FLIGHTS.NON_REFUNDABLE' | translate) }}
                       </span>
                     </div>
 
-                    @if (selectedItineraryForPolicy!.isRefundable) {
+                    @if (policyIsRefundable) {
                       <div class="d-flex justify-content-between align-items-center mt-1">
                         <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.CANCEL_FEE' | translate }}</span>
                         <strong class="text-dark" style="font-size: 13px;">
@@ -557,7 +565,7 @@
               } @else {
                 <div class="penalty-row p-3 rounded-3 border bg-white">
                   <span class="text-sm text-muted" style="font-size: 13px;">
-                    {{ selectedItineraryForPolicy!.isRefundable ? ('POLICY.REFUNDABLE_STANDARD' | translate) : ('POLICY.NON_REFUNDABLE_SHORT' | translate) }}
+                    {{ policyIsRefundable ? ('POLICY.REFUNDABLE_STANDARD' | translate) : ('POLICY.NON_REFUNDABLE_SHORT' | translate) }}
                   </span>
                 </div>
               }

@@ -90,7 +90,7 @@
                     <span class="detail-text text-muted">
                       {{ 'FLIGHTS.DEPARTURE' | translate }}
                       <strong class="time-value text-dark">{{
-                        getDeptDate(outbound) | date: "hh:mm a, EEE d MMMM yyyy"
+                        formatFlightDate(getDeptDate(outbound))
                       }}</strong>
                     </span>
                   </div>
@@ -104,8 +104,7 @@
                       <span class="detail-text text-muted">
                         {{ 'FLIGHTS.ARRIVAL' | translate }}
                         <strong class="time-value text-dark">{{
-                          getArrDate(outbound)
-                            | date: "hh:mm a, EEE d MMMM yyyy"
+                          formatFlightDate(getArrDate(outbound))
                         }}</strong>
                       </span>
                     </div>
@@ -197,7 +196,7 @@
                     <span class="detail-text text-muted">
                       {{ 'FLIGHTS.DEPARTURE' | translate }}
                       <strong class="time-value text-dark">{{
-                        getDeptDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                        formatFlightDate(getDeptDate(returnF))
                       }}</strong>
                     </span>
                   </div>
@@ -211,7 +210,7 @@
                       <span class="detail-text text-muted">
                         {{ 'FLIGHTS.ARRIVAL' | translate }}
                         <strong class="time-value text-dark">{{
-                          getArrDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                          formatFlightDate(getArrDate(returnF))
                         }}</strong>
                       </span>
                     </div>

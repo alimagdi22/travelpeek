@@ -15,7 +15,8 @@
   </header>
 
   <!-- Document Body Content -->
-  <article class="doc-body d-flex flex-column gap-4">
+  <article *ngIf="cmsHtml" class="doc-body cms-content" [innerHTML]="cmsHtml"></article>
+  <article *ngIf="!cmsHtml" class="doc-body d-flex flex-column gap-4">
     <!-- Section 1 -->
     <section class="doc-section">
       <h2 class="section-heading">1. Introduction</h2>

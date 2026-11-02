@@ -5,7 +5,11 @@
     
     <div class="links-list d-flex flex-column">
       <!-- Link 1: Track a Refund -->
-      <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
+      <a
+        href="#"
+        class="quick-link-item d-flex align-items-center justify-content-between"
+        (click)="$event.preventDefault(); openWhatsApp('SUPPORT.TRACK_REFUND')"
+      >
         <div class="d-flex align-items-center gap-3">
           <img src="/assets/icons/support/take-refund.svg" class="link-icon" [attr.alt]="'SUPPORT.TRACK_REFUND' | translate" />
           <span class="link-text">{{ 'SUPPORT.TRACK_REFUND' | translate }}</span>
@@ -14,7 +18,11 @@
       </a>
 
       <!-- Link 2: Cancel Trip -->
-      <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
+      <a
+        href="#"
+        class="quick-link-item d-flex align-items-center justify-content-between"
+        (click)="$event.preventDefault(); openWhatsApp('SUPPORT.CANCEL_TRIP')"
+      >
         <div class="d-flex align-items-center gap-3">
           <img src="/assets/icons/support/cancel-trip.svg" class="link-icon" [attr.alt]="'SUPPORT.CANCEL_TRIP' | translate" />
           <span class="link-text">{{ 'SUPPORT.CANCEL_TRIP' | translate }}</span>
@@ -23,7 +31,11 @@
       </a>
 
       <!-- Link 3: Get Vouchers -->
-      <a href="#" class="quick-link-item d-flex align-items-center justify-content-between">
+      <a
+        href="#"
+        class="quick-link-item d-flex align-items-center justify-content-between"
+        (click)="$event.preventDefault(); openWhatsApp('SUPPORT.GET_VOUCHERS')"
+      >
         <div class="d-flex align-items-center gap-3">
           <img src="/assets/icons/support/get-vouchers.svg" class="link-icon" [attr.alt]="'SUPPORT.GET_VOUCHERS' | translate" />
           <span class="link-text">{{ 'SUPPORT.GET_VOUCHERS' | translate }}</span>
@@ -45,6 +57,8 @@
       {{ 'SUPPORT.CONCIERGE_DESC' | translate }}
     </p>
     
-    <button class="btn-concierge-action w-100">{{ 'SUPPORT.SPEAK_EXPERT' | translate }}</button>
+    <button type="button" class="btn-concierge-action w-100" (click)="openWhatsApp('SUPPORT.SPEAK_EXPERT')">
+      {{ 'SUPPORT.SPEAK_EXPERT' | translate }}
+    </button>
   </div>
 </div>

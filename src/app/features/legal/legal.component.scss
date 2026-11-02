@@ -116,6 +116,36 @@
   }
 }
 
+:host ::ng-deep .cms-content {
+  font-family: vars.$font-family-base;
+  color: #5c6479;
+  line-height: 1.7;
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: vars.$font-family-display;
+    color: #0b1a30;
+    font-weight: 700;
+    margin: 24px 0 12px;
+  }
+
+  p {
+    margin-bottom: 16px;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 20px;
+    margin-bottom: 16px;
+  }
+
+  a {
+    color: vars.$color-primary;
+  }
+}
+
 /* Main white document card */
 .legal-content-card {
   background-color: #ffffff;

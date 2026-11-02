@@ -3,6 +3,7 @@ import { FlightCheckoutService, FlightResultService, IAirItinerary, IFlight } fr
 import { SharedService } from '../../shared.service';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { formatFlightDateTime, localizeBaggageWeight, localizeCabinClass } from '../../utils/flight-display.util';
 
 @Component({
   selector: 'app-available-flights',
@@ -66,6 +67,10 @@ export class AvailableFlightsComponent {
       : '';
   }
 
+  formatFlightDate(value: string): string {
+    return formatFlightDateTime(value, this.translate.currentLang);
+  }
+
   getStopsLabel(flight: IFlight): string {
     const stops = flight?.stopsNum ?? 0;
     if (stops === 0) return this.translate.instant('FLIGHTS.DIRECT');
@@ -74,24 +79,19 @@ export class AvailableFlightsComponent {
   }
 
   getCabinClassLabel(flight: IFlight, itinerary: IAirItinerary): string {
-    let cabin =
+    const cabin =
       flight?.flightDTO?.[0]?.flightInfo?.cabinClass ||
       itinerary?.cabinClass ||
       '';
-    cabin = cabin.trim();
-    if (!cabin) return '';
-    if (cabin.toLowerCase().includes('class')) {
-      return cabin;
-    }
-    return cabin + ' Class';
+    return localizeCabinClass(cabin, this.translate);
   }
 
   getWeight(flight: IFlight, itinerary: IAirItinerary): string {
     const segBaggage = flight?.flightDTO?.[0]?.segmentDetails?.baggage;
-    if (segBaggage) return segBaggage;
+    if (segBaggage) return localizeBaggageWeight(segBaggage, this.translate);
     const baggageInfo = itinerary?.baggageInformation;
     if (baggageInfo && baggageInfo.length > 0) {
-      return baggageInfo[0].baggage ?? '';
+      return localizeBaggageWeight(baggageInfo[0].baggage ?? '', this.translate);
     }
     return '';
   }

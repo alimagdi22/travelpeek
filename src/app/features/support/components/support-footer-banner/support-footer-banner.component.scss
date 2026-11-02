@@ -11,7 +11,7 @@
     ),
     url("/assets/images/support/questions.png");
   background-size: contain;
-  background-position: right;
+  background-position: right center;
   background-repeat: no-repeat;
   border-radius: 20px;
   padding: 60px 48px;
@@ -19,6 +19,18 @@
   display: flex;
   align-items: center;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.05);
+
+  :host-context([dir='rtl']) & {
+    background-image:
+      linear-gradient(
+        to left,
+        rgba(239, 244, 255, 0.95) 0%,
+        rgba(239, 244, 255, 0.8) 50%,
+        rgba(239, 244, 255, 0) 100%
+      ),
+      url("/assets/images/support/questions.png");
+    background-position: left center;
+  }
 
   @media (max-width: 768px) {
     background-image: linear-gradient(

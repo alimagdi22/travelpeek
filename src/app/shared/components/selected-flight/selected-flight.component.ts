@@ -1,6 +1,7 @@
 import { Component, EventEmitter, HostListener, Input, Output, inject } from '@angular/core';
 import { HomePageService, IAirItinerary, IFlight } from 'rp-travel-ui';
 import { TranslateService } from '@ngx-translate/core';
+import { formatFlightDateTime, localizeBaggageWeight, localizeCabinClass } from '../../utils/flight-display.util';
 
 @Component({
   selector: 'app-selected-flight',
@@ -15,6 +16,8 @@ export class SelectedFlightComponent {
   @Input() passengerCountLabel: string = '';
   @Input() showSelectButton = false;
   @Output() selectClicked = new EventEmitter<IAirItinerary>();
+  @Output() policyTriggered = new EventEmitter<IAirItinerary>();
+  @Output() stopsTriggered = new EventEmitter<{ itinerary: IAirItinerary; index: number }>();
 
   onSelectFlight() {
     if (this.itinerary) {
@@ -75,6 +78,10 @@ export class SelectedFlightComponent {
       : '';
   }
 
+  formatFlightDate(value: string): string {
+    return formatFlightDateTime(value, this.translate.currentLang);
+  }
+
   getStopsLabel(flight: IFlight): string {
     const stops = flight?.stopsNum ?? 0;
     if (stops === 0) return this.translate.instant('FLIGHTS.DIRECT');
@@ -83,24 +90,19 @@ export class SelectedFlightComponent {
   }
 
   getCabinClassLabel(flight: IFlight, itinerary: IAirItinerary): string {
-    let cabin =
+    const cabin =
       flight?.flightDTO?.[0]?.flightInfo?.cabinClass ||
       itinerary?.cabinClass ||
       '';
-    cabin = cabin.trim();
-    if (!cabin) return '';
-    if (cabin.toLowerCase().includes('class')) {
-      return cabin;
-    }
-    return cabin + ' Class';
+    return localizeCabinClass(cabin, this.translate);
   }
 
   getWeight(flight: IFlight, itinerary: IAirItinerary): string {
     const segBaggage = flight?.flightDTO?.[0]?.segmentDetails?.baggage;
-    if (segBaggage) return segBaggage;
+    if (segBaggage) return localizeBaggageWeight(segBaggage, this.translate);
     const baggageInfo = itinerary?.baggageInformation;
     if (baggageInfo && baggageInfo.length > 0) {
-      return baggageInfo[0].baggage ?? '';
+      return localizeBaggageWeight(baggageInfo[0].baggage ?? '', this.translate);
     }
     return '';
   }

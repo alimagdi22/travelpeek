@@ -149,7 +149,7 @@
                   >
                 }
                 <div class="flex-grow-1">
-                  <h4 class="offline-service-name mb-0">{{ service.parentService || service.serviceName }}</h4>
+                  <h4 class="offline-service-name mb-0">{{ getParentServiceName(service) }}</h4>
                   <p class="offline-service-hint mb-0">{{ 'ASSISTANT.CHOOSE_ONE' | translate }}</p>
                 </div>
               </div>
@@ -164,16 +164,16 @@
                   <span class="package-radio" [class.checked]="isServiceSelected(service)"></span>
                   <span class="flex-grow-1">
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
-                      <span>{{ service.serviceName }}</span>
+                      <span>{{ getServiceName(service) }}</span>
                       <span class="offline-service-price">
                         {{ getServiceDisplayedPrice(service) | exchange: 'value' | number: '1.0-0' }}
                         {{ 'EGP' | exchange: 'code' }}
                       </span>
                     </span>
-                    @if (hasHtmlDescription(service.serviceDescription)) {
-                      <span class="package-option-desc" [innerHTML]="service.serviceDescription"></span>
-                    } @else if (service.serviceDescription) {
-                      <span class="package-option-desc">{{ formatPlainDescription(service.serviceDescription) }}</span>
+                    @if (hasHtmlDescription(getServiceDescription(service))) {
+                      <span class="package-option-desc" [innerHTML]="getServiceDescription(service)"></span>
+                    } @else if (getServiceDescription(service)) {
+                      <span class="package-option-desc">{{ formatPlainDescription(getServiceDescription(service)) }}</span>
                     }
                   </span>
                 </button>
@@ -187,16 +187,16 @@
                   <span class="package-radio" [class.checked]="isServiceSelected(altService)"></span>
                   <span class="flex-grow-1">
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
-                      <span>{{ altService.serviceName }}</span>
+                      <span>{{ getServiceName(altService) }}</span>
                       <span class="offline-service-price">
                         {{ getServiceDisplayedPrice(altService) | exchange: 'value' | number: '1.0-0' }}
                         {{ 'EGP' | exchange: 'code' }}
                       </span>
                     </span>
-                    @if (hasHtmlDescription(altService.serviceDescription)) {
-                      <span class="package-option-desc" [innerHTML]="altService.serviceDescription"></span>
-                    } @else if (altService.serviceDescription) {
-                      <span class="package-option-desc">{{ formatPlainDescription(altService.serviceDescription) }}</span>
+                    @if (hasHtmlDescription(getServiceDescription(altService))) {
+                      <span class="package-option-desc" [innerHTML]="getServiceDescription(altService)"></span>
+                    } @else if (getServiceDescription(altService)) {
+                      <span class="package-option-desc">{{ formatPlainDescription(getServiceDescription(altService)) }}</span>
                     }
                   </span>
                 </button>
@@ -210,14 +210,14 @@
                 <img
                   class="offline-service-image"
                   [src]="getServiceImage(service)"
-                  [alt]="service.serviceName"
+                  [alt]="getServiceName(service)"
                   (error)="onServiceImageError(service)"
                 >
               }
               <div class="flex-grow-1 min-w-0">
                 <div class="d-flex align-items-start justify-content-between gap-2">
                   <h4 class="offline-service-name mb-0">
-                    {{ service.serviceName }}
+                    {{ getServiceName(service) }}
                     @if (service.recommended) {
                       <span class="recommended-badge">{{ 'ASSISTANT.RECOMMENDED' | translate }}</span>
                     }
@@ -234,10 +234,10 @@
             </div>
 
             @if (normalizeServiceType(service) !== 'checkbox') {
-              @if (hasHtmlDescription(service.serviceDescription)) {
-                <div class="offline-service-desc mt-2" [innerHTML]="service.serviceDescription"></div>
-              } @else if (service.serviceDescription) {
-                <p class="offline-service-desc mt-2 mb-0">{{ formatPlainDescription(service.serviceDescription) }}</p>
+              @if (hasHtmlDescription(getServiceDescription(service))) {
+                <div class="offline-service-desc mt-2" [innerHTML]="getServiceDescription(service)"></div>
+              } @else if (getServiceDescription(service)) {
+                <p class="offline-service-desc mt-2 mb-0">{{ formatPlainDescription(getServiceDescription(service)) }}</p>
               }
             }
 
@@ -248,7 +248,7 @@
                   [checked]="isServiceSelected(service)"
                   (change)="toggleCheckboxService(service, $any($event.target).checked)"
                 >
-                <span>{{ formatPlainDescription(service.serviceDescription) || ('ASSISTANT.ADD_SERVICE' | translate) }}</span>
+                <span>{{ formatPlainDescription(getServiceDescription(service)) || ('ASSISTANT.ADD_SERVICE' | translate) }}</span>
               </label>
             }
 

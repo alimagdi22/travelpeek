@@ -3,7 +3,7 @@ import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService, HomePageService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
-import { DatePipe } from '@angular/common';
+import { formatFlightDateTime, localizeCabinClass } from '../../shared/utils/flight-display.util';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Message } from '../../core/models/message.interface';
 import { PassengerFormData, PassengerFormPrefill } from './components/passenger-form/passenger-form.component';
@@ -21,7 +21,10 @@ import { SmartAssistantSidebarComponent } from './components/smart-assistant-sid
 export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, DoCheck {
   @ViewChild('suggestionsSlider') suggestionsSliderRef?: ElementRef<HTMLElement>;
   @ViewChild('smartAssistantSidebar') smartAssistantSidebar?: SmartAssistantSidebarComponent;
+  @ViewChild('chatInput') chatInputRef?: ElementRef<HTMLTextAreaElement>;
   private swiperInitialized = false;
+  private keepChatInputFocused = false;
+  private chatInputFocusTimers: ReturnType<typeof setTimeout>[] = [];
 
   readonly isMyTrips: boolean = true;
   messages: Message[] = [];
@@ -79,7 +82,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private subscription = new Subscription();
   private wegoSelectionInProgress = false;
   private wegoLandingStarted = false;
+  private wegoLandingInitializing = false;
   private wegoNotifySub: Subscription | null = null;
+  private chatWelcomeKey = 'MY_TRIPS.WELCOME';
+  private chatSequenceId = 0;
+  private typewriterWaiters: Array<() => void> = [];
   private filterFormSub: Subscription | null = null;
   private systemAnimationQueue: Message[] = [];
   private isSystemAnimating = false;
@@ -141,9 +148,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   getPassengerLabel(passenger: { type: 'adult' | 'child' | 'infant'; index: number } | undefined): string {
-    if (!passenger) return 'passenger';
-    const typeCapitalized = passenger.type.charAt(0).toUpperCase() + passenger.type.slice(1);
-    return `${typeCapitalized} ${passenger.index}`;
+    if (!passenger) return this.translate.instant('checkout.PASSENGER_TYPES.UNKNOWN');
+    const typeKey = `checkout.PASSENGER_TYPES.${passenger.type.toUpperCase()}`;
+    return this.translate.instant('MY_TRIPS.PASSENGER_LABEL', {
+      type: this.translate.instant(typeKey),
+      index: passenger.index,
+    });
   }
 
   ngAfterViewChecked() {
@@ -151,6 +161,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.initSuggestionsSwiper();
       this.swiperInitialized = true;
     }
+    this.applyChatInputFocus();
   }
 
   private initSuggestionsSwiper() {
@@ -190,6 +201,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
 
     this.generateChatId();
+    this.captureWegoParams(this.route.snapshot.queryParamMap);
+    const isWegoLanding = this.sharedService.hasWegoClickId() && this.hasWegoFlightParams();
+    if (isWegoLanding) {
+      this.wegoLandingStarted = true;
+      this.wegoLandingInitializing = true;
+    }
 
     // Listen to user profile notify events to refresh history on login/logout
     this.subscription.add(
@@ -203,6 +220,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sharedService.selectedItinerary$.subscribe((itinerary) => {
         if (itinerary) {
           this.showStopsModal = false;
+          if (this.wegoLandingInitializing || this.wegoSelectionInProgress) {
+            return;
+          }
           if (this.sharedService.hasWegoClickId()) {
             this.startWegoSelectedFlightFlow(itinerary);
           } else {
@@ -243,8 +263,13 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             ) {
               return;
             }
-            this.messages.push(msg);
-            this.scrollToBottom();
+            if (this.isSystemAnimating || this.systemAnimationQueue.length > 0) {
+              this.systemAnimationQueue.push(msg);
+              this.processNextSystemAnimation();
+            } else {
+              this.messages.push(msg);
+              this.scrollToBottom();
+            }
           }
         }
       }),
@@ -286,7 +311,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.loadSearchHistory();
     }
 
-    this.captureWegoParams(this.route.snapshot.queryParamMap);
     this.subscription.add(
       this.route.queryParamMap.subscribe((params) => this.captureWegoParams(params)),
     );
@@ -302,12 +326,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.sharedService.clearSearchQuery();
       this.sendMessage(query);
     } else {
-      this.initializeChat();
+      this.initializeChat(
+        this.sharedService.hasWegoClickId() ? 'MY_TRIPS.WEGO_WELCOME' : 'MY_TRIPS.WELCOME',
+      );
     }
 
-    if (this.sharedService.hasWegoClickId() && this.hasWegoFlightParams() && !this.wegoLandingStarted) {
-      this.wegoLandingStarted = true;
+    if (isWegoLanding) {
       this.startWegoSelectedFlightFlow();
+      this.wegoLandingInitializing = false;
     }
   }
   get isLoggedIn(): boolean {
@@ -361,7 +387,240 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       formatted = formatted.replace(chatIDRegex, displayName);
     }
 
-    return formatted;
+    return this.localizeChatDisplayText(formatted);
+  }
+
+  private localizeChatDisplayText(text: string): string {
+    if (!text) return '';
+    const trimmed = String(text).trim();
+    if (trimmed === 'Please provide contact details, phone and email.') {
+      return this.translate.instant('MY_TRIPS.CONTACT_PROMPT');
+    }
+    if (trimmed === 'Perfect! I now have all the required contact details.') {
+      return this.translate.instant('MY_TRIPS.CONTACT_SAVED');
+    }
+    if (trimmed === 'Perfect! I now have all the required traveler details.') {
+      return this.translate.instant('MY_TRIPS.TRAVELER_SAVED');
+    }
+    if (trimmed === 'Please wait while providing payment methods.') {
+      return this.translate.instant('MY_TRIPS.PAYMENT_WAIT');
+    }
+    if (trimmed === 'Failed to read the passport. Please try again.') {
+      return this.translate.instant('MY_TRIPS.PASSPORT_READ_FAILED');
+    }
+    if (trimmed === 'Failed to read the passport. Please try again or enter the details manually.') {
+      return this.translate.instant('MY_TRIPS.PASSPORT_READ_FAILED_MANUAL');
+    }
+    if (trimmed === 'Please select a flight before uploading a passport.') {
+      return this.translate.instant('MY_TRIPS.SELECT_FLIGHT_BEFORE_PASSPORT');
+    }
+    if (trimmed === 'No flights found matching your query. Please try again.') {
+      return this.translate.instant('MY_TRIPS.NO_FLIGHTS_FOUND');
+    }
+
+    const foundFlightsMatch = trimmed.match(
+      /^Found flights matching your search: from "(.+)" to "(.+)" on "(.+)"\.$/i,
+    );
+    if (foundFlightsMatch) {
+      return this.translate.instant('MY_TRIPS.FOUND_FLIGHTS', {
+        from: this.localizePlaceName(foundFlightsMatch[1]),
+        to: this.localizePlaceName(foundFlightsMatch[2]),
+        date: this.localizeLongDate(foundFlightsMatch[3]),
+      });
+    }
+
+    const uploadedMatch = trimmed.match(/^Uploaded passport copy:\s*(.+)$/i);
+    if (uploadedMatch) {
+      return this.translate.instant('MY_TRIPS.UPLOADED_PASSPORT_COPY', { name: uploadedMatch[1].trim() });
+    }
+
+    const passengerRecordedMatch = trimmed.match(
+      /^Information for (.+) has been successfully recorded\. Please provide the details for (.+) to continue\.$/i,
+    );
+    if (passengerRecordedMatch) {
+      return this.translate.instant('MY_TRIPS.PASSENGER_RECORDED', {
+        completed: this.localizePassengerPhrase(passengerRecordedMatch[1]),
+        next: this.localizePassengerPhrase(passengerRecordedMatch[2]),
+      });
+    }
+
+    const passportSubmittedMatch = trimmed.match(
+      /^my first name is (.+) my last name is (.+) , my gender is (.+) , my birthday is (.+) , my passport number is (.+) , passport expiry is (.+) , issue country is (.+)$/i,
+    );
+    if (passportSubmittedMatch) {
+      return this.translate.instant('MY_TRIPS.PASSPORT_SUBMITTED', {
+        firstName: passportSubmittedMatch[1].trim(),
+        lastName: passportSubmittedMatch[2].trim(),
+        gender: this.localizeGenderDisplay(passportSubmittedMatch[3]),
+        birthday: passportSubmittedMatch[4].trim(),
+        passportNumber: passportSubmittedMatch[5].trim(),
+        expiry: passportSubmittedMatch[6].trim(),
+        country: passportSubmittedMatch[7].trim(),
+      });
+    }
+
+    if (/^Passport details were read successfully\./i.test(trimmed) || /^First name:/im.test(trimmed)) {
+      return this.localizePassportDetailsBlock(trimmed);
+    }
+    if (/^enter names manually$/i.test(trimmed)) {
+      return this.translate.instant('MY_TRIPS.ENTER_NAMES_MANUALLY');
+    }
+    if (/^upload passport$/i.test(trimmed)) {
+      return this.translate.instant('MY_TRIPS.UPLOAD_PASSPORT');
+    }
+
+    const contactMatch = trimmed.match(/^my email is (.+) and my phone is (.+)$/i);
+    if (contactMatch) {
+      return this.translate.instant('MY_TRIPS.CONTACT_SUBMITTED', {
+        email: contactMatch[1].trim(),
+        phone: contactMatch[2].trim(),
+      });
+    }
+
+    const passengerPromptMatch = trimmed.match(
+      /^Excellent choice\. I'm ready to book your (.+) flight to (.+)\. To finalize the booking, I need a few more details\. Could you provide the first name\s*,\s*last name\s*,\s*birthdate\s*,\s*passport number, passport expiry date and issue country or upload a passport copy of (.+)\?$/i,
+    );
+    if (passengerPromptMatch) {
+      return this.translate.instant('MY_TRIPS.PASSENGER_PROMPT', {
+        airline: passengerPromptMatch[1].trim(),
+        city: this.localizePlaceName(passengerPromptMatch[2]),
+        passenger: this.localizePassengerPhrase(passengerPromptMatch[3]),
+      });
+    }
+
+    const passengerDetailsMatch = trimmed.match(
+      /^I need a few more details\. Could you provide the first name,\s*last name,\s*gender,\s*birthdate\s*,\s*passport number, passport expiry date and issue country or upload a passport copy of (.+)\?$/i,
+    );
+    if (passengerDetailsMatch) {
+      return this.translate.instant('MY_TRIPS.PASSENGER_DETAILS_PROMPT', {
+        passenger: this.localizePassengerPhrase(passengerDetailsMatch[1]),
+      });
+    }
+
+    const searchMatch = trimmed.match(
+      /^Searching for (one-way|round-trip) flights from (.+) to (.+) on (.+?)\.?$/i,
+    );
+    if (searchMatch) {
+      const isRoundTrip = searchMatch[1].toLowerCase() === 'round-trip';
+      return this.translate.instant(
+        isRoundTrip ? 'MY_TRIPS.SEARCHING_ROUND_TRIP' : 'MY_TRIPS.SEARCHING_ONE_WAY',
+        {
+          from: this.localizePlaceName(searchMatch[2]),
+          to: this.localizePlaceName(searchMatch[3]),
+          date: this.localizeLongDate(searchMatch[4]),
+        },
+      );
+    }
+
+    return text;
+  }
+
+  private localizeGenderDisplay(value: string): string {
+    const gender = String(value || '').trim().toLowerCase();
+    if (gender === 'f' || gender === 'female' || gender === 'mrs' || gender === 'ms' || gender === 'miss') {
+      return this.translate.instant('FORMS.FEMALE');
+    }
+    if (gender === 'm' || gender === 'male' || gender === 'mr') {
+      return this.translate.instant('FORMS.MALE');
+    }
+    return String(value || '').trim();
+  }
+
+  private localizePassportDetailsBlock(text: string): string {
+    let result = String(text || '');
+    result = result.replace(
+      /^Passport details were read successfully\./im,
+      this.translate.instant('MY_TRIPS.PASSPORT_READ_SUCCESS'),
+    );
+    const fields: Array<[RegExp, string, boolean]> = [
+      [/^First name:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_FIRST_NAME', false],
+      [/^Last name:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_LAST_NAME', false],
+      [/^Date of birth:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_DOB', false],
+      [/^Gender:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_GENDER', true],
+      [/^Nationality:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_NATIONALITY', false],
+      [/^Passport number:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_NUMBER', false],
+      [/^Expiry date:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_EXPIRY', false],
+      [/^Issuing country:\s*(.+)$/gim, 'MY_TRIPS.PASSPORT_FIELD_ISSUING', false],
+    ];
+    for (const [pattern, key, isGender] of fields) {
+      result = result.replace(pattern, (_match, value) =>
+        this.translate.instant(key, {
+          value: isGender ? this.localizeGenderDisplay(value) : String(value).trim(),
+        }),
+      );
+    }
+    return result;
+  }
+
+  private localizePassengerPhrase(label: string): string {
+    const match = String(label || '').trim().match(/^(Adult|Child|Infant)\s+(\d+)$/i);
+    if (!match) return String(label || '').trim();
+    return this.translate.instant('MY_TRIPS.PASSENGER_LABEL', {
+      type: this.translate.instant(`checkout.PASSENGER_TYPES.${match[1].toUpperCase()}`),
+      index: match[2],
+    });
+  }
+
+  private localizePlaceName(value: string): string {
+    const name = String(value || '').trim();
+    const cityKeys: Record<string, string> = {
+      cairo: 'HOME.CITIES.CAIRO',
+      cai: 'HOME.CITIES.CAIRO',
+      dubai: 'HOME.CITIES.DUBAI',
+      dxb: 'HOME.CITIES.DUBAI',
+      istanbul: 'HOME.CITIES.ISTANBUL',
+      ist: 'HOME.CITIES.ISTANBUL',
+      paris: 'HOME.CITIES.PARIS',
+      london: 'HOME.CITIES.LONDON',
+      tokyo: 'HOME.CITIES.TOKYO',
+      rome: 'HOME.CITIES.ROME',
+      'new york': 'HOME.CITIES.NEW_YORK',
+      bangkok: 'HOME.CITIES.BANGKOK',
+      barcelona: 'HOME.CITIES.BARCELONA',
+      amsterdam: 'HOME.CITIES.AMSTERDAM',
+      singapore: 'HOME.CITIES.SINGAPORE',
+      madrid: 'HOME.CITIES.MADRID',
+      'kuala lumpur': 'HOME.CITIES.KUALA_LUMPUR',
+    };
+    const key = cityKeys[name.toLowerCase()];
+    return key ? this.translate.instant(key) : name;
+  }
+
+  private localizeLongDate(value: string): string {
+    const raw = String(value || '').replace(/\.$/, '').trim();
+    const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    let year: number;
+    let monthIndex: number;
+    let day: number;
+    if (iso) {
+      year = Number(iso[1]);
+      monthIndex = Number(iso[2]) - 1;
+      day = Number(iso[3]);
+    } else {
+      const parsed = new Date(raw);
+      if (Number.isNaN(parsed.getTime())) return raw;
+      year = parsed.getFullYear();
+      monthIndex = parsed.getMonth();
+      day = parsed.getDate();
+    }
+    const monthKeys = [
+      'MY_TRIPS.MONTHS.JANUARY',
+      'MY_TRIPS.MONTHS.FEBRUARY',
+      'MY_TRIPS.MONTHS.MARCH',
+      'MY_TRIPS.MONTHS.APRIL',
+      'MY_TRIPS.MONTHS.MAY',
+      'MY_TRIPS.MONTHS.JUNE',
+      'MY_TRIPS.MONTHS.JULY',
+      'MY_TRIPS.MONTHS.AUGUST',
+      'MY_TRIPS.MONTHS.SEPTEMBER',
+      'MY_TRIPS.MONTHS.OCTOBER',
+      'MY_TRIPS.MONTHS.NOVEMBER',
+      'MY_TRIPS.MONTHS.DECEMBER',
+    ];
+    const month = this.translate.instant(monthKeys[monthIndex] || monthKeys[0]);
+    return this.translate.currentLang === 'ar'
+      ? `${day} ${month} ${year}`
+      : `${month} ${day}, ${year}`;
   }
 
   defaultSearchLoadingMessages: string[] = [
@@ -486,6 +745,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   ngOnDestroy() {
+    this.cancelChatSequence();
+    this.clearChatInputFocusTimers();
+    this.keepChatInputFocused = false;
     this.clearHumanLoadingCycle();
     this.stopLoadingMessageCycle();
     this.stopVoice({ cancel: true });
@@ -564,7 +826,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         if (!error && response && response.success && response.data && response.data.items) {
           const rawMessages: Message[] = response.data.items.map((msgItem: any) => ({
             sender: (msgItem.role === 'User' ? 'user' : 'system') as 'user' | 'system',
-            text: msgItem.role === 'User' ? msgItem.content : this.formatAiMessageText(msgItem.content),
+            text: this.localizeChatDisplayText(
+              msgItem.role === 'User' ? msgItem.content : this.formatAiMessageText(msgItem.content),
+            ),
             timestamp: new Date(msgItem.createdAt)
           }));
           const deduplicated: Message[] = [];
@@ -635,6 +899,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   startNewChat() {
+    this.cancelChatSequence();
     this.messages = [];
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
@@ -648,16 +913,18 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.initializeChat();
   }
 
-  initializeChat() {
+  initializeChat(welcomeKey = 'MY_TRIPS.WELCOME') {
+    this.cancelChatSequence();
     this.messages = [];
     this.systemAnimationQueue = [];
     this.isSystemAnimating = false;
     this.resetFlightServiceState();
     this.didFollowUpSearch = false;
     this.didShowFollowUpClientMessage = false;
+    this.chatWelcomeKey = welcomeKey;
     this.sharedService.addMessage({
       sender: 'system',
-      text: this.translate.instant('MY_TRIPS.WELCOME'),
+      text: this.translate.instant(welcomeKey),
     });
   }
 
@@ -674,16 +941,16 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     // Add user message
     this.sharedService.addMessage({
       sender: 'user',
-      text: text,
+      text: this.localizeChatDisplayText(text),
     });
 
     this.newMessage = '';
-    const textarea = document.querySelector(
-      '.chat-input-field-v2',
-    ) as HTMLTextAreaElement;
+    const textarea = this.chatInputRef?.nativeElement
+      || document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement | null;
     if (textarea) {
       textarea.style.height = 'auto';
     }
+    this.focusChatInput();
 
     if (window.innerWidth <= 991) {
       this.scrollToMessageTop();
@@ -691,6 +958,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.scrollToBottom();
     }
     this.isTyping = true;
+    this.focusChatInput();
 
     await this.ensureConversationSaved(text);
 
@@ -711,11 +979,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           const response = this.flightResultService.ContactResponseAi;
 
           if (response) {
-            // Always display the system reply in the chat window
-            this.sharedService.addMessage({
-              sender: 'system',
-              text: response.reply,
-            });
+            const replyText = this.localizeChatDisplayText(response.reply || '');
+            const contactSavedText = this.translate.instant('MY_TRIPS.CONTACT_SAVED');
+            if (replyText) {
+              this.sharedService.addMessage({
+                sender: 'system',
+                text: replyText,
+              });
+            }
 
             if (response.status === 'completed') {
               // Store contact details in sharedService object
@@ -726,18 +997,24 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
               this.isEnteringContactDetails = false;
 
-              this.sharedService.addMessage({
-                sender: 'system',
-                text: 'Perfect! I now have all the required contact details.',
-              });
+              if (replyText.trim() !== contactSavedText.trim()) {
+                this.sharedService.addMessage({
+                  sender: 'system',
+                  text: contactSavedText,
+                });
+              }
 
               // Prompt for first passenger
               const firstPassenger = this.passengerList[0];
               const targetPassengerLabel = firstPassenger
                 ? this.getPassengerLabel(firstPassenger)
-                : 'Adult 1';
+                : this.getPassengerLabel({ type: 'adult', index: 1 });
 
-              const promptText = `Excellent choice. I'm ready to book your ${this.airlineName} flight to ${this.destCity}. To finalize the booking, I need a few more details. Could you provide the first name , last name , birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
+              const promptText = this.translate.instant('MY_TRIPS.PASSENGER_PROMPT', {
+                airline: this.airlineName,
+                city: this.localizePlaceName(this.destCity),
+                passenger: targetPassengerLabel,
+              });
 
               this.sharedService.addMessage({
                 sender: 'system',
@@ -750,7 +1027,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             // Error handling
             this.sharedService.addMessage({
               sender: 'system',
-              text: 'Failed to process contact details. Please try again.',
+              text: this.translate.instant('MY_TRIPS.FAILED_CONTACT'),
             });
           }
           this.scrollToBottom();
@@ -783,7 +1060,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             // Always display the system reply in the chat window
             this.sharedService.addMessage({
               sender: 'system',
-              text: response.reply,
+              text: this.localizeChatDisplayText(response.reply || ''),
             });
 
             // Show Secure Payment Card only if booking status is completed
@@ -795,7 +1072,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             // Error handling
             this.sharedService.addMessage({
               sender: 'system',
-              text: 'Failed to process booking details. Please try again.',
+              text: this.translate.instant('MY_TRIPS.FAILED_BOOKING'),
             });
           }
           this.scrollToBottom();
@@ -810,11 +1087,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   async submitChat() {
+    if (this.isChatLoading) return;
+    this.focusChatInput();
     if (this.isListening || this.isRecording) {
       await this.finishVoiceAndSend();
       return;
     }
     this.sendMessage(this.newMessage);
+    this.focusChatInput();
   }
 
   get voicePreview(): string {
@@ -1238,7 +1518,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
           try {
             await firstValueFrom(
-              this.sharedService.saveMessage(newId, 'Assistant', this.translate.instant('MY_TRIPS.WELCOME'))
+              this.sharedService.saveMessage(newId, 'Assistant', this.translate.instant(this.chatWelcomeKey))
             );
           } catch (e) {
             console.error('Error saving greeting:', e);
@@ -1414,11 +1694,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       const deptFrom = flight?.departingFrom || '';
       const arrTo = flight?.arrivingTo || '';
       const deptDate = flight?.departingOnDate ? flight.departingOnDate.split('T')[0] : '';
-      replyText = `Found flights matching your search: from "${deptFrom}" to "${arrTo}" on "${deptDate}".`;
+      replyText = this.translate.instant('MY_TRIPS.FOUND_FLIGHTS', {
+        from: this.localizePlaceName(deptFrom),
+        to: this.localizePlaceName(arrTo),
+        date: this.localizeLongDate(deptDate),
+      });
     } else {
       const rawError = this.flightResultService.normalError;
-      let errorMessage =
-        'No flights found matching your query. Please try again.';
+      let errorMessage = this.translate.instant('MY_TRIPS.NO_FLIGHTS_FOUND');
       if (rawError) {
         if (typeof rawError === 'string') {
           errorMessage = rawError;
@@ -1426,7 +1709,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           errorMessage =
             (rawError as any).message ||
             (rawError as any).error?.message ||
-            'Failed to search flights.';
+            this.translate.instant('MY_TRIPS.NO_FLIGHTS_FOUND');
         }
       }
       replyText = errorMessage;
@@ -1493,6 +1776,50 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.submitChat();
+    }
+  }
+
+  private focusChatInput() {
+    this.keepChatInputFocused = true;
+    this.clearChatInputFocusTimers();
+    this.applyChatInputFocus();
+    for (const delay of [0, 50, 120, 250, 400]) {
+      this.chatInputFocusTimers.push(setTimeout(() => this.applyChatInputFocus(), delay));
+    }
+  }
+
+  private applyChatInputFocus() {
+    if (!this.keepChatInputFocused) return;
+    const input = this.chatInputRef?.nativeElement
+      || document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement | null;
+    if (!input) return;
+    input.focus();
+    const length = input.value.length;
+    try {
+      input.setSelectionRange(length, length);
+    } catch {
+      // Some browsers throw if the field is not yet ready.
+    }
+  }
+
+  private clearChatInputFocusTimers() {
+    this.chatInputFocusTimers.forEach((timer) => clearTimeout(timer));
+    this.chatInputFocusTimers = [];
+  }
+
+  onChatInputBlur(event: FocusEvent) {
+    const next = event.relatedTarget as HTMLElement | null;
+    if (next?.closest('.send-btn-v2')) {
+      this.focusChatInput();
+      return;
+    }
+    if (next && next.closest('button, a, input, select, textarea, [contenteditable="true"]') && next !== this.chatInputRef?.nativeElement) {
+      this.keepChatInputFocused = false;
+      this.clearChatInputFocusTimers();
+      return;
+    }
+    if (this.keepChatInputFocused) {
+      this.applyChatInputFocus();
     }
   }
 
@@ -1597,6 +1924,24 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     const lang = String(language || '').toLowerCase();
     if (lang === 'en' || lang === 'ar') {
       this.languageService.setLanguage(lang as AppLanguage);
+      this.translate.use(lang as AppLanguage).subscribe({
+        next: () => this.refreshWegoWelcomeMessage(),
+        error: () => this.refreshWegoWelcomeMessage(),
+      });
+      return;
+    }
+    this.refreshWegoWelcomeMessage();
+  }
+
+  private refreshWegoWelcomeMessage(): void {
+    if (this.chatWelcomeKey !== 'MY_TRIPS.WEGO_WELCOME') {
+      return;
+    }
+    const welcomeMsg = this.messages.find(
+      (msg) => msg.sender === 'system' && !!msg.text && !msg.itineraries,
+    );
+    if (welcomeMsg) {
+      welcomeMsg.text = this.translate.instant('MY_TRIPS.WEGO_WELCOME');
     }
   }
 
@@ -1639,11 +1984,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
       this.applyWegoSelectedLanguage(selected.searchCriteria?.language);
       this.persistWegoSearchCriteria(selected);
-      this.isSmartAssistantVisible = true;
       this.sharedService.setSelectedItinerary(selectedItinerary);
-      this.handleFlightSelection(selectedItinerary);
-      this.wegoSelectionInProgress = false;
-      this.isTyping = false;
+      void this.handleFlightSelection(selectedItinerary).finally(() => {
+        this.wegoSelectionInProgress = false;
+      });
     });
 
     this.flightCheckoutService.getSelectedFlightData(
@@ -1835,13 +2179,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     return this.sharedService.getLastSmartAssistantSnapshot()?.comparisonFlights || [];
   }
 
-  handleFlightSelection(itinerary: IAirItinerary) {
+  async handleFlightSelection(itinerary: IAirItinerary) {
     if (this.flightCheckoutService) {
       this.flightCheckoutService.paymentError = false;
       this.flightCheckoutService.selectedFlightError = false;
       this.flightCheckoutService.payLaterSuccess = null;
     }
-    this.isSmartAssistantVisible = true;
     this.initializePassengerList();
     const passengerLabel = this.getPassengersCountLabel();
     this.selectedItinerary = itinerary;
@@ -1856,54 +2199,48 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.isEnteringContactDetails = true;
     this.isEnteringNamesManually = false;
 
-    // Outbound details for user message
     const deptDate = outbound?.flightDTO?.[0]?.departureDate ?? '';
     const segs = outbound?.flightDTO;
     const arrDate =
       segs && segs.length > 0 ? (segs[segs.length - 1]?.arrivalDate ?? '') : '';
-    let cabinClass =
-      outbound?.flightDTO?.[0]?.flightInfo?.cabinClass ||
-      itinerary?.cabinClass ||
-      '';
-    cabinClass = cabinClass.trim();
-    if (cabinClass && !cabinClass.toLowerCase().includes('class')) {
-      cabinClass = cabinClass + ' Class';
-    }
+    const cabinClass = localizeCabinClass(
+      outbound?.flightDTO?.[0]?.flightInfo?.cabinClass || itinerary?.cabinClass || '',
+      this.translate,
+    );
 
-    const datePipe = new DatePipe('en-US');
-    const formattedDept =
-      datePipe.transform(deptDate, 'hh:mm a, EEE d MMMM yyyy') || deptDate;
-    const formattedArr =
-      datePipe.transform(arrDate, 'hh:mm a, EEE d MMMM yyyy') || arrDate;
-
-    // 1. Add user message saying "I selected the flight with..."
+    const formattedDept = formatFlightDateTime(deptDate, this.translate.currentLang) || deptDate;
+    const formattedArr = formatFlightDateTime(arrDate, this.translate.currentLang) || arrDate;
     const userMsgText = `I selected the flight with ${this.airlineName}, departure date ${formattedDept}, arrival date ${formattedArr} and class ${cabinClass}`;
-    this.sharedService.addMessage({
+    const promptText = this.translate.instant('MY_TRIPS.CONTACT_PROMPT');
+    const sequenceId = this.beginChatSequence();
+    this.isTyping = false;
+
+    await this.waitForSystemIdle(sequenceId);
+    if (!this.isSequenceActive(sequenceId)) return;
+
+    await this.addSequencedMessage(sequenceId, {
       sender: 'user',
       text: userMsgText,
     });
-
-    // 2. Add selected flight
-    this.sharedService.addMessage({
+    this.isSmartAssistantVisible = true;
+    await this.addSequencedMessage(sequenceId, {
       sender: 'system',
       text: '',
       itineraries: [JSON.parse(JSON.stringify(itinerary))],
       isFlightSelection: true,
       passengerCountLabel: passengerLabel,
     });
-
-    // 3. Prompt for contact details — text bubble first, then form-only bubble
-    const promptText = `Please provide contact details, phone and email.`;
-    this.sharedService.addMessage({
+    await this.addSequencedMessage(sequenceId, {
       sender: 'system',
       text: promptText,
     });
-    this.sharedService.addMessage({
+    await this.addSequencedMessage(sequenceId, {
       sender: 'system',
       text: '',
       showContactForm: true,
     });
 
+    if (!this.isSequenceActive(sequenceId)) return;
     if (window.innerWidth <= 991) {
       this.scrollToMessageTop();
     } else {
@@ -1944,7 +2281,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.disableCurrentActionButtons();
     this.sharedService.addMessage({
       sender: 'user',
-      text: `Uploaded passport copy: ${file.name}`,
+      text: this.translate.instant('MY_TRIPS.UPLOADED_PASSPORT_COPY', { name: file.name }),
     });
 
     if (window.innerWidth <= 991) {
@@ -1956,7 +2293,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     if (!this.selectedItinerary) {
       this.sharedService.addMessage({
         sender: 'system',
-        text: 'Please select a flight before uploading a passport.',
+        text: this.translate.instant('MY_TRIPS.SELECT_FLIGHT_BEFORE_PASSPORT'),
       });
       return;
     }
@@ -1976,7 +2313,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       if (this.flightResultService.normalErrorStatus) {
         this.sharedService.addMessage({
           sender: 'system',
-          text: this.flightResultService.normalError || 'Failed to read the passport. Please try again.',
+          text: this.localizeChatDisplayText(
+            this.flightResultService.normalError || this.translate.instant('MY_TRIPS.PASSPORT_READ_FAILED'),
+          ),
         });
         this.scrollToBottom();
         return;
@@ -1984,10 +2323,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
       const parsed = this.parsePassportUploadResponse(this.flightResultService.uploadPassportResponseAi);
       if (!parsed.ok || !parsed.traveler) {
-        const missing = parsed.missingFields.length ? ` Missing: ${parsed.missingFields.join(', ')}.` : '';
+        const missing = parsed.missingFields.length
+          ? this.translate.instant('MY_TRIPS.PASSPORT_MISSING', { fields: parsed.missingFields.join(', ') })
+          : '';
         this.sharedService.addMessage({
           sender: 'system',
-          text: `${parsed.reply || 'Failed to read the passport. Please try again or enter the details manually.'}${missing}`,
+          text: `${this.localizeChatDisplayText(parsed.reply || this.translate.instant('MY_TRIPS.PASSPORT_READ_FAILED_MANUAL'))}${missing}`,
         });
         this.scrollToBottom();
         return;
@@ -2023,7 +2364,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     });
     const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
     const targetPassengerLabel = msg.passengerLabel
-      || (currentPassenger ? this.getPassengerLabel(currentPassenger) : 'Adult 1');
+      || (currentPassenger ? this.getPassengerLabel(currentPassenger) : this.getPassengerLabel({ type: 'adult', index: 1 }));
     this.sharedService.addMessage({
       sender: 'system',
       text: '',
@@ -2159,18 +2500,33 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   private formatPassportDetailsMessage(traveler: Record<string, string | null>, reply?: string): string {
+    const header = this.localizeChatDisplayText(reply || this.translate.instant('MY_TRIPS.PASSPORT_READ_SUCCESS'));
     const lines = [
-      reply || 'Passport details were read successfully.',
+      header,
       '',
-      traveler['firstName'] ? `First name: ${traveler['firstName']}` : '',
-      traveler['lastName'] ? `Last name: ${traveler['lastName']}` : '',
-      traveler['dateOfBirth'] ? `Date of birth: ${traveler['dateOfBirth']}` : '',
-      traveler['gender'] ? `Gender: ${traveler['gender']}` : '',
-      traveler['nationality'] ? `Nationality: ${traveler['nationality']}` : '',
-      traveler['passportNumber'] ? `Passport number: ${traveler['passportNumber']}` : '',
-      traveler['passportExpiry'] ? `Expiry date: ${traveler['passportExpiry']}` : '',
+      traveler['firstName']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_FIRST_NAME', { value: traveler['firstName'] })
+        : '',
+      traveler['lastName']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_LAST_NAME', { value: traveler['lastName'] })
+        : '',
+      traveler['dateOfBirth']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_DOB', { value: traveler['dateOfBirth'] })
+        : '',
+      traveler['gender']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_GENDER', { value: this.localizeGenderDisplay(traveler['gender']) })
+        : '',
+      traveler['nationality']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_NATIONALITY', { value: traveler['nationality'] })
+        : '',
+      traveler['passportNumber']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_NUMBER', { value: traveler['passportNumber'] })
+        : '',
+      traveler['passportExpiry']
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_EXPIRY', { value: traveler['passportExpiry'] })
+        : '',
       traveler['passportIssuedCountry'] && traveler['passportIssuedCountry'] !== traveler['nationality']
-        ? `Issuing country: ${traveler['passportIssuedCountry']}`
+        ? this.translate.instant('MY_TRIPS.PASSPORT_FIELD_ISSUING', { value: traveler['passportIssuedCountry'] })
         : '',
     ].filter((line, index) => index < 2 || line);
     return lines.join('\n').trim();
@@ -2195,7 +2551,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       const nextLabel = this.getPassengerLabel(nextPassenger);
       this.sharedService.addMessage({
         sender: 'system',
-        text: `Information for ${completedLabel} has been successfully recorded. Please provide the details for ${nextLabel} to continue.`,
+        text: this.translate.instant('MY_TRIPS.PASSENGER_RECORDED', {
+          completed: completedLabel,
+          next: nextLabel,
+        }),
         isFlightSelection: true,
         showBookingPrompt: true,
       });
@@ -2209,7 +2568,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     console.log('Final travellersDetails:', this.sharedService.travellersDetails);
     this.sharedService.addMessage({
       sender: 'system',
-      text: 'Please wait while providing payment methods.',
+      text: this.translate.instant('MY_TRIPS.PAYMENT_WAIT'),
     });
     this.flightResultService.loading = true;
     this.startLoadingMessageCycle(this.paymentLoadingMessages);
@@ -2231,7 +2590,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.stopLoadingMessageCycle();
       this.sharedService.addMessage({
         sender: 'system',
-        text: 'Failed to load payment methods. Please try again.',
+        text: this.translate.instant('MY_TRIPS.FAILED_PAYMENT_METHODS'),
       });
       return;
     }
@@ -2257,7 +2616,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         console.error('Error adding payment gateways:', err);
         this.sharedService.addMessage({
           sender: 'system',
-          text: 'Failed to load payment methods. Please try again.',
+          text: this.translate.instant('MY_TRIPS.FAILED_PAYMENT_METHODS'),
         });
         this.scrollToBottom();
       },
@@ -2274,7 +2633,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.disableCurrentActionButtons();
     this.sharedService.addMessage({
       sender: 'user',
-      text: 'Enter Names Manually',
+      text: this.translate.instant('MY_TRIPS.ENTER_NAMES_MANUALLY'),
     });
 
     if (window.innerWidth <= 991) {
@@ -2293,8 +2652,10 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       const currentPassenger = this.passengerList[this.currentPassengerIndex] || this.passengerList[0];
       const targetPassengerLabel = currentPassenger
         ? this.getPassengerLabel(currentPassenger)
-        : (this.getPassengersCountLabel().toLowerCase() || 'passenger');
-      const promptText = `I need a few more details. Could you provide the first name, last name, gender, birthdate , passport number, passport expiry date and issue country or upload a passport copy of ${targetPassengerLabel}?`;
+        : this.getPassengerLabel({ type: 'adult', index: 1 });
+      const promptText = this.translate.instant('MY_TRIPS.PASSENGER_DETAILS_PROMPT', {
+        passenger: targetPassengerLabel,
+      });
 
       // Text bubble first, then form-only bubble
       this.sharedService.addMessage({
@@ -2333,11 +2694,14 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           document.body.scrollHeight,
           document.documentElement.scrollHeight
         );
-        window.scrollTo({
-          top: targetY,
-          behavior: 'smooth'
-        });
+        if (!this.keepChatInputFocused) {
+          window.scrollTo({
+            top: targetY,
+            behavior: 'smooth'
+          });
+        }
       }
+      this.applyChatInputFocus();
     }, 50);
   }
 
@@ -2382,7 +2746,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
 
     this.messages.push(nextMsg);
 
-    if (nextMsg.recommendedHtml) {
+    if (nextMsg.sender === 'user') {
+      nextMsg.isAnimating = false;
+      this.scrollToBottom();
+      this.holdSystemQueue(500);
+    } else if (nextMsg.recommendedHtml) {
       nextMsg.isAnimating = false;
       this.scrollToLastSystemMessage();
       this.processNextSystemAnimation();
@@ -2393,14 +2761,103 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     } else {
       nextMsg.isAnimating = false;
       this.scrollToLastSystemMessage();
-      this.processNextSystemAnimation();
+      this.holdSystemQueue(800);
     }
   }
 
   onTypewriterComplete(msg: Message) {
     msg.isAnimating = false;
     this.isSystemAnimating = false;
+    const waiter = this.typewriterWaiters.shift();
+    waiter?.();
     this.processNextSystemAnimation();
+  }
+
+  private beginChatSequence(): number {
+    this.chatSequenceId += 1;
+    this.typewriterWaiters = [];
+    return this.chatSequenceId;
+  }
+
+  private cancelChatSequence(): void {
+    this.chatSequenceId += 1;
+    this.typewriterWaiters = [];
+    this.isTyping = false;
+  }
+
+  private isSequenceActive(sequenceId: number): boolean {
+    return this.chatSequenceId === sequenceId;
+  }
+
+  private wait(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async waitForSystemIdle(sequenceId: number): Promise<void> {
+    while (this.isSequenceActive(sequenceId)) {
+      const welcomePending =
+        this.chatWelcomeKey === 'MY_TRIPS.WEGO_WELCOME' &&
+        !this.messages.some((msg) => msg.sender === 'system' && !!msg.text?.trim() && !msg.itineraries);
+      const stillAnimating =
+        this.isSystemAnimating ||
+        this.systemAnimationQueue.length > 0 ||
+        this.messages.some((msg) => !!msg.isAnimating);
+      if (!welcomePending && !stillAnimating) {
+        return;
+      }
+      await this.wait(80);
+    }
+  }
+
+  private holdSystemQueue(ms: number): void {
+    this.isSystemAnimating = true;
+    setTimeout(() => {
+      this.isSystemAnimating = false;
+      this.processNextSystemAnimation();
+    }, ms);
+  }
+
+  private waitForTypewriter(timeoutMs = 12000): Promise<void> {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      this.typewriterWaiters.push(finish);
+      setTimeout(() => {
+        const index = this.typewriterWaiters.indexOf(finish);
+        if (index >= 0) {
+          this.typewriterWaiters.splice(index, 1);
+        }
+        finish();
+      }, timeoutMs);
+    });
+  }
+
+  private async addSequencedMessage(
+    sequenceId: number,
+    msg: Partial<Message> & Pick<Message, 'sender' | 'text'>,
+  ): Promise<void> {
+    if (!this.isSequenceActive(sequenceId)) return;
+
+    this.isTyping = true;
+    await this.wait(700);
+    if (!this.isSequenceActive(sequenceId)) {
+      this.isTyping = false;
+      return;
+    }
+
+    this.isTyping = false;
+    const hasTypewriter = msg.sender === 'system' && !!msg.text?.trim();
+    this.sharedService.addMessage(msg);
+
+    if (hasTypewriter) {
+      await this.waitForTypewriter();
+    } else {
+      await this.wait(msg.sender === 'user' ? 500 : 800);
+    }
   }
 
   scrollToMessageTop() {
@@ -2417,11 +2874,12 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
             const headerHeight = header ? header.getBoundingClientRect().height : 70;
             const targetY = window.pageYOffset + elementRect.top - headerHeight - 16;
 
-            // 2. Scroll the entire window
-            window.scrollTo({
-              top: targetY,
-              behavior: 'smooth'
-            });
+            if (!this.keepChatInputFocused) {
+              window.scrollTo({
+                top: targetY,
+                behavior: 'smooth'
+              });
+            }
 
             // 3. Fallback for inner container scroll
             chatContainer.scrollTo({
@@ -2431,16 +2889,51 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
           }
         }
       }
+      this.applyChatInputFocus();
     }, 150);
   }
 
-  getFilteredItineraries(): any[] {
-    const organized = this.flightResultService.orgnizedResponce;
-    if (Array.isArray(organized) && organized.length > 0) {
-      return organized.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
-    }
+  private isFilterOnlyResponse(obj: any): boolean {
+    if (!obj) return false;
+    return Array.isArray(obj.itineraries) && !obj.searchCriteria;
+  }
+
+  private isFilterResponse(): boolean {
     const res = this.flightResultService.response as any;
     const resAi = this.flightResultService.responseAi as any;
+    return (
+      this.isFilterOnlyResponse(res) ||
+      this.isFilterOnlyResponse(resAi) ||
+      this.isFilterOnlyResponse(res?.data) ||
+      this.isFilterOnlyResponse(resAi?.data)
+    );
+  }
+
+  private takeFlightOptions(list: any[]): any[] {
+    if (!Array.isArray(list) || !list.length) return [];
+    return this.isFilterResponse() ? list : list.slice(0, 5);
+  }
+
+  getFilteredItineraries(): any[] {
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+
+    if (this.isFilterResponse()) {
+      const filterList = [
+        res?.itineraries,
+        resAi?.itineraries,
+        res?.data?.itineraries,
+        resAi?.data?.itineraries,
+      ].find((list) => Array.isArray(list));
+      return Array.isArray(filterList) ? filterList : [];
+    }
+
+    const organized = this.flightResultService.orgnizedResponce;
+    if (Array.isArray(organized) && organized.length > 0) {
+      return this.takeFlightOptions(
+        organized.map(group => (Array.isArray(group) ? group[0] : group)),
+      );
+    }
     const candidates = [
       res?.airItineraries,
       resAi?.airItineraries,
@@ -2452,7 +2945,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       res?.data?.itineraries,
     ];
     const direct = candidates.find((list) => Array.isArray(list) && list.length > 0);
-    return direct ? direct.slice(0, 5) : [];
+    return this.takeFlightOptions(direct || []);
   }
 
   get hasFlightResults(): boolean {
@@ -2463,6 +2956,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       (
         this.flightResultService.response?.airItineraries?.length ||
         this.flightResultService.responseAi?.airItineraries?.length ||
+        this.flightResultService.response?.itineraries?.length ||
         this.flightResultService.responseAi?.itineraries?.length ||
         (this.flightResultService.orgnizedResponce?.length ?? 0) > 0
       )
@@ -2479,6 +2973,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   cancelPenalties: any[] = [];
   changePenalties: any[] = [];
   adminCharges: any[] = [];
+  policyIsRefundable = false;
+  policyTotalPrice = 0;
+  policyCurrencyCode = '';
 
   showStopsModal = false;
   selectedItineraryForStops: IAirItinerary | null = null;
@@ -2492,6 +2989,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.cancelPenalties = [];
     this.changePenalties = [];
     this.adminCharges = [];
+    this.policyIsRefundable = !!itinerary.isRefundable;
+    this.policyTotalPrice = itinerary.itinTotalFare?.amount ?? 0;
+    this.policyCurrencyCode = itinerary.itinTotalFare?.currencyCode ?? '';
 
     const searchId = this.getPersistedFlightSearchId();
     const sequenceNum = itinerary.sequenceNum;
@@ -2507,7 +3007,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
         this.isLoadingPolicy = false;
         this.extractFareRules();
       },
-      error: (err) => {
+      error: () => {
         this.isLoadingPolicy = false;
         this.extractFareRules();
       }
@@ -2526,17 +3026,59 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     const itinerary = this.selectedItineraryForPolicy;
     if (!itinerary) return;
 
+    const brand = this.getFirstBrandWithPolicyData();
+    if (brand) {
+      this.applyBrandPolicy(brand, itinerary);
+      return;
+    }
+
+    this.applyItineraryPolicy(itinerary);
+  }
+
+  private getFirstBrandWithPolicyData(): any | null {
     const brand = this.flightResultService.currentSelectedBrands?.[0];
-    const fareBreakdown = brand?.passengerFareBreakDowns?.[0] || itinerary?.passengerFareBreakDownDTOs?.[0];
+    if (!brand) return null;
 
-    if (fareBreakdown) {
-      this.cancelPenalties = fareBreakdown.cancelPenaltyDTOs || [];
-      this.changePenalties = fareBreakdown.changePenaltyDTOs || [];
-    }
+    const breakdowns = this.getBrandFareBreakdowns(brand);
+    const hasPenalties = breakdowns.some((item) =>
+      (Array.isArray(item?.cancelPenaltyDTOs) && item.cancelPenaltyDTOs.length > 0) ||
+      (Array.isArray(item?.changePenaltyDTOs) && item.changePenaltyDTOs.length > 0)
+    );
+    const hasAdminCharges = Array.isArray(brand.adminCharges) && brand.adminCharges.length > 0;
+    if (!hasPenalties && !hasAdminCharges) return null;
+    return brand;
+  }
 
-    if (brand?.adminCharges) {
-      this.adminCharges = brand.adminCharges;
+  private getBrandFareBreakdowns(brand: any): any[] {
+    const breakdowns = brand?.passengerFareBreakDowns || brand?.passengerFareBreakDownDTOs;
+    return Array.isArray(breakdowns) ? breakdowns : [];
+  }
+
+  private applyBrandPolicy(brand: any, itinerary: IAirItinerary) {
+    const fareBreakdown = this.getBrandFareBreakdowns(brand)[0];
+    this.cancelPenalties = fareBreakdown?.cancelPenaltyDTOs || [];
+    this.changePenalties = fareBreakdown?.changePenaltyDTOs || [];
+    this.adminCharges = Array.isArray(brand.adminCharges) ? brand.adminCharges : [];
+    this.policyTotalPrice = brand.itinTotalFare?.amount ?? itinerary.itinTotalFare?.amount ?? 0;
+    this.policyCurrencyCode = brand.itinTotalFare?.currencyCode ?? itinerary.itinTotalFare?.currencyCode ?? '';
+
+    if (typeof brand.isRefundable === 'boolean') {
+      this.policyIsRefundable = brand.isRefundable;
+    } else if (this.cancelPenalties.length > 0) {
+      this.policyIsRefundable = true;
+    } else {
+      this.policyIsRefundable = !!itinerary.isRefundable;
     }
+  }
+
+  private applyItineraryPolicy(itinerary: IAirItinerary) {
+    const fareBreakdown = itinerary.passengerFareBreakDownDTOs?.[0];
+    this.cancelPenalties = fareBreakdown?.cancelPenaltyDTOs || [];
+    this.changePenalties = fareBreakdown?.changePenaltyDTOs || [];
+    this.adminCharges = [];
+    this.policyIsRefundable = !!itinerary.isRefundable;
+    this.policyTotalPrice = itinerary.itinTotalFare?.amount ?? 0;
+    this.policyCurrencyCode = itinerary.itinTotalFare?.currencyCode ?? '';
   }
 
   closePolicyModal() {

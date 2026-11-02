@@ -308,6 +308,34 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     return text.replace(/\r\n/g, ' ').replace(/▪/g, '• ').replace(/\s+/g, ' ').trim();
   }
 
+  private isArabic(): boolean {
+    return this.translate.currentLang === 'ar';
+  }
+
+  getServiceName(service: flightOfflineService | any): string {
+    if (!service) return '';
+    if (this.isArabic()) {
+      return service.serviceNameAr || service.serviceName || '';
+    }
+    return service.serviceName || service.serviceNameAr || '';
+  }
+
+  getServiceDescription(service: flightOfflineService | any): string {
+    if (!service) return '';
+    if (this.isArabic()) {
+      return service.serviceDescriptionAr || service.serviceDescription || '';
+    }
+    return service.serviceDescription || service.serviceDescriptionAr || '';
+  }
+
+  getParentServiceName(service: flightOfflineService | any): string {
+    if (!service) return '';
+    if (this.isArabic()) {
+      return service.parentServiceAr || service.parentService || this.getServiceName(service);
+    }
+    return service.parentService || service.parentServiceAr || this.getServiceName(service);
+  }
+
   toggleCheckboxService(service: flightOfflineService, checked: boolean): void {
     if (checked) {
       this.addService(service);
@@ -578,15 +606,44 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     return this.sharedService.getLastSmartAssistantSnapshot()?.comparisonFlights || [];
   }
 
+  private isFilterOnlyResponse(obj: any): boolean {
+    if (!obj) return false;
+    return Array.isArray(obj.itineraries) && !obj.searchCriteria;
+  }
+
+  private isFilterResponse(): boolean {
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+    return (
+      this.isFilterOnlyResponse(res) ||
+      this.isFilterOnlyResponse(resAi) ||
+      this.isFilterOnlyResponse(res?.data) ||
+      this.isFilterOnlyResponse(resAi?.data)
+    );
+  }
+
+  private takeFlightOptions(list: any[]): any[] {
+    if (!Array.isArray(list) || !list.length) return [];
+    return this.isFilterResponse() ? list : list.slice(0, 5);
+  }
+
   private getCurrentComparisonFlights(): any[] {
-    if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
-      return this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)).slice(0, 5);
+    const res = this.flightResultService.response as any;
+    const resAi = this.flightResultService.responseAi as any;
+
+    if (this.isFilterResponse()) {
+      const filterList = [res?.itineraries, resAi?.itineraries].find((list) => Array.isArray(list));
+      return Array.isArray(filterList) ? filterList : [];
     }
-    const res = this.flightResultService.response;
-    const resAi = this.flightResultService.responseAi;
-    const direct = res?.airItineraries || resAi?.airItineraries || resAi?.itineraries;
+
+    if (this.flightResultService.orgnizedResponce && this.flightResultService.orgnizedResponce.length > 0) {
+      return this.takeFlightOptions(
+        this.flightResultService.orgnizedResponce.map(group => (Array.isArray(group) ? group[0] : group)),
+      );
+    }
+    const direct = res?.airItineraries || resAi?.airItineraries || resAi?.itineraries || res?.itineraries;
     if (direct && direct.length > 0) {
-      return direct.slice(0, 5);
+      return this.takeFlightOptions(direct);
     }
     return [];
   }

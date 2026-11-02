@@ -1,0 +1,141 @@
+<div class="contact-page py-5" [dir]="isRtl ? 'rtl' : 'ltr'">
+  <div class="container">
+    <main class="row g-4 justify-content-between">
+      <aside class="col-12 col-md-4 col-xl-3">
+        <div class="contact-card contact-info">
+          <h1>{{ 'CONTACT.INFO_TITLE' | translate }}</h1>
+
+          <ul>
+            <li>
+              <a [href]="'tel:' + contact.phoneTel">
+                <img src="assets/icons/contact-us/call-icon.svg" [alt]="'CONTACT.PHONE' | translate" />
+                <span>{{ contact.phoneDisplay }}</span>
+              </a>
+            </li>
+            <li>
+              <a [href]="'https://wa.me/' + contact.whatsappNumber" target="_blank" rel="noopener noreferrer">
+                <img src="assets/icons/contact-us/whatsapp-icon.svg" [alt]="'CONTACT.WHATSAPP' | translate" />
+                <span>{{ 'CONTACT.WHATSAPP' | translate }}</span>
+              </a>
+            </li>
+            <li>
+              <a [href]="'mailto:' + contact.email">
+                <img src="assets/icons/contact-us/mail-icon.svg" [alt]="'CONTACT.EMAIL' | translate" />
+                <span>{{ contact.email }}</span>
+              </a>
+            </li>
+          </ul>
+
+          <hr />
+
+          <p>{{ 'CONTACT.SOCIAL' | translate }}</p>
+
+          <div class="links">
+            <a [href]="contact.facebook" target="_blank" rel="noopener noreferrer">
+              <img src="assets/icons/contact-us/facebook-icon.svg" [alt]="'CONTACT.FACEBOOK' | translate" />
+            </a>
+            <a [href]="contact.x" target="_blank" rel="noopener noreferrer">
+              <img src="assets/icons/contact-us/linkedin-icon.svg" [alt]="'CONTACT.X' | translate" />
+            </a>
+            <a [href]="contact.instagram" target="_blank" rel="noopener noreferrer">
+              <img src="assets/icons/contact-us/insta-icon.svg" [alt]="'CONTACT.INSTAGRAM' | translate" />
+            </a>
+          </div>
+
+          <iframe
+            [src]="mapUrl"
+            width="100%"
+            height="250"
+            style="border: 0"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            [title]="'CONTACT.MAP' | translate"
+          ></iframe>
+        </div>
+      </aside>
+
+      <section class="col-12 col-md-7 col-xl-8">
+        <div class="contact-card contact-form-card">
+          <h1>{{ 'CONTACT.FORM_TITLE' | translate }}</h1>
+
+          <form class="wrapper" (ngSubmit)="sendMessage()">
+            <div class="fields">
+              <div>
+                <label for="contact-first-name">{{ 'CONTACT.FIRST_NAME' | translate }}</label>
+                <div class="custom-input-container">
+                  <input
+                    id="contact-first-name"
+                    type="text"
+                    name="firstName"
+                    [(ngModel)]="firstName"
+                    [placeholder]="'CONTACT.FIRST_NAME' | translate"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="contact-last-name">{{ 'CONTACT.LAST_NAME' | translate }}</label>
+                <div class="custom-input-container">
+                  <input
+                    id="contact-last-name"
+                    type="text"
+                    name="lastName"
+                    [(ngModel)]="lastName"
+                    [placeholder]="'CONTACT.LAST_NAME' | translate"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="contact-phone">{{ 'CONTACT.PHONE' | translate }}</label>
+                <div class="custom-input-container">
+                  <input
+                    id="contact-phone"
+                    type="tel"
+                    name="phone"
+                    [(ngModel)]="phone"
+                    [placeholder]="'CONTACT.PHONE' | translate"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="contact-email">{{ 'CONTACT.EMAIL' | translate }}</label>
+                <div class="custom-input-container">
+                  <span class="input-icon">
+                    <img src="assets/icons/email-icon.svg" [alt]="'CONTACT.EMAIL' | translate" />
+                  </span>
+                  <input
+                    id="contact-email"
+                    type="email"
+                    name="email"
+                    [(ngModel)]="email"
+                    [placeholder]="'CONTACT.EMAIL' | translate"
+                  />
+                </div>
+              </div>
+
+              <div class="full-width">
+                <label for="contact-help">{{ 'CONTACT.HELP' | translate }}</label>
+                <div class="custom-input-container">
+                  <textarea
+                    id="contact-help"
+                    name="message"
+                    rows="10"
+                    [(ngModel)]="message"
+                    [placeholder]="'CONTACT.HELP' | translate"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn-send">{{ 'CONTACT.SEND' | translate }}</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>

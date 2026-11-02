@@ -81,6 +81,37 @@
   color: #8b96ad;
 }
 
+.cms-content {
+  font-family: vars.$font-family-base;
+  color: #5c6479;
+  line-height: 1.7;
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: vars.$font-family-display;
+    color: #0b1a30;
+    font-weight: 700;
+    margin: 24px 0 12px;
+  }
+
+  p,
+  ul,
+  ol {
+    margin-bottom: 16px;
+  }
+
+  ul,
+  ol {
+    padding-inline-start: 20px;
+  }
+
+  a {
+    color: vars.$color-primary;
+  }
+}
+
 .btn-feedback {
   background-color: #ffffff;
   border: 1px solid #eaeaea;

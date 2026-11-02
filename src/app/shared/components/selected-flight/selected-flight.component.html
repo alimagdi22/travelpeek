@@ -111,7 +111,7 @@
               <span class="detail-text text-muted">
                 {{ 'FLIGHTS.DEPARTURE' | translate }}
                 <strong class="time-value text-dark">{{
-                  getDeptDate(outbound) | date: "hh:mm a, EEE d MMMM yyyy"
+                  formatFlightDate(getDeptDate(outbound))
                 }}</strong>
               </span>
             </div>
@@ -125,8 +125,7 @@
                 <span class="detail-text text-muted">
                   {{ 'FLIGHTS.ARRIVAL' | translate }}
                   <strong class="time-value text-dark">{{
-                    getArrDate(outbound)
-                      | date: "hh:mm a, EEE d MMMM yyyy"
+                    formatFlightDate(getArrDate(outbound))
                   }}</strong>
                 </span>
               </div>
@@ -137,13 +136,13 @@
           <div
             class="detail-row d-flex flex-wrap align-items-center gap-3 mt-1"
           >
-            <div class="meta-item d-flex align-items-center gap-1">
+            <div class="meta-item d-flex align-items-center gap-1 stops-trigger" (click)="stopsTriggered.emit({ itinerary: itinerary, index: 0 })">
               <img
                 src="/assets/icons/mytrips/direct.svg"
                 class="detail-icon"
                 alt="stops"
               />
-              <span class="meta-text text-primary font-medium">{{
+              <span class="meta-text text-primary font-medium select-stops-label">{{
                 getStopsLabel(outbound)
               }}</span>
             </div>
@@ -218,7 +217,7 @@
               <span class="detail-text text-muted">
                 {{ 'FLIGHTS.DEPARTURE' | translate }}
                 <strong class="time-value text-dark">{{
-                  getDeptDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                  formatFlightDate(getDeptDate(returnF))
                 }}</strong>
               </span>
             </div>
@@ -232,7 +231,7 @@
                 <span class="detail-text text-muted">
                   {{ 'FLIGHTS.ARRIVAL' | translate }}
                   <strong class="time-value text-dark">{{
-                    getArrDate(returnF) | date: "hh:mm a, EEE d MMMM yyyy"
+                    formatFlightDate(getArrDate(returnF))
                   }}</strong>
                 </span>
               </div>
@@ -243,13 +242,13 @@
           <div
             class="detail-row d-flex flex-wrap align-items-center gap-3 mt-1"
           >
-            <div class="meta-item d-flex align-items-center gap-1">
+            <div class="meta-item d-flex align-items-center gap-1 stops-trigger" (click)="stopsTriggered.emit({ itinerary: itinerary, index: 1 })">
               <img
                 src="/assets/icons/mytrips/direct.svg"
                 class="detail-icon"
                 alt="stops"
               />
-              <span class="meta-text text-primary font-medium">{{
+              <span class="meta-text text-primary font-medium select-stops-label">{{
                 getStopsLabel(returnF)
               }}</span>
             </div>
@@ -291,6 +290,10 @@
         >{{ getTotalPrice(itinerary) | exchange : 'value'| number: "1.0-0" }}
         <span class="currency-code">{{ 'EGP' | exchange : 'code' }}</span>
       </span>
+    </div>
+    <div class="policy-badges-container">
+      <span class="refundability" [ngClass]="itinerary.isRefundable ? 'text-success':'text-danger'">{{ itinerary.isRefundable ? ('FLIGHTS.REFUNDABLE' | translate) : ('FLIGHTS.NON_REFUNDABLE' | translate) }}</span>
+      <span class="cancel-policy" (click)="policyTriggered.emit(itinerary)">{{ 'FLIGHTS.CANCEL_POLICY' | translate }}</span>
     </div>
     @if (showSelectButton) {
       <button type="button" class="btn btn-select-flight font-semibold" (click)="onSelectFlight()">
