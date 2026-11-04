@@ -13,7 +13,7 @@
   <div class="amount-box d-flex flex-column gap-2 p-3 px-4 mb-4">
     <div class="d-flex align-items-center justify-content-between">
       <span class="amount-label text-muted">{{ 'FLIGHTS.FLIGHT_FARE' | translate }}</span>
-      <span class="amount-line-value">{{ flightFareInBase | exchange: 'value' | number: "1.0-0" }} <span class="currency">{{ 'EGP' | exchange: 'code' }}</span></span>
+      <span class="amount-line-value">{{ flightFareAmount | exchange: 'value': fareCurrency | number: "1.0-0" }} <span class="currency">{{ fareCurrency | exchange: 'code' }}</span></span>
     </div>
 
     @if (extrasAmount > 0) {
@@ -28,13 +28,13 @@
             </span>
           }
         </span>
-        <span class="amount-line-value">{{ extrasInBase | exchange: 'value' | number: "1.0-0" }} <span class="currency">{{ 'EGP' | exchange: 'code' }}</span></span>
+        <span class="amount-line-value">{{ extrasAmount | exchange: 'value': extrasCurrency | number: "1.0-0" }} <span class="currency">{{ extrasCurrency | exchange: 'code' }}</span></span>
       </div>
     }
 
     <div class="amount-total d-flex align-items-center justify-content-between pt-2">
       <span class="amount-label text-muted">{{ 'FLIGHTS.TOTAL_AMOUNT' | translate }}</span>
-      <span class="amount-value">{{ displayAmountInBase | exchange: 'value' | number: "1.0-0" }} <span class="currency">{{ 'EGP' | exchange: 'code' }}</span></span>
+      <span class="amount-value">{{ displayAmountInSelected | exchange: 'value': selectedCurrencyCode | number: "1.0-0" }} <span class="currency">{{ selectedCurrencyCode | exchange: 'code' }}</span></span>
     </div>
   </div>
 
@@ -44,15 +44,19 @@
     <div class="payment-buttons d-flex gap-3 flex-wrap">
       @for (gate of gateways; track $index) {
         <button 
+          type="button"
           class="payment-btn flex-grow-1 d-flex align-items-center justify-content-center gap-2 px-3 py-2.5 rounded-3 border-0"
           [class.selected]="selectedGateway === gate"
           (click)="selectGatewayMethod(gate)"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
-            <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="2" y1="10" x2="22" y2="10"></line>
-          </svg>
-          {{ getGatewayMethod(gate) }}
+          @if (getGatewayImage(gate)) {
+            <img [src]="getGatewayImage(gate)" [alt]="getGatewayMethod(gate)" />
+          } @else {
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon" aria-hidden="true">
+              <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+          }
         </button>
       }
     </div>

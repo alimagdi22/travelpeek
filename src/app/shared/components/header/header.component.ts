@@ -73,7 +73,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const storedCurrency = this.isBrowser ? sessionStorage.getItem('curr') : null;
-    this.homePageService.getCurrency(storedCurrency || 'EGP');
+    this.homePageService.getCurrency(storedCurrency || CURRENCY_DEFAULT.Currency_Code);
     this.homePageService.getPointOfSale();
     if (storedCurrency) {
       this.subscription.add(

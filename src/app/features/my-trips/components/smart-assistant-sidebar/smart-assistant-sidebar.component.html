@@ -166,8 +166,8 @@
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
                       <span>{{ getServiceName(service) }}</span>
                       <span class="offline-service-price">
-                        {{ getServiceDisplayedPrice(service) | exchange: 'value' | number: '1.0-0' }}
-                        {{ 'EGP' | exchange: 'code' }}
+                        {{ (service.servicePrice || 0) | exchange: 'value': (service.currency || selectedServicesCurrency) | number: '1.0-0' }}
+                        {{ (service.currency || selectedServicesCurrency) | exchange: 'code' }}
                       </span>
                     </span>
                     @if (hasHtmlDescription(getServiceDescription(service))) {
@@ -189,8 +189,8 @@
                     <span class="package-option-title d-flex align-items-center justify-content-between gap-2">
                       <span>{{ getServiceName(altService) }}</span>
                       <span class="offline-service-price">
-                        {{ getServiceDisplayedPrice(altService) | exchange: 'value' | number: '1.0-0' }}
-                        {{ 'EGP' | exchange: 'code' }}
+                        {{ (altService.servicePrice || 0) | exchange: 'value': (altService.currency || selectedServicesCurrency) | number: '1.0-0' }}
+                        {{ (altService.currency || selectedServicesCurrency) | exchange: 'code' }}
                       </span>
                     </span>
                     @if (hasHtmlDescription(getServiceDescription(altService))) {
@@ -223,8 +223,8 @@
                     }
                   </h4>
                   <span class="offline-service-price text-nowrap">
-                    {{ getServiceDisplayedPrice(service) | exchange: 'value' | number: '1.0-0' }}
-                    {{ 'EGP' | exchange: 'code' }}
+                    {{ (service.servicePrice || 0) | exchange: 'value': (service.currency || selectedServicesCurrency) | number: '1.0-0' }}
+                    {{ (service.currency || selectedServicesCurrency) | exchange: 'code' }}
                   </span>
                 </div>
                 @if (service.perPassenger) {
@@ -308,8 +308,8 @@
                     <!-- Adult Fare: -->
                   </p>
                   <p class="mb-0">
-                    {{ 'EGP' | exchange: 'code' }}
-                    {{ getPassengerDisplayedFare(fare) | exchange: 'value' | number: '1.0-0' }}
+                    {{ selectedFlightCurrency | exchange: 'code' }}
+                    {{ getPassengerDisplayedFare(fare) | exchange: 'value': selectedFlightCurrency | number: '1.0-0' }}
                     x {{ fare.passengerQuantity }}
                   </p>
                 </div>
@@ -322,17 +322,17 @@
                           (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount !== fareDto.fareAmount
                         ) {
                           <p class="fare">{{ 'checkout.BreakDown.fareType.baseFare' | translate }}</p>
-                          <p>{{ (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount |exchange:'value'}}</p>
+                          <p>{{ (fare.flightFaresDTOs | fareFilter: 'EquivFare')?.fareAmount | exchange: 'value': selectedFlightCurrency }}</p>
                         } @else {
                           <p class="fare">{{ 'checkout.BreakDown.fareType.baseFare' | translate }}</p>
-                          <p>{{ fareDto.fareAmount |exchange:'value'}}</p>
+                          <p>{{ fareDto.fareAmount | exchange: 'value': selectedFlightCurrency }}</p>
                         }
                       </div>
                     }
                     @if (fareDto.fareType === 'TotalTax') {
                       <div class="ticket-details">
                         <p class="fare">{{ 'checkout.BreakDown.fareType.totalTax' | translate }}</p>
-                        <p>{{ fareDto.fareAmount | exchange:'value'}}</p>
+                        <p>{{ fareDto.fareAmount | exchange: 'value': selectedFlightCurrency }}</p>
                       </div>
                     } -->
                   }
@@ -344,8 +344,8 @@
         <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
           <span>{{ 'ASSISTANT.SELECTED_EXTRAS' | translate }}</span>
           <p class="mb-0">
-            {{ convertToBaseAmount(selectedServicesTotal, selectedServicesCurrency) | exchange: 'value' | number: '1.0-0' }}
-            {{ 'EGP' | exchange: 'code' }}
+            {{ selectedServicesTotal | exchange: 'value': selectedServicesCurrency | number: '1.0-0' }}
+            {{ selectedServicesCurrency | exchange: 'code' }}
           </p>
         </div>
         @if (flightCheckoutService.selectedFlight && flightCheckoutService.selectedFlight.airItineraryDTO && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue && flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue > 0) {
@@ -353,8 +353,8 @@
             <p class="fare">{{ 'COMMON.DISCOUNT' | translate }}</p>
             <p>
               (
-              {{ convertToBaseAmount(flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue, selectedFlightCurrency) | exchange: 'value' | number: '1.0-0' }}
-              {{ 'EGP' | exchange: 'code' }}
+              {{ flightCheckoutService.selectedFlight.airItineraryDTO.itinTotalFare.dValue | exchange: 'value': selectedFlightCurrency | number: '1.0-0' }}
+              {{ selectedFlightCurrency | exchange: 'code' }}
               )
             </p>
           </div>
@@ -365,11 +365,12 @@
             <strong class="fare">{{ 'COMMON.TOTAL' | translate }}</strong>
             <strong>
               @if (sharedService.selectedGatewayAmount > 0) {
-                {{ totalFareWithGateway | exchange: 'value' | number: '1.0-0' }}
+                {{ totalFareWithGateway | exchange: 'value': selectedCurrencyCode | number: '1.0-0' }}
+                {{ selectedCurrencyCode | exchange: 'code' }}
               } @else {
-                {{ totalFareInBase | exchange: 'value' | number: '1.0-0' }}
+                {{ selectedFlightAmount | exchange: 'value': selectedFlightCurrency | number: '1.0-0' }}
+                {{ selectedFlightCurrency | exchange: 'code' }}
               }
-              {{ 'EGP' | exchange: 'code' }}
             </strong>
           </div>
         }
@@ -514,7 +515,8 @@
               </td>
               <td>{{ formatDuration(flight.totalDuration) }}</td>
               <td class="font-semibold text-primary">
-                {{ flight.itinTotalFare.amount | currency: (flight.itinTotalFare.currencyCode || 'EGP'): 'symbol': '1.0-0' }}
+                {{ flight.itinTotalFare.amount | exchange: 'value': flight.itinTotalFare.currencyCode | number: '1.0-0' }}
+                {{ flight.itinTotalFare.currencyCode | exchange: 'code' }}
               </td>
             </tr>
           }

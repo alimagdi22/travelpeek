@@ -85,7 +85,15 @@
     letter-spacing: 0.8px;
   }
 
+  .payment-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
   .payment-btn {
+    flex: 1 1 160px;
+    min-height: 52px;
     background-color: #f3f7ff;
     border: 1px solid transparent;
     color: #5c6479;
@@ -94,6 +102,14 @@
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     border: 1.5px solid rgba(11, 26, 48, 0.05);
+    @media (max-width: 768px) {
+      flex: auto;
+    }
+    img {
+      height: 40px;
+      max-width: 100%;
+      object-fit: contain;
+    }
 
     .btn-icon {
       color: #5c6479;
@@ -111,6 +127,14 @@
 
       .btn-icon {
         color: #004ac6;
+      }
+    }
+
+    @media (max-width: 768px) {
+      min-height: 40px;
+
+      img {
+        height: 22px;
       }
     }
   }

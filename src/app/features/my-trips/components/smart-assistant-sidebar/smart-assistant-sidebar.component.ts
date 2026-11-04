@@ -3,6 +3,7 @@ import { FlightCheckoutService, FlightResultService, HomePageService, IFlight, f
 import { SharedService } from '../../../../shared/shared.service';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { toSelectedCurrency } from '../../../../shared/utils/currency-exchange.util';
 
 @Component({
   selector: 'app-smart-assistant-sidebar',
@@ -117,7 +118,8 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     return first?.currency
       || this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.currencyCode
       || this.sharedService.getSelectedItinerary()?.itinTotalFare?.currencyCode
-      || 'EGP';
+      || this.homePageService.selectedCurrency?.Currency_Code
+      || 'AED';
   }
 
   private waitForSelectedFlightThenLoad(itinerary: any): void {
@@ -648,19 +650,32 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     return [];
   }
 
+  get selectedCurrencyCode(): string {
+    return this.homePageService.selectedCurrency?.Currency_Code || 'AED';
+  }
+
   get selectedFlightCurrency(): string {
     return this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.currencyCode
       || this.selectedServicesCurrency
-      || 'EGP';
+      || this.selectedCurrencyCode;
   }
 
-  get totalFareInBase(): number {
-    const itin = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare;
-    return this.convertToBaseAmount(itin?.amount ?? 0, itin?.currencyCode);
+  get selectedFlightAmount(): number {
+    return this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount ?? 0;
+  }
+
+  get gatewayCurrency(): string {
+    return this.sharedService.selectedGateway?.Currency
+      || this.homePageService.selectedCurrency?.Currency_Code
+      || this.selectedFlightCurrency;
   }
 
   get totalFareWithGateway(): number {
-    return this.totalFareInBase + this.convertToBaseAmount(this.sharedService.selectedGatewayAmount, 'EGP');
+    const itin = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare;
+    return (
+      toSelectedCurrency(this.homePageService, itin?.amount ?? 0, itin?.currencyCode) +
+      toSelectedCurrency(this.homePageService, this.sharedService.selectedGatewayAmount, this.gatewayCurrency)
+    );
   }
 
   getPassengerDisplayedFare(fare: {
@@ -673,33 +688,9 @@ export class SmartAssistantSidebarComponent implements OnInit, OnDestroy {
     const markup =
       this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.mValue ?? 0;
     const quantity = fare?.passengerQuantity || 1;
-    const rawAmount = markup > 0 && fare?.passengerType === 'ADT'
+    return markup > 0 && fare?.passengerType === 'ADT'
       ? fareAmount + markup / quantity
       : fareAmount;
-    return this.convertToBaseAmount(
-      rawAmount,
-      totalFare?.currencyCode || this.selectedFlightCurrency,
-    );
-  }
-
-  getServiceDisplayedPrice(service: { servicePrice?: number; currency?: string } | null): number {
-    return this.convertToBaseAmount(
-      service?.servicePrice ?? 0,
-      service?.currency || this.selectedServicesCurrency,
-    );
-  }
-
-  convertToBaseAmount(price: number, sourceCurrency?: string | null): number {
-    const amount = Number(price);
-    if (!Number.isFinite(amount)) return 0;
-    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
-    if (sourceCode === 'EGP') return amount;
-    const source = this.homePageService.allCurrency.find(
-      (currency) => currency.Currency_Code === sourceCode,
-    );
-    const sourceRate = Number(source?.rate);
-    if (!sourceRate) return amount;
-    return amount / sourceRate;
   }
 
   formatDuration(minutes: number): string {

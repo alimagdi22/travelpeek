@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, inject, OnInit, OnChanges, OnDe
 import { SharedService } from '../../shared.service';
 import { FlightCheckoutApiService, FlightCheckoutService, FlightResultService, HomePageService, IAirItinerary } from 'rp-travel-ui';
 import { Subscription } from 'rxjs';
+import { toSelectedCurrency } from '../../utils/currency-exchange.util';
 
 @Component({
   selector: 'app-secure-payment',
@@ -21,7 +22,7 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   flightCheckoutService = inject(FlightCheckoutService);
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightResultService = inject(FlightResultService);
-  private homePageService = inject(HomePageService);
+  homePageService = inject(HomePageService);
 
   private paymentLinkFailureSubscription!: Subscription;
 
@@ -65,6 +66,11 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   getGatewayMethod(gate: any): string {
     if (!gate) return '';
     return gate.PaymentMethod || gate.paymentMethod || '';
+  }
+
+  getGatewayImage(gate: any): string {
+    if (!gate) return '';
+    return gate.cardImg || gate.CardImg || '';
   }
 
   getGatewayAmount(gate: any): number {
@@ -112,7 +118,8 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
   get fareCurrency(): string {
     return this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.currencyCode
       || this.currency
-      || 'EGP';
+      || this.homePageService.selectedCurrency?.Currency_Code
+      || 'AED';
   }
 
   get extrasCurrency(): string {
@@ -120,37 +127,26 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
       || this.fareCurrency;
   }
 
-  get flightFareInBase(): number {
-    return this.convertToBaseAmount(this.flightFareAmount, this.fareCurrency);
+  get gatewayCurrency(): string {
+    return this.selectedGateway?.Currency
+      || this.homePageService.selectedCurrency?.Currency_Code
+      || this.fareCurrency;
   }
 
-  get extrasInBase(): number {
-    return this.convertToBaseAmount(this.extrasAmount, this.extrasCurrency);
+  get selectedCurrencyCode(): string {
+    return this.homePageService.selectedCurrency?.Currency_Code || 'AED';
   }
 
-  get displayAmountInBase(): number {
+  get displayAmountInSelected(): number {
     const markup = this.selectedGateway ? this.getGatewayAmount(this.selectedGateway) : 0;
     const selectedAmount = this.flightCheckoutService.selectedFlight?.airItineraryDTO?.itinTotalFare?.amount;
     if (typeof selectedAmount === 'number') {
-      return this.convertToBaseAmount(selectedAmount, this.fareCurrency)
-        + this.convertToBaseAmount(markup, 'EGP');
+      return toSelectedCurrency(this.homePageService, selectedAmount, this.fareCurrency)
+        + toSelectedCurrency(this.homePageService, markup, this.gatewayCurrency);
     }
-    return this.convertToBaseAmount(this.amount, this.currency)
-      + this.extrasInBase
-      + this.convertToBaseAmount(markup, 'EGP');
-  }
-
-  convertToBaseAmount(price: number, sourceCurrency?: string | null): number {
-    const amount = Number(price);
-    if (!Number.isFinite(amount)) return 0;
-    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
-    if (sourceCode === 'EGP') return amount;
-    const source = this.homePageService.allCurrency.find(
-      (currency) => currency.Currency_Code === sourceCode,
-    );
-    const sourceRate = Number(source?.rate);
-    if (!sourceRate) return amount;
-    return amount / sourceRate;
+    return toSelectedCurrency(this.homePageService, this.amount, this.currency)
+      + toSelectedCurrency(this.homePageService, this.extrasAmount, this.extrasCurrency)
+      + toSelectedCurrency(this.homePageService, markup, this.gatewayCurrency);
   }
 
   get payLaterSuccess() {
@@ -175,7 +171,7 @@ export class SecurePaymentComponent implements OnInit, OnChanges, OnDestroy {
       };
     }
 
-    const currency = this.currency || 'EGP';
+    const currency = this.currency || this.homePageService.selectedCurrency?.Currency_Code || 'AED';
     const recommended = this.flightCheckoutService.recommendedOfflineService;
     const hasRecommended = !!(
       recommended &&

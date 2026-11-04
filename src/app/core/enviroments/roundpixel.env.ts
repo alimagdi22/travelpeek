@@ -1,6 +1,6 @@
 export let envRP = {
   offlineSeats: 'http://41.223.55.14:7025',
-  searchflowAi: 'https://automation.round-pixel.net',
+  searchflowAi: 'https://automation.travelpeek.com',
   searchflow: 'https://flightsearch.travelpeek.com',
   // searchflow: 'https:///flightsearch.flytoall.com',
   // BookingFlow: 'https://flightflow.travasky.com/',

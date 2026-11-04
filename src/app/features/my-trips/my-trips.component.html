@@ -521,7 +521,7 @@
             <div class="text-end">
               <span class="text-xs text-muted d-block uppercase tracking-wider" style="font-size: 11px; text-transform: uppercase;">{{ 'POLICY.TOTAL_PRICE' | translate }}</span>
               <strong style="color: #004ac6; font-size: 16px;">
-                {{ policyTotalPrice | exchange: 'value' | number: "1.0-0" }}
+                {{ policyTotalPrice | exchange: 'value': policyCurrencyCode | number: "1.0-0" }}
                 <span style="font-size: 12px;">{{ policyCurrencyCode | exchange: 'code' }}</span>
               </strong>
             </div>
@@ -553,8 +553,8 @@
                       <div class="d-flex justify-content-between align-items-center mt-1">
                         <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.CANCEL_FEE' | translate }}</span>
                         <strong class="text-dark" style="font-size: 13px;">
-                          {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
-                          {{ 'EGP' | exchange: 'code' }}
+                          {{ penalty.price | exchange: 'value': penalty.curency | number: '1.0-0' }}
+                          {{ penalty.curency | exchange: 'code' }}
                         </strong>
                       </div>
                     } @else {
@@ -578,8 +578,8 @@
                     <span>{{ 'POLICY.ADMIN_FEE' | translate }}</span>
                   </span>
                   <strong class="text-dark" style="font-size: 13px;">
-                    {{ convertPenaltyToBaseAmount(adminCharges[0].price, adminCharges[0].curency) | exchange: 'value' | number: '1.0-0' }}
-                    {{ 'EGP' | exchange: 'code' }}
+                    {{ adminCharges[0].price | exchange: 'value': adminCharges[0].curency | number: '1.0-0' }}
+                    {{ adminCharges[0].curency | exchange: 'code' }}
                   </strong>
                 </div>
               }
@@ -606,8 +606,8 @@
                     <div class="d-flex justify-content-between align-items-center mt-1">
                       <span class="text-sm text-muted" style="font-size: 13px;">{{ 'POLICY.CHANGE_FEE' | translate }}</span>
                       <strong class="text-dark" style="font-size: 13px;">
-                        {{ convertPenaltyToBaseAmount(penalty.price, penalty.curency) | exchange: 'value' | number: '1.0-0' }}
-                        {{ 'EGP' | exchange: 'code' }}
+                        {{ penalty.price | exchange: 'value': penalty.curency | number: '1.0-0' }}
+                        {{ penalty.curency | exchange: 'code' }}
                       </strong>
                     </div>
                   </div>

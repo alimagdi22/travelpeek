@@ -287,8 +287,8 @@
     <div class="price-section d-flex flex-column">
       <span class="price-label">{{ 'FLIGHTS.TOTAL_PRICE' | translate }}</span>
       <span class="price-value"
-        >{{ getTotalPrice(itinerary) | exchange : 'value'| number: "1.0-0" }}
-        <span class="currency-code">{{ 'EGP' | exchange : 'code' }}</span>
+        >{{ getTotalPrice(itinerary) | exchange : 'value': getCurrencyCode(itinerary) | number: "1.0-0" }}
+        <span class="currency-code">{{ getCurrencyCode(itinerary) | exchange : 'code' }}</span>
       </span>
     </div>
     <div class="policy-badges-container">

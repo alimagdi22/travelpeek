@@ -137,7 +137,8 @@
           @if (priceAmount) {
             <span class="text-xs text-muted d-block" style="font-size: 11px; text-transform: uppercase;">{{ 'STOPS.TOTAL_PRICE' | translate }}</span>
             <strong style="color: #004ac6; font-size: 18px; font-weight: 700;">
-              {{ priceAmount | currency: (currencyCode || 'EGP'): 'symbol': '1.0-0' }}
+              {{ priceAmount | exchange: 'value': currencyCode | number: '1.0-0' }}
+              {{ currencyCode | exchange: 'code' }}
             </strong>
           }
         </div>

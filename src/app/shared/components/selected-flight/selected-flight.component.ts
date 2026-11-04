@@ -1,5 +1,5 @@
 import { Component, EventEmitter, HostListener, Input, Output, inject } from '@angular/core';
-import { HomePageService, IAirItinerary, IFlight } from 'rp-travel-ui';
+import { IAirItinerary, IFlight } from 'rp-travel-ui';
 import { TranslateService } from '@ngx-translate/core';
 import { formatFlightDateTime, localizeBaggageWeight, localizeCabinClass } from '../../utils/flight-display.util';
 
@@ -11,7 +11,6 @@ import { formatFlightDateTime, localizeBaggageWeight, localizeCabinClass } from 
 })
 export class SelectedFlightComponent {
   private translate = inject(TranslateService);
-  private homePageService = inject(HomePageService);
   @Input() itinerary: IAirItinerary | null = null;
   @Input() passengerCountLabel: string = '';
   @Input() showSelectButton = false;
@@ -108,23 +107,11 @@ export class SelectedFlightComponent {
   }
 
   getTotalPrice(itinerary: IAirItinerary): number {
-    return this.convertToBaseAmount(
-      itinerary?.itinTotalFare?.amount ?? 0,
-      itinerary?.itinTotalFare?.currencyCode,
-    );
+    return itinerary?.itinTotalFare?.amount ?? 0;
   }
 
-  convertToBaseAmount(price: number, sourceCurrency?: string | null): number {
-    const amount = Number(price);
-    if (!Number.isFinite(amount)) return 0;
-    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
-    if (sourceCode === 'EGP') return amount;
-    const source = this.homePageService.allCurrency.find(
-      (currency) => currency.Currency_Code === sourceCode,
-    );
-    const sourceRate = Number(source?.rate);
-    if (!sourceRate) return amount;
-    return amount / sourceRate;
+  getCurrencyCode(itinerary: IAirItinerary): string {
+    return itinerary?.itinTotalFare?.currencyCode ?? '';
   }
 
   screenWidth = window.innerWidth;

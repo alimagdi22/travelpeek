@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
 import { FormArray } from '@angular/forms';
-import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService, HomePageService } from 'rp-travel-ui';
+import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
 import { Subscription, firstValueFrom } from 'rxjs';
 import { formatFlightDateTime, localizeCabinClass } from '../../shared/utils/flight-display.util';
@@ -57,7 +57,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   flightCheckoutServiceApi = inject(FlightCheckoutApiService);
   flightCheckoutService = inject(FlightCheckoutService);
   profileService = inject(UserProfileService);
-  homePageService = inject(HomePageService);
   private translate = inject(TranslateService);
   private languageService = inject(LanguageService);
   private route = inject(ActivatedRoute);
@@ -1620,7 +1619,16 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     }
   }
 
+  private isMobileViewport(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 991;
+  }
+
   private focusChatInput() {
+    if (this.isMobileViewport()) {
+      this.keepChatInputFocused = false;
+      this.clearChatInputFocusTimers();
+      return;
+    }
     this.keepChatInputFocused = true;
     this.clearChatInputFocusTimers();
     this.applyChatInputFocus();
@@ -1630,7 +1638,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   private applyChatInputFocus() {
-    if (!this.keepChatInputFocused) return;
+    if (this.isMobileViewport() || !this.keepChatInputFocused) return;
     const input = this.chatInputRef?.nativeElement
       || document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement | null;
     if (!input) return;
@@ -1649,6 +1657,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   onChatInputBlur(event: FocusEvent) {
+    if (this.isMobileViewport()) {
+      this.keepChatInputFocused = false;
+      this.clearChatInputFocusTimers();
+      return;
+    }
     const next = event.relatedTarget as HTMLElement | null;
     if (next?.closest('.send-btn-v2')) {
       this.focusChatInput();
@@ -2928,19 +2941,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.policySubscription.unsubscribe();
       this.policySubscription = null;
     }
-  }
-
-  convertPenaltyToBaseAmount(price: number, sourceCurrency?: string): number {
-    const amount = Number(price);
-    if (!Number.isFinite(amount)) return 0;
-    const sourceCode = String(sourceCurrency || 'EGP').trim().toUpperCase();
-    if (sourceCode === 'EGP') return amount;
-    const source = this.homePageService.allCurrency.find(
-      (currency) => currency.Currency_Code === sourceCode,
-    );
-    const sourceRate = Number(source?.rate);
-    if (!sourceRate) return amount;
-    return amount / sourceRate;
   }
 
   getSectors(itinerary: IAirItinerary): string[] {

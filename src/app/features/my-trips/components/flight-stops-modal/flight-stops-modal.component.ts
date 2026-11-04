@@ -97,7 +97,7 @@ export class FlightStopsModalComponent implements OnChanges, OnDestroy {
 
   get currencyCode(): string {
     const anyLeg = this.leg as any;
-    return anyLeg?.itinTotalFare?.currencyCode ?? 'EGP';
+    return anyLeg?.itinTotalFare?.currencyCode ?? '';
   }
 
   onSelectFlight() {

@@ -152,7 +152,7 @@
                       <span class="card-country text-uppercase">{{ getCountryName(card) }}</span>
                       <span class="card-city mt-1">{{ getCityName(card) }}</span>
                     </div>
-                    <span class="card-price">{{ 'COMMON.FROM' | translate }}  {{ getCardPrice(card) }} {{ getCardCurrency(card) }}</span>
+                    <span class="card-price">{{ 'COMMON.FROM' | translate }} {{ card.cheapestAirItinerary.itinTotalFare.amount | exchange: 'value': getCardCurrency(card) | number: '1.0-0' }} {{ getCardCurrency(card) | exchange: 'code' }}</span>
                   </div>
                   <div class="card-right-code text-uppercase d-flex align-items-center justify-content-end">
                     {{ getAirportCode(card) }}

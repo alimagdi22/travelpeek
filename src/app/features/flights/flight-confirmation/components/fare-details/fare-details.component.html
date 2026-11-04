@@ -1,9 +1,9 @@
 <h2>{{ 'confirmation.fareDetails' | translate }}</h2>
 
 <pre>
-<span>{{ "confirmation.fare" | translate }}</span>           <span class="price">{{totalFare.currencyCode}} {{totalFare.fareAmount}}</span>
+<span>{{ "confirmation.fare" | translate }}</span>           <span class="price">{{ totalFare.currencyCode | exchange: 'code' }} {{ totalFare.fareAmount | exchange: 'value': totalFare.currencyCode | number: '1.0-0' }}</span>
 
-<span>{{ "confirmation.tax" | translate }}</span>            <span class="price">{{totalFare.currencyCode}} {{totalFare.totalTaxes}}</span>
+<span>{{ "confirmation.tax" | translate }}</span>            <span class="price">{{ totalFare.currencyCode | exchange: 'code' }} {{ totalFare.totalTaxes | exchange: 'value': totalFare.currencyCode | number: '1.0-0' }}</span>
 
-<span>{{ "confirmation.total" | translate }}</span>          <span class="price">{{totalFare.currencyCode}} {{totalFare.amount + adds}}</span>
+<span>{{ "confirmation.total" | translate }}</span>          <span class="price">{{ totalFare.currencyCode | exchange: 'code' }} {{ totalFare.amount + adds | exchange: 'value': totalFare.currencyCode | number: '1.0-0' }}</span>
 </pre>

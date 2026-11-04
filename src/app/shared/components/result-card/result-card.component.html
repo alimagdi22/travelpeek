@@ -162,8 +162,8 @@
       itinerary.isRefundable ? "Refundable" : "Non-refundable"
     }}</span>
     <span class="flight-price">
-      {{ totalPrice | number: "1.0-0" }}
-      <span class="currency-label">{{ currencyCode }}</span>
+      {{ totalPrice | exchange: 'value': currencyCode | number: "1.0-0" }}
+      <span class="currency-label">{{ currencyCode | exchange: 'code' }}</span>
     </span>
   </div>
 </div>
