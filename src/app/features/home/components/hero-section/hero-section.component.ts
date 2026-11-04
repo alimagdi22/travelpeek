@@ -30,11 +30,6 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   pendingVoiceDuration = 0;
   isVoicePlaying = false;
   voiceRecorderError = '';
-  private speechRecognition: any = null;
-  private restartSpeechRecognition = false;
-  private typedBeforeVoice = '';
-  private speechRestartTimer: ReturnType<typeof setTimeout> | null = null;
-  private speechErrorCount = 0;
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
   private recordingChunks: Blob[] = [];
@@ -219,12 +214,8 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
   }
 
   private submitHomeSearch() {
-    const transcript = this.searchQuery.trim();
     if (this.pendingVoice) {
-      this.sharedService.setPendingVoiceSearch(this.pendingVoice, transcript);
-      if (transcript) {
-        this.sharedService.setSearchQuery(transcript);
-      }
+      this.sharedService.setPendingVoiceSearch(this.pendingVoice, '');
       this.router.navigate(['/my-trips']);
       return;
     }
@@ -270,16 +261,11 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
 
     this.clearPendingVoice();
     this.cancelVoice();
-    this.typedBeforeVoice = this.searchQuery.trim();
     this.voiceRecorderError = '';
     this.isListening = true;
-    this.restartSpeechRecognition = true;
-    this.speechErrorCount = 0;
     this.discardNextRecording = false;
     this.recordingChunks = [];
     this.recordingSeconds = 0;
-
-    this.startSpeechRecognition();
     void this.startMediaRecording();
   }
 
@@ -288,9 +274,7 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
       this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
       this.isListening = false;
-      this.restartSpeechRecognition = false;
       this.voiceRecorderError = 'Microphone access is needed to record.';
-      this.stopSpeechRecognition();
       return;
     }
 
@@ -347,18 +331,12 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
         void this.stopVoiceAndKeepRecording();
       });
     }, this.maxRecordingSeconds * 1000);
-
-    if (this.isListening && this.restartSpeechRecognition && !this.speechRecognition) {
-      this.startSpeechRecognition();
-    }
   }
 
   private async stopVoiceAndKeepRecording() {
-    this.stopSpeechRecognition();
     this.clearRecordingTimers();
     await this.stopMediaRecorder();
     this.isListening = false;
-    this.typedBeforeVoice = '';
   }
 
   private setPendingVoice(file: File, durationSeconds: number) {
@@ -370,11 +348,9 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
 
   private cancelVoice() {
     this.discardNextRecording = true;
-    this.stopSpeechRecognition();
     this.clearRecordingTimers();
     void this.stopMediaRecorder();
     this.isListening = false;
-    this.typedBeforeVoice = '';
   }
 
   private clearRecordingTimers() {
@@ -385,99 +361,6 @@ export class HeroSectionComponent implements OnInit, OnDestroy {
     if (this.recordingLimitTimer) {
       clearTimeout(this.recordingLimitTimer);
       this.recordingLimitTimer = null;
-    }
-  }
-
-  private startSpeechRecognition() {
-    const Recognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!Recognition) return;
-
-    const recognition = new Recognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = this.languageService.currentLang() === 'ar' ? 'ar-SA' : 'en-US';
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event: any) => {
-      this.speechErrorCount = 0;
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0]?.transcript || '';
-      }
-      this.zone.run(() => {
-        const spoken = String(transcript || '').trim();
-        this.searchQuery = this.typedBeforeVoice
-          ? (spoken ? `${this.typedBeforeVoice} ${spoken}` : this.typedBeforeVoice)
-          : spoken;
-      });
-    };
-    recognition.onerror = (event: any) => {
-      const error = String(event?.error || '');
-      this.zone.run(() => {
-        if (error === 'not-allowed' || error === 'service-not-allowed') {
-          this.restartSpeechRecognition = false;
-          return;
-        }
-        if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture' || error === 'network') {
-          return;
-        }
-        this.speechErrorCount++;
-        if (this.speechErrorCount >= 3) {
-          this.restartSpeechRecognition = false;
-        }
-      });
-    };
-    recognition.onend = () => {
-      this.zone.run(() => this.scheduleSpeechRestart(recognition));
-    };
-    this.speechRecognition = recognition;
-    try {
-      this.zone.runOutsideAngular(() => recognition.start());
-    } catch {
-      this.speechRecognition = null;
-      this.restartSpeechRecognition = false;
-    }
-  }
-
-  private scheduleSpeechRestart(recognition: any) {
-    if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
-      return;
-    }
-    this.typedBeforeVoice = this.searchQuery.trim();
-    if (this.speechRestartTimer) {
-      clearTimeout(this.speechRestartTimer);
-    }
-    this.speechRestartTimer = setTimeout(() => {
-      if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
-        return;
-      }
-      try {
-        this.zone.runOutsideAngular(() => recognition.start());
-      } catch {
-        this.restartSpeechRecognition = false;
-      }
-    }, 250);
-  }
-
-  private stopSpeechRecognition() {
-    this.restartSpeechRecognition = false;
-    if (this.speechRestartTimer) {
-      clearTimeout(this.speechRestartTimer);
-      this.speechRestartTimer = null;
-    }
-    const recognition = this.speechRecognition;
-    this.speechRecognition = null;
-    if (!recognition) return;
-    recognition.onresult = null;
-    recognition.onerror = null;
-    recognition.onend = null;
-    try {
-      recognition.stop();
-    } catch {
-      try {
-        recognition.abort();
-      } catch {
-        // Already stopped.
-      }
     }
   }
 

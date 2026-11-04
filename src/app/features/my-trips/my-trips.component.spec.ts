@@ -166,6 +166,7 @@ describe('MyTripsComponent search results (mocked API)', () => {
           provide: LanguageService,
           useValue: {
             setLanguage: jasmine.createSpy('setLanguage'),
+            currentLang: () => 'en',
           },
         },
         {
@@ -487,44 +488,10 @@ describe('MyTripsComponent search results (mocked API)', () => {
     expect(flightResultService.getDataFromAiUrl).toHaveBeenCalledTimes(1);
   }));
 
-  it('keeps typed text in front of the live voice transcript', () => {
-    component.newMessage = 'Hello';
-    (component as any).typedBeforeVoice = 'Hello';
-    component.applyVoiceTranscript('flights to Dubai');
-    expect(component.newMessage).toBe('Hello flights to Dubai');
-  });
-
-  it('shows the live voice transcript as the client message then searches normally', fakeAsync(() => {
-    const transcript = 'I want to travel from Cairo to Dubai on October 23.';
-    component.applyVoiceTranscript(transcript);
-    expect(component.newMessage).toBe(transcript);
-
-    component.submitChat();
-    tick();
-
-    const userMsg = component.messages.find(
-      (m) => m.sender === 'user' && m.text === transcript,
-    );
-    expect(userMsg).toBeTruthy();
-    expect(flightResultService.getDataFromAiUrl).toHaveBeenCalledWith({
-      chat: transcript,
-      chatID: component.chatID,
-    });
-
-    completeMockedSearch(mockSearchResult, { organized: [] });
-    tick(300);
-    flushSystemMessages();
-    discardPeriodicTasks();
-
-    const resultMsg = [...component.messages].reverse().find((m) => m.sender === 'system' && m.itineraries);
-    expect(resultMsg?.itineraries?.length).toBe(1);
-    expect(component.newMessage).toBe('');
-  }));
-
-  it('uploads the recorded audio and still shows the live transcript as the client message', fakeAsync(() => {
+  it('uploads the recorded audio and shows the backend transcript as the client message', fakeAsync(() => {
     const transcript = 'I want to travel from Cairo to Dubai on October 23.';
     const file = new File(['audio'], 'voice.webm', { type: 'audio/webm' });
-    (component as any).sendVoiceMessage(file, transcript);
+    (component as any).sendVoiceMessage(file, '');
     tick();
 
     const userMsg = component.messages.find(

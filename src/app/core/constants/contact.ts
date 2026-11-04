@@ -1,8 +1,8 @@
 export const CONTACT = {
   phoneDisplay: '+96566414350',
   phoneTel: '+96566414350',
-  whatsappNumber: '96566414350',
-  email: 'travelpeek@gmail.com',
+  whatsappNumber: '971559146282',
+  email: 'support@travelpeek.com',
   facebook: 'https://www.facebook.com',
   x: 'https://x.com/GootajInfo',
   instagram: 'https://www.instagram.com/gootajinfo/',

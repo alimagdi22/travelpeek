@@ -10,11 +10,19 @@ export const CURRENCY_DEFAULT: currencyModel =
   //   rate: 1,
   // };
 
+  // {
+  //   ID: 2026,
+  //   Currency_Code: 'EGP',
+  //   Currency_Name: 'Egyptian Pound',
+  //   Is_Base_Currency: true,
+  //   Image_Url: 'https://images.Travasky.com/Content/Currencies/EGP.JPG',
+  //   rate: 1,
+  // };
   {
-    ID: 2026,
-    Currency_Code: 'EGP',
-    Currency_Name: 'Egyptian Pound',
+    ID: 4039,
+    Currency_Code: 'AED',
+    Currency_Name: 'United Arab Emirates Dirham',
     Is_Base_Currency: true,
-    Image_Url: 'https://images.Travasky.com/Content/Currencies/EGP.JPG',
+    Image_Url: 'https://images.travelnow.global/Content/Currencies/AED.JPG',
     rate: 1,
   };

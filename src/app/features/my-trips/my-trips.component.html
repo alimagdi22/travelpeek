@@ -306,7 +306,7 @@
                      {{ isListening ? ('MY_TRIPS.LISTENING' | translate) : ('MY_TRIPS.VOICE_INPUT' | translate) }}
                    </span>
                    <span class="voice-recorder-subtitle">
-                     {{ isListening ? (voicePreview || ('MY_TRIPS.SPEAK_NOW' | translate)) : ('MY_TRIPS.TAP_MIC' | translate) }}
+                     {{ isListening ? (formatRecordingTime(recordingSeconds) + ' / 0:35') : ('MY_TRIPS.TAP_MIC' | translate) }}
                    </span>
                  </div>
                </div>

@@ -1,4 +1,4 @@
-import { Component, inject, NgZone, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, DoCheck, AfterViewChecked, ViewChild, ElementRef, DestroyRef, HostListener } from '@angular/core';
 import { FormArray } from '@angular/forms';
 import { FlightResultService, IAirItinerary, IFlight, UserProfileService, FlightCheckoutApiService, FlightCheckoutService, HomePageService } from 'rp-travel-ui';
 import { SharedService } from '../../shared/shared.service';
@@ -36,23 +36,7 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   readonly maxRecordingSeconds = 35;
   isRecording = false;
   recordingSeconds = 0;
-  private speechRecognition: {
-    continuous: boolean;
-    interimResults: boolean;
-    lang: string;
-    maxAlternatives?: number;
-    start(): void;
-    stop(): void;
-    abort(): void;
-    onresult: ((event: any) => void) | null;
-    onerror: ((event: any) => void) | null;
-    onend: (() => void) | null;
-  } | null = null;
   private typedBeforeVoice = '';
-  private restartSpeechRecognition = false;
-  private speechRestartTimer: ReturnType<typeof setTimeout> | null = null;
-  private speechErrorCount = 0;
-  private currentSpeechLang = 'en-US';
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
   private recordingChunks: Blob[] = [];
@@ -78,7 +62,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   private languageService = inject(LanguageService);
   private route = inject(ActivatedRoute);
   private sanitizer = inject(DomSanitizer);
-  private zone = inject(NgZone);
   private subscription = new Subscription();
   private wegoSelectionInProgress = false;
   private wegoLandingStarted = false;
@@ -1097,14 +1080,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.focusChatInput();
   }
 
-  get voicePreview(): string {
-    if (!this.isListening) return '';
-    const typed = this.typedBeforeVoice.trim();
-    const current = this.newMessage.trim();
-    if (typed && current.toLowerCase().startsWith(typed.toLowerCase())) {
-      return current.slice(typed.length).trim();
-    }
-    return current;
+  formatRecordingTime(totalSeconds: number): string {
+    const safeSeconds = Math.max(0, Math.min(totalSeconds, this.maxRecordingSeconds));
+    const minutes = Math.floor(safeSeconds / 60);
+    const seconds = safeSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   }
 
   toggleVoiceRecorder() {
@@ -1139,20 +1119,11 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.newMessage = keepTyped;
     this.isVoiceRecorderOpen = true;
     this.isListening = true;
-    this.restartSpeechRecognition = true;
-    this.speechErrorCount = 0;
-    this.currentSpeechLang = this.getSpeechLang();
     this.discardNextRecording = false;
-
-    const Recognition = this.getSpeechRecognitionCtor();
-    if (Recognition) {
-      this.beginSpeechRecognition(Recognition);
-    }
     void this.beginVoiceCapture();
   }
 
   stopVoice(options?: { cancel?: boolean }) {
-    this.stopSpeechRecognition();
     if (options?.cancel) {
       this.discardNextRecording = true;
       void this.stopMediaRecorder();
@@ -1180,28 +1151,21 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
   }
 
   private finishVoiceAndSend() {
-    const liveText = this.newMessage.trim();
-    this.stopSpeechRecognition();
+    const typedText = this.typedBeforeVoice.trim();
+    this.newMessage = typedText;
+    this.resizeChatInput();
     return this.stopMediaRecorder().then((file) => {
       this.isListening = false;
       this.isVoiceRecorderOpen = false;
       this.typedBeforeVoice = '';
       if (file) {
-        this.sendVoiceMessage(file, liveText);
+        this.sendVoiceMessage(file, '');
         return;
       }
-      if (liveText) {
-        this.sendMessage(liveText);
+      if (typedText) {
+        this.sendMessage(typedText);
       }
     });
-  }
-
-  applyVoiceTranscript(spoken: string) {
-    const spokenText = spoken.trim();
-    this.newMessage = this.typedBeforeVoice
-      ? (spokenText ? `${this.typedBeforeVoice} ${spokenText}` : this.typedBeforeVoice)
-      : spokenText;
-    this.resizeChatInput();
   }
 
   private async beginVoiceCapture() {
@@ -1211,7 +1175,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     } catch {
       this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_MIC_ALLOW');
       this.isListening = false;
-      this.restartSpeechRecognition = false;
       this.isVoiceRecorderOpen = true;
       return;
     }
@@ -1226,14 +1189,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
       this.isListening = false;
       this.voiceRecorderError = this.translate.instant('MY_TRIPS.VOICE_NOT_SUPPORTED');
       this.isVoiceRecorderOpen = true;
-      return;
-    }
-
-    if (this.isListening && this.restartSpeechRecognition && !this.speechRecognition) {
-      const Recognition = this.getSpeechRecognitionCtor();
-      if (Recognition) {
-        this.beginSpeechRecognition(Recognition);
-      }
     }
   }
 
@@ -1354,100 +1309,6 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.pollAiFlightSearch(generation);
   }
 
-  private beginSpeechRecognition(Recognition: new () => any) {
-    if (!this.isListening) return;
-
-    const recognition = new Recognition();
-    recognition.continuous = false;
-    recognition.interimResults = true;
-    recognition.lang = this.currentSpeechLang;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = (event: any) => {
-      this.speechErrorCount = 0;
-      let transcript = '';
-      for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0]?.transcript || '';
-      }
-      this.zone.run(() => this.applyVoiceTranscript(transcript));
-    };
-
-    recognition.onerror = (event: any) => {
-      const error = String(event?.error || '');
-      this.zone.run(() => this.handleSpeechError(error));
-    };
-
-    recognition.onend = () => {
-      this.zone.run(() => this.scheduleSpeechRestart(recognition));
-    };
-
-    this.speechRecognition = recognition;
-    try {
-      this.zone.runOutsideAngular(() => recognition.start());
-    } catch {
-      this.speechRecognition = null;
-      this.restartSpeechRecognition = false;
-    }
-  }
-
-  private stopSpeechRecognition() {
-    this.restartSpeechRecognition = false;
-    this.clearSpeechRestartTimer();
-    const recognition = this.speechRecognition;
-    this.speechRecognition = null;
-    if (!recognition) return;
-    recognition.onresult = null;
-    recognition.onerror = null;
-    recognition.onend = null;
-    try {
-      recognition.stop();
-    } catch {
-      try {
-        recognition.abort();
-      } catch {
-        // Browser may already have stopped recognition.
-      }
-    }
-  }
-
-  private handleSpeechError(error: string) {
-    if (error === 'no-speech' || error === 'aborted' || error === 'audio-capture' || error === 'network') {
-      return;
-    }
-    if (error === 'not-allowed' || error === 'service-not-allowed') {
-      this.restartSpeechRecognition = false;
-      return;
-    }
-    if (error === 'language-not-supported' && this.currentSpeechLang !== 'en-US') {
-      this.currentSpeechLang = 'en-US';
-      return;
-    }
-    this.speechErrorCount++;
-    if (this.speechErrorCount >= 3) {
-      this.restartSpeechRecognition = false;
-    }
-  }
-
-  private scheduleSpeechRestart(recognition: { lang: string; start(): void }) {
-    if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
-      return;
-    }
-
-    this.typedBeforeVoice = this.newMessage.trim();
-    this.clearSpeechRestartTimer();
-    this.speechRestartTimer = setTimeout(() => {
-      if (!this.restartSpeechRecognition || !this.isListening || this.speechRecognition !== recognition) {
-        return;
-      }
-      recognition.lang = this.currentSpeechLang;
-      try {
-        this.zone.runOutsideAngular(() => recognition.start());
-      } catch {
-        this.restartSpeechRecognition = false;
-      }
-    }, 250);
-  }
-
   private pickAudioMimeType(): string {
     const types = [
       'audio/webm;codecs=opus',
@@ -1480,29 +1341,9 @@ export class MyTripsComponent implements OnInit, AfterViewChecked, OnDestroy, Do
     this.mediaStream = null;
   }
 
-  private getSpeechLang(): string {
-    const sample = `${this.typedBeforeVoice} ${this.newMessage}`;
-    if (/[\u0600-\u06FF]/.test(sample)) {
-      return 'ar-SA';
-    }
-    return 'en-US';
-  }
-
-  private getSpeechRecognitionCtor(): (new () => any) | null {
-    if (typeof window === 'undefined') return null;
-    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
-  }
-
   private resizeChatInput() {
     const textarea = document.querySelector('.chat-input-field-v2') as HTMLTextAreaElement | null;
     this.adjustTextareaHeight(textarea);
-  }
-
-  private clearSpeechRestartTimer() {
-    if (this.speechRestartTimer) {
-      clearTimeout(this.speechRestartTimer);
-      this.speechRestartTimer = null;
-    }
   }
 
   private async ensureConversationSaved(text: string): Promise<string> {
